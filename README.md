@@ -35,3 +35,9 @@ Open `index.html` in a browser. No build step is required.
 - The exact official logo is `assets/logo/favicon.png`.
 - Read `TOOL-DESIGN-GUIDE.md` before asking an AI to build a new tool.
 - Duplicate `tools/_template/tool-page-template.html` and replace placeholders when creating a new tool page.
+
+
+## File Share P2P
+- Page: `tools/entertainment-tools/file-share-p2p.html`
+- Homepage icon: `assets/images/tools/file-share-p2p.svg`
+- Folder selection and folder drag/drop are packaged into a ZIP archive before being sent through the existing PeerJS/WebRTC file-streaming protocol. The receiver saves the ZIP and can extract it to restore the folder structure.
