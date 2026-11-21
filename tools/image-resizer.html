@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Image Resizer — EasyKity</title>
+<link rel="icon" href="../assets/logo/favicon.svg" type="image/svg+xml">
+<style>
+:root{--bg:#f7f9fd;--surface:#fff;--text:#172033;--muted:#718096;--line:#e7ebf3;--primary:#315eeb}
+[data-theme=dark]{--bg:#0d1422;--surface:#151f31;--text:#f2f5fb;--muted:#a0aec0;--line:#26344b;--primary:#7292ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px "Arial",sans-serif}.wrap{max-width:850px;margin:45px auto;padding:20px}.top{display:flex;justify-content:space-between;align-items:center}.brand{font-weight:800;font-size:22px;color:var(--text);text-decoration:none}.brand span{color:var(--primary)}button,a.btn{background:var(--primary);color:white;border:0;border-radius:10px;padding:11px 16px;font-weight:700;cursor:pointer;text-decoration:none}.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:25px;margin-top:25px}.muted{color:var(--muted)}.drop{display:block;border:2px dashed var(--line);border-radius:14px;padding:35px;text-align:center;cursor:pointer}.drop input{display:none}.fields{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}.fields label{display:grid;gap:7px;color:var(--muted);font-size:13px}.fields input{width:130px;padding:11px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--text)}img{max-width:100%;max-height:360px;object-fit:contain}.preview{text-align:center;margin:18px 0}.actions{display:flex;gap:10px;flex-wrap:wrap}.actions button:disabled{opacity:.45;cursor:not-allowed}@media(max-width:600px){.wrap{margin:15px auto}.panel{padding:17px}.drop{padding:25px 10px}}
+</style>
+</head>
+<body><main class="wrap">
+<div class="top"><a class="brand" href="../index.html">Easy<span>Kity</span></a><button id="theme">☾</button></div>
+<h1>Image Resizer</h1><p class="muted">Resize an image directly in your browser. Your image is not uploaded to a server.</p>
+<section class="panel">
+<label class="drop"><strong>Select an image</strong><p class="muted">Click here to choose JPG, PNG or WebP</p><input id="file" type="file" accept="image/*"></label>
+<div id="editor" hidden>
+<div class="fields">
+<label>Width (px)<input id="width" type="number" min="1" max="12000"></label>
+<label>Height (px)<input id="height" type="number" min="1" max="12000"></label>
+<label>Format<select id="format"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option><option value="image/webp">WebP</option></select></label>
+</div>
+<label><input type="checkbox" id="lock" checked> Keep aspect ratio</label>
+<div class="preview"><img id="preview" alt="Selected image preview"></div>
+<div class="actions"><button id="download">Download resized image</button><button id="reset" type="button" style="background:#64748b">Choose another</button></div>
+</div>
+</section></main>
+<script>
+const file=document.querySelector("#file"),editor=document.querySelector("#editor"),preview=document.querySelector("#preview"),w=document.querySelector("#width"),h=document.querySelector("#height"),format=document.querySelector("#format");
+let image=new Image(),ratio=1;
+file.addEventListener("change",()=>{const f=file.files[0];if(!f)return;const url=URL.createObjectURL(f);image.onload=()=>{ratio=image.width/image.height;w.value=image.width;h.value=image.height;preview.src=url;editor.hidden=false};image.src=url;});
+w.addEventListener("input",()=>{if(document.querySelector("#lock").checked&&w.value)h.value=Math.max(1,Math.round(w.value/ratio));});
+h.addEventListener("input",()=>{if(document.querySelector("#lock").checked&&h.value)w.value=Math.max(1,Math.round(h.value*ratio));});
+document.querySelector("#download").addEventListener("click",()=>{const width=Number(w.value),height=Number(h.value);if(!width||!height||width>12000||height>12000){alert("Enter valid dimensions (1–12000 px).");return;}const canvas=document.createElement("canvas");canvas.width=width;canvas.height=height;const ctx=canvas.getContext("2d");if(format.value==="image/jpeg"){ctx.fillStyle="#fff";ctx.fillRect(0,0,width,height);}ctx.drawImage(image,0,0,width,height);canvas.toBlob(blob=>{if(!blob)return;const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="easykity-resized."+({"image/png":"png","image/jpeg":"jpg","image/webp":"webp"}[format.value]);a.click();URL.revokeObjectURL(a.href);},format.value,.92);});
+document.querySelector("#reset").addEventListener("click",()=>{file.value="";editor.hidden=true;});
+const root=document.documentElement;root.dataset.theme=localStorage.getItem("easykity-theme")||"light";document.querySelector("#theme").onclick=()=>{root.dataset.theme=root.dataset.theme==="dark"?"light":"dark";localStorage.setItem("easykity-theme",root.dataset.theme);};
+</script></body></html>
