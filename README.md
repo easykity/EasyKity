@@ -29,3 +29,9 @@ Open `index.html` in a browser. No build step is required.
 - Tool-category pages are starter placeholders; individual tools can be added inside their matching folders.
 - Google Fonts are loaded remotely; system fonts remain as fallback.
 - Only use properly licensed streams and media sources if adding entertainment/live TV features.
+
+## Tool development standard
+- Default theme is dark; visitor preference is saved.
+- The exact official logo is `assets/logo/favicon.png`.
+- Read `TOOL-DESIGN-GUIDE.md` before asking an AI to build a new tool.
+- Duplicate `tools/_template/tool-page-template.html` and replace placeholders when creating a new tool page.
