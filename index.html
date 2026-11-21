@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="EasyKity — useful digital tools, all in one place.">
+  <meta name="theme-color" content="#315eeb">
+  <title>EasyKity — Everything Made Easy</title>
+  <link rel="icon" href="assets/logo/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="EasyKity home">
+      <img src="assets/logo/easykity.svg" alt="" class="brand-mark">
+      <span>Easy<span class="brand-accent">Kity</span></span>
+    </a>
+    <nav class="desktop-nav" aria-label="Main navigation">
+      <a href="#tools" data-i18n="navTools">All tools</a>
+      <a href="#categories" data-i18n="navCategories">Categories</a>
+      <a href="#about" data-i18n="navAbout">About</a>
+    </nav>
+    <div class="top-actions">
+      <button class="icon-btn" id="languageToggle" type="button" aria-label="Change language">বাংলা</button>
+      <button class="icon-btn theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">☾</button>
+      <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu">☰</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow" data-i18n="eyebrow">YOUR EVERYDAY DIGITAL TOOLKIT</span>
+        <h1 data-i18n="heroTitle">Everything you need.<br><span>One simple place.</span></h1>
+        <p data-i18n="heroText">Discover simple, useful tools that make everyday digital tasks faster and easier.</p>
+        <a class="primary-btn" href="#tools" data-i18n="exploreTools">Explore tools <span>→</span></a>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="orb orb-one"></div><div class="orb orb-two"></div>
+        <div class="floating-card card-main"><span class="card-icon">✦</span><strong>EasyKity</strong><small data-i18n="heroCard">Your tools, simplified</small></div>
+        <div class="floating-card card-small card-small-one">▧ <span>PDF</span></div>
+        <div class="floating-card card-small card-small-two">⌘ <span>Code</span></div>
+        <div class="floating-card card-small card-small-three">◉ <span>Image</span></div>
+      </div>
+    </section>
+
+    <section class="tool-section" id="tools">
+      <div class="section-heading">
+        <div><span class="eyebrow" data-i18n="workspace">WORKSPACE</span><h2 data-i18n="popularTitle">Explore useful tools</h2></div>
+        <span class="tool-count" id="toolCount">8 tools</span>
+      </div>
+      <label class="search-box">
+        <span>⌕</span>
+        <input id="toolSearch" type="search" data-i18n-placeholder="searchPlaceholder" placeholder="Search tools...">
+        <kbd>Ctrl K</kbd>
+      </label>
+      <div class="category-row" id="categories">
+        <button class="category-chip active" data-category="all" data-i18n="allTools">All tools</button>
+        <button class="category-chip" data-category="image" data-i18n="imageTools">Image</button>
+        <button class="category-chip" data-category="pdf" data-i18n="pdfTools">PDF</button>
+        <button class="category-chip" data-category="developer" data-i18n="developerTools">Developer</button>
+        <button class="category-chip" data-category="text" data-i18n="textTools">Text</button>
+        <button class="category-chip" data-category="utility" data-i18n="utilityTools">Utility</button>
+      </div>
+      <div class="tool-grid" id="toolGrid">
+        <article class="tool-card" data-category="image" data-search="image resizer ছবি রিসাইজ">
+          <div class="tool-icon blue">▧</div><span class="tool-label">IMAGE</span><h3 data-i18n="imageResizer">Image Resizer</h3><p data-i18n="imageResizerDesc">Resize images to your preferred dimensions.</p><a href="tools/image-resizer.html" class="text-link" data-i18n="openTool">Open tool →</a>
+        </article>
+        <article class="tool-card" data-category="pdf" data-search="pdf merger merge পিডিএফ">
+          <div class="tool-icon purple">▤</div><span class="tool-label">PDF</span><h3 data-i18n="pdfMerger">PDF Merger</h3><p data-i18n="pdfMergerDesc">Combine multiple PDF files into one.</p><a href="#" class="text-link demo-link" data-i18n="comingSoon">Coming soon</a>
+        </article>
+        <article class="tool-card" data-category="developer" data-search="html validator code checker">
+          <div class="tool-icon orange">&lt;/&gt;</div><span class="tool-label">DEVELOPER</span><h3 data-i18n="htmlChecker">HTML Checker</h3><p data-i18n="htmlCheckerDesc">Quickly inspect and tidy your HTML markup.</p><a href="#" class="text-link demo-link" data-i18n="comingSoon">Coming soon</a>
+        </article>
+        <article class="tool-card" data-category="text" data-search="word counter character count শব্দ">
+          <div class="tool-icon green">¶</div><span class="tool-label">TEXT</span><h3 data-i18n="wordCounter">Word Counter</h3><p data-i18n="wordCounterDesc">Count words and characters in your text.</p><a href="#" class="text-link demo-link" data-i18n="comingSoon">Coming soon</a>
+        </article>
+        <article class="tool-card" data-category="image" data-search="image compressor optimize ছবি কমপ্রেস">
+          <div class="tool-icon pink">◈</div><span class="tool-label">IMAGE</span><h3 data-i18n="imageCompressor">Image Compressor</h3><p data-i18n="imageCompressorDesc">Reduce image file size in your browser.</p><a href="#" class="text-link demo-link" data-i18n="comingSoon">Coming soon</a>
+        </article>
+        <article class="tool-card" data-category="developer" data-search="json formatter validator">
+          <div class="tool-icon blue">{} </div><span class="tool-label">DEVELOPER</span><h3 data-i18n="jsonFormatter">JSON Formatter</h3><p data-i18n="jsonFormatterDesc">Format and validate JSON data.</p><a href="#" class="text-link demo-link" data-i18n="comingSoon">Coming soon</a>
+        </article>
+        <article class="tool-card" data-category="utility" data-search="calculator হিসাব">
+          <div class="tool-icon yellow">＋</div><span class="tool-label">UTILITY</span><h3 data-i18n="calculator">Calculator</h3><p data-i18n="calculatorDesc">A clean calculator for everyday math.</p><a href="#" class="text-link demo-link" data-i18n="comingSoon">Coming soon</a>
+        </article>
+        <article class="tool-card" data-category="utility" data-search="qr code generator">
+          <div class="tool-icon purple">▦</div><span class="tool-label">UTILITY</span><h3 data-i18n="qrGenerator">QR Generator</h3><p data-i18n="qrGeneratorDesc">Create QR codes for links and text.</p><a href="#" class="text-link demo-link" data-i18n="comingSoon">Coming soon</a>
+        </article>
+      </div>
+      <p class="empty-state" id="emptyState" hidden data-i18n="noResults">No tools found. Try another search.</p>
+    </section>
+
+    <section class="bottom-banner" id="about">
+      <div><span class="eyebrow" data-i18n="ourGoal">OUR GOAL</span><h2 data-i18n="bannerTitle">Less hassle. More getting things done.</h2><p data-i18n="bannerText">EasyKity brings practical digital utilities together in one friendly workspace.</p></div>
+      <div class="banner-symbol">EK<span>✦</span></div>
+    </section>
+  </main>
+  <footer><a class="brand footer-brand" href="#"><img src="assets/logo/easykity.svg" alt="" class="brand-mark"><span>Easy<span class="brand-accent">Kity</span></span></a><p data-i18n="footerText">Made to make everyday tasks easier.</p><small>© <span id="year"></span> EasyKity</small></footer>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
