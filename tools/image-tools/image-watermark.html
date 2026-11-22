@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Image Watermark Tool — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">Image Tools</p><div class="drawer-links"><a href="passport-photo-maker.html">Passport Photo</a><a href="image-watermark.html">Watermark</a><a href="image-color-picker.html">Color Picker</a><a href="exif-remover.html">EXIF Remover</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-image">Image Tools</a> / <span>Image Watermark Tool</span></nav>
+      <h1>Image <span class="gradient-text">Watermark</span></h1>
+      <p>Protect your photos with custom text or logo watermarks — single corner or full tiled pattern.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <label class="dropzone" id="dropzone">
+          <input id="fileInput" type="file" accept="image/*">
+          <div class="dropzone-icon">💧</div>
+          <strong>Select or drop your photo</strong>
+          <span>Supports PNG, JPG, WebP</span>
+        </label>
+
+        <div id="workspace" class="tool-layout" hidden>
+          <div class="chip-group">
+            <button type="button" class="chip-btn active ripple-target" data-wmtype="text">🔤 Text Watermark</button>
+            <button type="button" class="chip-btn ripple-target" data-wmtype="logo">🖼️ Logo Watermark</button>
+          </div>
+
+          <div class="control-box tool-layout">
+            <div id="textOpts" class="tool-grid-3">
+              <div class="field"><label for="wmText">Watermark Text</label><input id="wmText" type="text" value="© EasyKity"></div>
+              <div class="field"><label for="wmColor">Text Color</label><input id="wmColor" type="color" value="#ffffff" style="height:44px;width:100%;border-radius:10px;border:1px solid var(--line)"></div>
+              <div class="field"><label for="wmSize">Text Size <span id="szVal">42px</span></label><input id="wmSize" type="range" min="14" max="140" value="42"></div>
+            </div>
+
+            <div id="logoOpts" class="tool-grid-2" hidden>
+              <div class="field"><label for="logoInput">Upload Logo (PNG/SVG)</label><input id="logoInput" type="file" accept="image/*"></div>
+              <div class="field"><label for="logoScale">Logo Width <span id="lsVal">20%</span></label><input id="logoScale" type="range" min="5" max="60" value="20"></div>
+            </div>
+
+            <div class="tool-grid-3">
+              <div class="field"><label for="wmMode">Layout Mode</label><select id="wmMode"><option value="single">Single Position</option><option value="tile">Tiled Pattern (Full Image)</option></select></div>
+              <div class="field" id="posWrap">
+                <label for="wmPos">Position</label>
+                <select id="wmPos">
+                  <option value="br" selected>Bottom Right</option>
+                  <option value="bl">Bottom Left</option>
+                  <option value="center">Center</option>
+                  <option value="tr">Top Right</option>
+                  <option value="tl">Top Left</option>
+                </select>
+              </div>
+              <div class="field"><label for="wmFmt">Export Format</label><select id="wmFmt"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option><option value="image/webp">WebP</option></select></div>
+            </div>
+
+            <div class="tool-grid-2">
+              <div class="field"><label for="wmOpacity">Opacity <span id="opVal">55%</span></label><input id="wmOpacity" type="range" min="5" max="100" value="55"></div>
+              <div class="field"><label for="wmAngle">Rotation Angle <span id="angVal">-20°</span></label><input id="wmAngle" type="range" min="-90" max="90" value="-20"></div>
+            </div>
+          </div>
+
+          <div class="preview-stage"><canvas id="wmCanvas"></canvas></div>
+
+          <div class="action-bar">
+            <button id="dlBtn" type="button" class="primary-btn ripple-target">Download Watermarked Image ⬇</button>
+          </div>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const fileInput = document.getElementById("fileInput"), dropzone = document.getElementById("dropzone");
+      const workspace = document.getElementById("workspace"), canvas = document.getElementById("wmCanvas");
+      let mainImg = new Image(), logoImg = new Image(), wmType = "text", srcUrl = "";
+
+      function render() {
+        if (!mainImg.width) return;
+        const W = mainImg.width, H = mainImg.height;
+        canvas.width = W; canvas.height = H;
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, W, H);
+        ctx.drawImage(mainImg, 0, 0);
+
+        const alpha = Number(document.getElementById("wmOpacity").value) / 100;
+        const angle = (Number(document.getElementById("wmAngle").value) * Math.PI) / 180;
+        const mode = document.getElementById("wmMode").value;
+        const pos = document.getElementById("wmPos").value;
+        const scaleFactor = Math.max(1, W / 800);
+
+        const drawStamp = (cx, cy) => {
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.translate(cx, cy);
+          ctx.rotate(angle);
+          if (wmType === "text") {
+            const text = document.getElementById("wmText").value || "© EasyKity";
+            const px = Number(document.getElementById("wmSize").value) * scaleFactor;
+            ctx.font = `700 ${px}px Inter, Arial, sans-serif`;
+            ctx.fillStyle = document.getElementById("wmColor").value;
+            ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            ctx.shadowColor = "rgba(0,0,0,0.35)"; ctx.shadowBlur = 4;
+            ctx.fillText(text, 0, 0);
+          } else if (logoImg.width) {
+            const lw = (W * Number(document.getElementById("logoScale").value)) / 100;
+            const lh = (lw * logoImg.height) / logoImg.width;
+            ctx.drawImage(logoImg, -lw / 2, -lh / 2, lw, lh);
+          }
+          ctx.restore();
+        };
+
+        if (mode === "tile") {
+          const stepX = Math.max(180, W / 3.2), stepY = Math.max(140, H / 3.2);
+          for (let y = stepY / 2; y < H + stepY; y += stepY) {
+            for (let x = stepX / 2; x < W + stepX; x += stepX) {
+              drawStamp(x, y);
+            }
+          }
+        } else {
+          const padX = W * 0.14, padY = H * 0.1;
+          const map = {
+            tl: [padX, padY], tr: [W - padX, padY],
+            center: [W / 2, H / 2],
+            bl: [padX, H - padY], br: [W - padX, H - padY]
+          };
+          const [cx, cy] = map[pos];
+          drawStamp(cx, cy);
+        }
+      }
+
+      function loadMain(f) {
+        if (!f || !f.type.startsWith("image/")) return;
+        if (srcUrl) URL.revokeObjectURL(srcUrl);
+        srcUrl = URL.createObjectURL(f);
+        mainImg = new Image();
+        mainImg.onload = () => { workspace.hidden = false; render(); };
+        mainImg.src = srcUrl;
+      }
+
+      fileInput.addEventListener("change", () => loadMain(fileInput.files[0]));
+      ["dragenter", "dragover"].forEach((e) => dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.add("dragover"); }));
+      ["dragleave", "drop"].forEach((e) => dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.remove("dragover"); }));
+      dropzone.addEventListener("drop", (e) => loadMain(e.dataTransfer.files[0]));
+
+      document.getElementById("logoInput").addEventListener("change", (e) => {
+        const f = e.target.files[0]; if (!f) return;
+        const u = URL.createObjectURL(f);
+        logoImg = new Image();
+        logoImg.onload = () => render();
+        logoImg.src = u;
+      });
+
+      document.querySelectorAll("[data-wmtype]").forEach((b) => b.onclick = () => {
+        wmType = b.dataset.wmtype;
+        document.querySelectorAll("[data-wmtype]").forEach((x) => x.classList.toggle("active", x === b));
+        document.getElementById("textOpts").hidden = wmType !== "text";
+        document.getElementById("logoOpts").hidden = wmType !== "logo";
+        render();
+      });
+
+      document.getElementById("wmMode").addEventListener("change", (e) => {
+        document.getElementById("posWrap").hidden = e.target.value === "tile";
+        render();
+      });
+
+      ["wmText", "wmColor", "wmSize", "logoScale", "wmPos", "wmOpacity", "wmAngle"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", () => {
+          document.getElementById("szVal").textContent = `${document.getElementById("wmSize").value}px`;
+          document.getElementById("lsVal").textContent = `${document.getElementById("logoScale").value}%`;
+          document.getElementById("opVal").textContent = `${document.getElementById("wmOpacity").value}%`;
+          document.getElementById("angVal").textContent = `${document.getElementById("wmAngle").value}°`;
+          render();
+        });
+      });
+
+      document.getElementById("dlBtn").addEventListener("click", () => {
+        const fmt = document.getElementById("wmFmt").value;
+        const ext = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" }[fmt];
+        const a = document.createElement("a");
+        a.href = canvas.toDataURL(fmt, 0.94); a.download = `easykity-watermarked.${ext}`; a.click();
+      });
+    })();
+  </script>
+</body>
+</html>
