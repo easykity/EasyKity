@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Image Edit — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <link rel="stylesheet" href="../../assets/css/themes.css">
+  <link rel="stylesheet" href="../../assets/css/responsive.css">
+  <link rel="stylesheet" href="../../assets/css/tools-common.css">
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation">
+        <a href="../../index.html">Home</a>
+        <a class="active" href="../../index.html#tools">Tools</a>
+        <a href="../../about.html">About</a>
+        <a href="../../contact.html">Contact</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false">
+          <span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span>
+        </button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden>
+      <div class="container drawer-inner">
+        <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+        <div class="drawer-col"><p class="drawer-title">Image Tools</p><div class="drawer-links"><a href="image-resizer.html">Image Resize</a><a href="image-editor.html">Image Edit</a><a href="image-converter.html">Format Converter</a><a href="image-compressor.html">Compressor</a></div></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero">
+      <div class="container">
+        <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-image">Image Tools</a> / <span>Image Edit</span></nav>
+        <h1>Image <span class="gradient-text">Edit</span></h1>
+        <p>Rotate, flip, crop by ratio, and fine-tune brightness, contrast &amp; colors in real time.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="tool-workspace tool-layout">
+          <label class="dropzone" id="dropzone">
+            <input id="fileInput" type="file" accept="image/*">
+            <div class="dropzone-icon">🎨</div>
+            <strong>Select an image to edit</strong>
+            <span>Everything stays privately on your device</span>
+          </label>
+
+          <div id="errBox" class="alert-box alert-error" hidden></div>
+
+          <div id="workspace" class="tool-layout" hidden>
+            <div class="preview-stage">
+              <canvas id="editCanvas"></canvas>
+            </div>
+
+            <div class="control-box tool-layout">
+              <div class="action-bar">
+                <button type="button" class="secondary-btn ripple-target" id="rotLeft">↺ Rotate -90°</button>
+                <button type="button" class="secondary-btn ripple-target" id="rotRight">↻ Rotate +90°</button>
+                <button type="button" class="secondary-btn ripple-target" id="flipH">⇄ Flip Horizontal</button>
+                <button type="button" class="secondary-btn ripple-target" id="flipV">⇅ Flip Vertical</button>
+                <button type="button" class="secondary-btn ripple-target" id="resetFilters">Reset Edits</button>
+              </div>
+
+              <div>
+                <div style="font-size:0.84rem;font-weight:700;color:var(--muted);margin-bottom:8px">Crop Aspect Ratio</div>
+                <div class="chip-group">
+                  <button type="button" class="chip-btn active ripple-target" data-crop="full">Original</button>
+                  <button type="button" class="chip-btn ripple-target" data-crop="1">1:1 Square</button>
+                  <button type="button" class="chip-btn ripple-target" data-crop="1.7777">16:9 Wide</button>
+                  <button type="button" class="chip-btn ripple-target" data-crop="1.3333">4:3 Classic</button>
+                  <button type="button" class="chip-btn ripple-target" data-crop="0.8">4:5 Portrait</button>
+                </div>
+              </div>
+
+              <div class="tool-grid-2">
+                <div class="field"><label for="bright">Brightness <span id="brightVal">100%</span></label><input id="bright" type="range" min="30" max="200" value="100"></div>
+                <div class="field"><label for="contrast">Contrast <span id="contrastVal">100%</span></label><input id="contrast" type="range" min="30" max="200" value="100"></div>
+                <div class="field"><label for="sat">Saturation <span id="satVal">100%</span></label><input id="sat" type="range" min="0" max="200" value="100"></div>
+                <div class="field"><label for="blur">Blur <span id="blurVal">0px</span></label><input id="blur" type="range" min="0" max="12" value="0"></div>
+              </div>
+
+              <div class="tool-grid-2" style="align-items:center">
+                <label class="check-row"><input id="grayCheck" type="checkbox"> Black &amp; White (Grayscale)</label>
+                <div class="field">
+                  <label for="fmtSelect">Export Format</label>
+                  <select id="fmtSelect">
+                    <option value="image/png">PNG</option>
+                    <option value="image/jpeg">JPG</option>
+                    <option value="image/webp">WebP</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="action-bar">
+              <button id="downloadBtn" class="primary-btn ripple-target" type="button">Download Edited Image ⬇</button>
+              <button id="newImgBtn" class="secondary-btn ripple-target" type="button">Load New Image</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0">
+        <span>© <span data-year></span> EasyKity. All rights reserved.</span>
+        <span><a href="../../index.html#tools">← Back to All Tools</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const fileInput = document.getElementById("fileInput");
+      const dropzone = document.getElementById("dropzone");
+      const workspace = document.getElementById("workspace");
+      const errBox = document.getElementById("errBox");
+      const canvas = document.getElementById("editCanvas");
+      const ctx = canvas.getContext("2d");
+
+      const bright = document.getElementById("bright");
+      const contrast = document.getElementById("contrast");
+      const sat = document.getElementById("sat");
+      const blur = document.getElementById("blur");
+      const grayCheck = document.getElementById("grayCheck");
+      const fmtSelect = document.getElementById("fmtSelect");
+
+      let img = new Image(), rot = 0, flipX = 1, flipY = 1, cropRatio = "full", url = "";
+
+      function render() {
+        if (!img.width) return;
+        const rotated = Math.abs(rot) % 180 === 90;
+        const baseW = rotated ? img.height : img.width;
+        const baseH = rotated ? img.width : img.height;
+
+        // First draw transformed image on offscreen canvas
+        const off = document.createElement("canvas");
+        off.width = baseW;
+        off.height = baseH;
+        const octx = off.getContext("2d");
+        octx.filter = `brightness(${bright.value}%) contrast(${contrast.value}%) saturate(${sat.value}%) blur(${blur.value}px) grayscale(${grayCheck.checked ? 100 : 0}%)`;
+        octx.translate(baseW / 2, baseH / 2);
+        octx.rotate((rot * Math.PI) / 180);
+        octx.scale(flipX, flipY);
+        octx.drawImage(img, -img.width / 2, -img.height / 2);
+
+        // Apply center aspect crop
+        let sx = 0, sy = 0, sw = baseW, sh = baseH;
+        if (cropRatio !== "full") {
+          const targetR = Number(cropRatio);
+          if (baseW / baseH > targetR) {
+            sw = Math.round(baseH * targetR);
+            sx = Math.round((baseW - sw) / 2);
+          } else {
+            sh = Math.round(baseW / targetR);
+            sy = Math.round((baseH - sh) / 2);
+          }
+        }
+
+        canvas.width = sw;
+        canvas.height = sh;
+        ctx.clearRect(0, 0, sw, sh);
+        ctx.drawImage(off, sx, sy, sw, sh, 0, 0, sw, sh);
+      }
+
+      function resetAll() {
+        rot = 0; flipX = 1; flipY = 1; cropRatio = "full";
+        bright.value = 100; contrast.value = 100; sat.value = 100; blur.value = 0;
+        grayCheck.checked = false;
+        document.getElementById("brightVal").textContent = "100%";
+        document.getElementById("contrastVal").textContent = "100%";
+        document.getElementById("satVal").textContent = "100%";
+        document.getElementById("blurVal").textContent = "0px";
+        document.querySelectorAll("[data-crop]").forEach((b) => b.classList.toggle("active", b.dataset.crop === "full"));
+        render();
+      }
+
+      function loadFile(file) {
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+          errBox.textContent = "Please upload a valid image file.";
+          errBox.hidden = false;
+          return;
+        }
+        errBox.hidden = true;
+        if (url) URL.revokeObjectURL(url);
+        url = URL.createObjectURL(file);
+        img = new Image();
+        img.onload = () => {
+          workspace.hidden = false;
+          resetAll();
+        };
+        img.src = url;
+      }
+
+      fileInput.addEventListener("change", () => loadFile(fileInput.files[0]));
+      ["dragenter", "dragover"].forEach((ev) => dropzone.addEventListener(ev, (e) => { e.preventDefault(); dropzone.classList.add("dragover"); }));
+      ["dragleave", "drop"].forEach((ev) => dropzone.addEventListener(ev, (e) => { e.preventDefault(); dropzone.classList.remove("dragover"); }));
+      dropzone.addEventListener("drop", (e) => loadFile(e.dataTransfer.files[0]));
+
+      document.getElementById("rotLeft").onclick = () => { rot -= 90; render(); };
+      document.getElementById("rotRight").onclick = () => { rot += 90; render(); };
+      document.getElementById("flipH").onclick = () => { flipX *= -1; render(); };
+      document.getElementById("flipV").onclick = () => { flipY *= -1; render(); };
+      document.getElementById("resetFilters").onclick = resetAll;
+
+      document.querySelectorAll("[data-crop]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          cropRatio = btn.dataset.crop;
+          document.querySelectorAll("[data-crop]").forEach((b) => b.classList.toggle("active", b === btn));
+          render();
+        });
+      });
+
+      [
+        [bright, "brightVal", "%"],
+        [contrast, "contrastVal", "%"],
+        [sat, "satVal", "%"],
+        [blur, "blurVal", "px"]
+      ].forEach(([el, labelId, suffix]) => {
+        el.addEventListener("input", () => {
+          document.getElementById(labelId).textContent = el.value + suffix;
+          render();
+        });
+      });
+      grayCheck.addEventListener("change", render);
+
+      document.getElementById("downloadBtn").addEventListener("click", () => {
+        const mime = fmtSelect.value;
+        const ext = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" }[mime];
+        const out = document.createElement("canvas");
+        out.width = canvas.width;
+        out.height = canvas.height;
+        const octx = out.getContext("2d");
+        if (mime === "image/jpeg") { octx.fillStyle = "#ffffff"; octx.fillRect(0, 0, out.width, out.height); }
+        octx.drawImage(canvas, 0, 0);
+        out.toBlob((blob) => {
+          if (!blob) return;
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = `easykity-edited.${ext}`;
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+        }, mime, 0.92);
+      });
+
+      document.getElementById("newImgBtn").addEventListener("click", () => {
+        fileInput.value = "";
+        workspace.hidden = true;
+      });
+    })();
+  </script>
+</body>
+</html>
