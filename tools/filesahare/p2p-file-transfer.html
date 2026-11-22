@@ -4,184 +4,110 @@
   <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>P2P File Transfer — EasyKity</title>
+  <title>P2P File &amp; Folder Share (iPhone, Android, PC) — EasyKity</title>
   <link rel="icon" href="../../assets/logo/favicon.png">
   <link rel="stylesheet" href="../../assets/css/style.css">
   <link rel="stylesheet" href="../../assets/css/themes.css">
   <link rel="stylesheet" href="../../assets/css/responsive.css">
   <link rel="stylesheet" href="../../assets/css/tools-common.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <!-- PeerJS, QRCode & QR Scanner -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
   <style>
-    .p2p-badge-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-    .p2p-status-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: var(--surface-alt);
-      border: 1px solid var(--line);
-      font-size: 0.82rem;
-      font-weight: 700;
+    [hidden] { display: none !important; }
+
+    .p2p-top-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .p2p-pill {
+      display: inline-flex; align-items: center; gap: 8px; padding: 7px 13px; border-radius: 999px;
+      background: var(--surface-alt); border: 1px solid var(--line); font-size: 0.82rem; font-weight: 700;
     }
     .dot-pulse {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: #10b981;
-      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-      animation: ek-pulse 1.8s infinite;
+      width: 9px; height: 9px; border-radius: 50%; background: #10b981;
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); animation: ek-p2p-pulse 1.8s infinite;
     }
     .dot-pulse.warn { background: #f59e0b; }
     .dot-pulse.off { background: #ef4444; animation: none; }
-    @keyframes ek-pulse {
-      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+    @keyframes ek-p2p-pulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.65); }
       70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
       100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
     }
 
+    .iphone-banner {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+      padding: 12px 16px; border-radius: 14px; background: var(--soft);
+      border: 1px solid rgba(49, 94, 235, 0.28); font-size: 0.84rem;
+    }
+    .iphone-badges { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; color: var(--brand); }
+    :root[data-theme="dark"] .iphone-badges { color: #9eb6ff; }
+
     .code-big {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: clamp(2rem, 5vw, 3rem);
-      font-weight: 900;
-      letter-spacing: 0.14em;
-      color: var(--ink);
+      font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; letter-spacing: 0.16em; color: var(--ink);
     }
 
     .peer-card {
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 18px;
-      background: var(--surface-alt);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 12px;
+      border: 1px solid var(--line); border-radius: 18px; padding: 18px;
+      display: flex; flex-direction: column; justify-content: space-between; gap: 12px;
       transition: border-color 0.25s, background 0.25s;
     }
-    .peer-card.disconnected {
-      border-color: rgba(239, 68, 68, 0.4);
-      background: rgba(239, 68, 68, 0.06);
-    }
-    .peer-card.connected {
-      border-color: rgba(16, 185, 129, 0.5);
-      background: rgba(16, 185, 129, 0.08);
-    }
+    .peer-card.disconnected { border-color: rgba(239, 68, 68, 0.45); background: rgba(239, 68, 68, 0.06); }
+    .peer-card.connected { border-color: rgba(16, 185, 129, 0.5); background: rgba(16, 185, 129, 0.08); }
 
-    .connect-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+    .connect-row { display: flex; gap: 10px; flex-wrap: wrap; }
     .connect-row input {
-      flex: 1 1 150px;
-      min-height: 44px;
-      padding: 10px 14px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: var(--surface);
-      color: var(--ink);
-      font-family: monospace;
-      font-size: 1.05rem;
-      font-weight: 800;
-      letter-spacing: 0.18em;
-      text-align: center;
+      flex: 1 1 150px; min-height: 44px; padding: 10px 14px; border-radius: 12px;
+      border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+      font-family: monospace; font-size: 1.05rem; font-weight: 800; letter-spacing: 0.18em;
+      text-align: center; text-transform: uppercase;
     }
 
-    .btn-danger {
-      border: 0;
-      background: #dc2626;
-      color: #fff;
-      padding: 11px 18px;
-      border-radius: 12px;
-      font-weight: 700;
-      cursor: pointer;
+    .btn-danger, .btn-success {
+      border: 0; color: #fff; padding: 11px 18px; border-radius: 12px; font-weight: 700; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-width: 130px;
     }
-    .btn-success {
-      border: 0;
-      background: #059669;
-      color: #fff;
-      padding: 11px 18px;
-      border-radius: 12px;
-      font-weight: 700;
-      cursor: pointer;
-    }
+    .btn-danger { background: #dc2626; } .btn-danger:hover { background: #b91c1c; }
+    .btn-success { background: #059669; } .btn-success:hover { background: #047857; }
 
     .progress-track {
-      width: 100%;
-      height: 12px;
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      overflow: hidden;
+      width: 100%; height: 12px; background: var(--surface);
+      border: 1px solid var(--line); border-radius: 999px; overflow: hidden;
     }
     .progress-fill {
-      height: 100%;
-      width: 0%;
+      height: 100%; width: 0%;
       background: linear-gradient(90deg, var(--brand), var(--cyan));
       transition: width 0.15s ease;
     }
+    .eta-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 9px; border-radius: 999px; background: var(--soft);
+      color: var(--brand); font-weight: 700; font-size: 0.76rem;
+    }
+    :root[data-theme="dark"] .eta-badge { color: #9eb6ff; }
 
     .ek-modal {
-      position: fixed;
-      inset: 0;
-      z-index: 80;
-      background: rgba(6, 10, 20, 0.78);
-      backdrop-filter: blur(6px);
-      display: grid;
-      place-items: center;
-      padding: 16px;
+      position: fixed; inset: 0; z-index: 80;
+      background: rgba(6, 10, 20, 0.78); backdrop-filter: blur(6px);
+      display: grid; place-items: center; padding: 16px;
     }
-    .ek-modal[hidden] { display: none; }
     .ek-modal-card {
-      width: min(360px, 100%);
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: 22px;
-      padding: 22px;
-      text-align: center;
-      box-shadow: var(--shadow);
-      display: grid;
-      gap: 14px;
+      width: min(370px, 100%); background: var(--surface); border: 1px solid var(--line);
+      border-radius: 22px; padding: 22px; text-align: center; box-shadow: var(--shadow);
+      display: grid; gap: 14px;
     }
-    .qr-white-box {
-      background: #fff;
-      padding: 12px;
-      border-radius: 14px;
-      display: inline-grid;
-      place-items: center;
-      margin: auto;
-    }
+    .qr-white-box { background: #fff; padding: 12px; border-radius: 14px; display: inline-grid; place-items: center; margin: auto; }
 
     .ek-toast {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 90;
-      background: var(--surface);
-      color: var(--ink);
-      border: 1px solid var(--brand);
-      padding: 12px 16px;
-      border-radius: 14px;
-      box-shadow: var(--shadow);
-      font-size: 0.86rem;
-      font-weight: 700;
-      transform: translateY(110px);
-      opacity: 0;
-      transition: transform 0.28s, opacity 0.28s;
-      max-width: min(340px, calc(100vw - 32px));
+      position: fixed; bottom: 20px; right: 20px; z-index: 90;
+      background: var(--surface); color: var(--ink); border: 1px solid var(--brand);
+      padding: 12px 16px; border-radius: 14px; box-shadow: var(--shadow);
+      font-size: 0.86rem; font-weight: 700; display: flex; align-items: center; gap: 9px;
+      transform: translateY(110px); opacity: 0; transition: transform 0.28s, opacity 0.28s;
+      max-width: min(350px, calc(100vw - 32px));
     }
     .ek-toast.show { transform: translateY(0); opacity: 1; }
     .ek-toast.err { border-color: #ef4444; }
@@ -200,7 +126,7 @@
         <a href="../../contact.html">Contact</a>
       </nav>
       <div class="nav-actions">
-        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme"><i class="fa-solid fa-sun"></i></button>
         <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false">
           <span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span>
         </button>
@@ -208,20 +134,34 @@
     </div>
     <div class="quick-drawer" data-quick-drawer hidden>
       <div class="container drawer-inner">
-        <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
-        <div class="drawer-col"><p class="drawer-title">Developer &amp; Media</p><div class="drawer-links"><a href="p2p-file-transfer.html">P2P File Transfer</a><a href="json-formatter.html">JSON Formatter</a><a href="qr-generator.html">QR Generator</a><a href="password-generator.html">Password Gen</a></div></div>
+        <div class="drawer-col">
+          <p class="drawer-title">Navigation</p>
+          <div class="drawer-links">
+            <a href="../../index.html"><i class="fa-solid fa-house"></i> Home</a>
+            <a href="../../index.html#tools"><i class="fa-solid fa-toolbox"></i> All Tools</a>
+            <a href="../../about.html"><i class="fa-solid fa-circle-info"></i> About</a>
+            <a href="../../contact.html"><i class="fa-solid fa-envelope"></i> Contact</a>
+          </div>
+        </div>
+        <div class="drawer-col">
+          <p class="drawer-title">Media &amp; Sharing</p>
+          <div class="drawer-links">
+            <a href="file-share-p2p.html">P2P File &amp; Folder Share</a>
+            <a href="screen-recorder.html">Screen Recorder</a>
+            <a href="media-player.html">Media Player</a>
+            <a href="youtube-thumbnail.html">YouTube Thumbnail</a>
+          </div>
+        </div>
       </div>
     </div>
-<div class="drawer-col"><p class="drawer-title">More Tools</p><div class="drawer-links"><a href="p2p-file-transfer.html">P2P File Transfer</a><a href="../developer-tools/json-formatter.html">JSON Formatter</a><a href="../developer-tools/qr-generator.html">QR Generator</a><a href="../developer-tools/password-generator.html">Password Gen</a></div></div>
-
   </header>
 
   <main class="main-shell">
     <section class="page-hero">
       <div class="container">
-        <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-developer">Developer &amp; Media</a> / <span>P2P File Transfer</span></nav>
-        <h1>P2P File <span class="gradient-text">Transfer</span></h1>
-        <p>Send and receive files directly between iPhone, Android, Tablet, and PC using WebRTC — no server storage.</p>
+        <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-developer">Developer &amp; Media</a> / <span>P2P File &amp; Folder Share</span></nav>
+        <h1>P2P File &amp; <span class="gradient-text">Folder Transfer</span></h1>
+        <p>Direct high-speed WebRTC transfer between <strong>iPhone ⇄ Any Device</strong> and <strong>Any Device ⇄ iPhone</strong> (Android, Windows, Mac, Tablet) with zero server storage.</p>
       </div>
     </section>
 
@@ -229,118 +169,179 @@
       <div class="container">
         <div class="tool-workspace tool-layout">
 
-          <!-- Top Status & Quick Pair Buttons -->
-          <div class="p2p-badge-row">
-            <div class="p2p-status-pill">
+          <!-- Top Network Status & Quick Pair Actions -->
+          <div class="p2p-top-bar">
+            <div class="p2p-pill">
               <span id="connIndicator" class="dot-pulse"></span>
               <span id="networkStatus">Connecting to P2P...</span>
-              <span class="notice">• <span id="myDeviceName">Device</span></span>
+              <span class="notice">• <i id="deviceTypeIcon" class="fa-solid fa-laptop"></i> <span id="myDeviceName">Device</span></span>
             </div>
+
             <div class="action-bar">
-              <span id="ipDisplayBadge" class="p2p-status-pill notice">IP: Detecting...</span>
-              <button type="button" class="secondary-btn ripple-target" onclick="showQRCodeModal()">📱 Connect Mobile QR</button>
-              <button type="button" class="secondary-btn ripple-target" onclick="openScannerModal()">📷 Scan QR</button>
+              <span id="ipDisplayBadge" class="p2p-pill notice">IP: Detecting...</span>
+              <button type="button" class="secondary-btn ripple-target" onclick="showQRCodeModal()">
+                <i class="fa-solid fa-qrcode" style="color:var(--brand2)"></i> Connect Mobile
+              </button>
+              <button type="button" class="secondary-btn ripple-target" onclick="openScannerModal()">
+                <i class="fa-solid fa-camera" style="color:var(--cyan)"></i> Scan QR
+              </button>
             </div>
           </div>
 
-          <!-- Top Cards: Your Device Code & Connect to Peer -->
+          <!-- iPhone <-> Any Device Cross-Platform Support Notice -->
+          <div class="iphone-banner">
+            <div class="iphone-badges">
+              <i class="fa-brands fa-apple" style="font-size:1.1rem"></i>
+              <span>iPhone to Any Device &amp; Any Device to iPhone</span>
+              <i class="fa-solid fa-arrow-right-arrow-left"></i>
+              <i class="fa-brands fa-android"></i>
+              <i class="fa-brands fa-windows"></i>
+            </div>
+            <span class="notice">iPhone users: Tap <strong>Browse Files</strong> to send Photos, Videos or Files directly from iPhone Safari, and keep screen awake while receiving.</span>
+          </div>
+
+          <!-- Top Cards: YOUR DEVICE CODE & CONNECT TO PEER -->
           <div class="tool-grid-2">
-            <!-- Left Card -->
             <div class="control-box tool-layout" style="justify-content:space-between">
               <div>
-                <span class="eyebrow">YOUR DEVICE CODE</span>
-                <div style="display:flex;align-items:center;gap:12px;margin:10px 0">
-                  <span id="myPeerId" class="code-big">-----</span>
-                  <button type="button" class="secondary-btn ripple-target" onclick="copyMyCode()" title="Copy Code">📋 Copy</button>
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+                  <span class="eyebrow"><i class="fa-solid fa-wifi"></i> YOUR DEVICE CODE</span>
+                  <span class="notice" style="font-size:.78rem">Share with other device</span>
                 </div>
-                <p class="notice" style="margin:0">Open this tool on another device and enter this 5-digit code or scan the QR code.</p>
+
+                <div style="display:flex;align-items:center;gap:12px;margin:10px 0">
+                  <span id="myPeerId" class="code-big allow-copy">-----</span>
+                  <button type="button" class="secondary-btn ripple-target" onclick="copyMyCode()" title="Copy Device Code">
+                    <i class="fa-regular fa-copy"></i> Copy
+                  </button>
+                </div>
+
+                <p class="notice" style="margin:0">Open this tool on your iPhone, Android, Tablet, or PC and enter this 5-digit code or scan the QR code.</p>
               </div>
-              <div class="notice" style="padding-top:10px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
-                <span>Instant two-way transfer</span>
-                <span style="color:#10b981;font-weight:700">🔒 Direct P2P Encrypted</span>
+
+              <div class="notice" style="padding-top:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+                <span>Both devices can send &amp; receive instantly</span>
+                <span style="color:#10b981;font-weight:700"><i class="fa-solid fa-shield-halved"></i> Direct P2P Encryption</span>
               </div>
             </div>
 
-            <!-- Right Card -->
             <div id="connectPeerCard" class="peer-card disconnected">
               <div>
-                <span class="eyebrow">CONNECT TO PEER</span>
+                <span class="eyebrow"><i class="fa-solid fa-plug"></i> CONNECT TO PEER</span>
                 <h3 style="margin:10px 0 4px">Enter Remote Device Code</h3>
-                <p class="notice" style="margin:0 0 12px">Works over Wi-Fi or 4G/5G mobile data.</p>
+                <p class="notice" style="margin:0 0 12px">Connect directly over Wi-Fi or 4G/5G mobile data.</p>
+
                 <div class="connect-row">
-                  <input type="text" id="targetPeerIdInput" placeholder="E.G. 58392" maxlength="5" inputmode="numeric">
+                  <input type="text" id="targetPeerIdInput" class="allow-copy" placeholder="E.G. 58392" maxlength="5" inputmode="numeric">
                   <button id="connectToggleBtn" type="button" onclick="togglePeerConnection()" class="btn-danger ripple-target">
-                    <span id="btnText">🔗 Connect</span>
+                    <i id="btnIcon" class="fa-solid fa-link"></i> <span id="btnText">Connect</span>
                   </button>
                 </div>
               </div>
-              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:.82rem">
-                <span style="display:flex;align-items:center;gap:8px">
+
+              <div id="connectionStatusRibbon" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:.82rem">
+                <span style="display:flex;align-items:center;gap:8px;min-width:0">
                   <span id="activePeerDot" class="dot-pulse off"></span>
-                  <span id="activePeerText">No remote device connected</span>
+                  <span id="activePeerText" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">No remote device connected</span>
                 </span>
-                <strong id="peerDeviceInfoBadge" style="color:#ef4444">Disconnected</strong>
+                <strong id="peerDeviceInfoBadge" style="color:#ef4444;white-space:nowrap">Disconnected</strong>
               </div>
             </div>
           </div>
 
-          <!-- Transfer Area -->
+          <!-- Transfer Interface -->
           <div class="tool-grid-2" style="align-items:start">
-            <!-- Left: Dropzone & Queue -->
+            <!-- Left: Dropzone (Files & Folders) + Queue -->
             <div class="tool-layout">
-              <label class="dropzone" id="dropzone"
-                ondragover="handleDragOver(event)"
-                ondragleave="handleDragLeave(event)"
-                ondrop="handleFileDrop(event)">
-                <input type="file" id="fileSelector" multiple onchange="handleFileSelect(event)">
-                <div class="dropzone-icon">📡</div>
-                <strong>Choose files or drag &amp; drop here</strong>
-                <span>Send Photos, Videos, Documents, ZIPs (Any size)</span>
-              </label>
+              <div id="dropzone" class="dropzone"
+                   ondragover="handleDragOver(event)"
+                   ondragleave="handleDragLeave(event)"
+                   ondrop="handleFileDrop(event)">
+                <input type="file" id="fileSelector" multiple hidden onchange="handleFileSelect(event)">
+                <input type="file" id="folderSelector" webkitdirectory directory multiple hidden onchange="handleFolderSelect(event)">
 
-              <div class="control-box tool-layout">
-                <div style="display:flex;justify-content:space-between;align-items:center">
-                  <strong>Queued Files (<span id="queueCount">0</span>)</strong>
-                  <button type="button" class="secondary-btn" style="padding:5px 10px;font-size:.78rem" onclick="clearQueue()">Clear</button>
+                <div class="dropzone-icon" style="color:var(--brand)">
+                  <i class="fa-solid fa-cloud-arrow-up"></i>
                 </div>
+                <strong>Drop files or folders here, or choose below</strong>
+                <span>Send Photos, Videos, Documents, Archives &amp; Folders (Any size)</span>
+
+                <div class="action-bar" style="justify-content:center;margin-top:8px">
+                  <button type="button" class="primary-btn ripple-target" onclick="document.getElementById('fileSelector').click()">
+                    <i class="fa-solid fa-file-arrow-up"></i> Browse Files
+                  </button>
+                  <button type="button" class="secondary-btn ripple-target" onclick="triggerFolderPicker()">
+                    <i class="fa-solid fa-folder-open"></i> Browse Folder
+                  </button>
+                </div>
+              </div>
+
+              <!-- Queued Files -->
+              <div class="control-box tool-layout">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+                  <strong style="font-size:.88rem"><i class="fa-solid fa-layer-group"></i> Queued Files (<span id="queueCount">0</span>)</strong>
+                  <div style="display:flex;gap:8px;align-items:center">
+                    <button id="zipQueueBtn" type="button" onclick="packQueueAsZip()" class="secondary-btn" style="padding:4px 10px;font-size:.76rem" hidden>
+                      <i class="fa-solid fa-file-zipper"></i> Pack as .zip
+                    </button>
+                    <button type="button" onclick="clearQueue()" class="secondary-btn" style="padding:4px 10px;font-size:.76rem;color:#ef4444">
+                      <i class="fa-solid fa-trash-can"></i> Clear
+                    </button>
+                  </div>
+                </div>
+
                 <div id="fileQueueContainer" class="batch-list" style="max-height:175px;overflow-y:auto">
                   <p id="emptyQueueMsg" class="notice" style="text-align:center;margin:8px 0">No files selected</p>
                 </div>
+
                 <button id="sendActionBtn" type="button" onclick="startSendingFiles()" disabled class="primary-btn ripple-target" style="width:100%">
-                  🚀 Send Queued Files Now
+                  <i class="fa-solid fa-paper-plane"></i> Send Queued Files Now
                 </button>
               </div>
             </div>
 
-            <!-- Right: Stream Progress & Downloads -->
+            <!-- Right: Active Transfer Stream & Received Downloads -->
             <div class="control-box tool-layout">
               <div style="display:flex;justify-content:space-between;align-items:center">
-                <strong>Active Transfer Stream</strong>
+                <strong style="font-size:.92rem"><i class="fa-solid fa-arrow-right-arrow-left" style="color:var(--brand2)"></i> Active Transfer Stream</strong>
                 <span id="transferTypeBadge" class="chip-btn" style="cursor:default">Idle</span>
               </div>
 
+              <!-- Live Progress Box with Speed & Remaining Time (ETA) -->
               <div id="progressSection" class="tool-layout" style="padding:14px;border-radius:14px;background:var(--surface);border:1px solid var(--line)" hidden>
                 <div style="display:flex;justify-content:space-between;gap:10px">
-                  <strong id="currentFileName" style="font-size:.88rem;word-break:break-all">file.bin</strong>
+                  <strong id="currentFileName" style="font-size:.86rem;word-break:break-all">file.bin</strong>
                   <strong id="progressPercent" style="color:var(--brand)">0%</strong>
                 </div>
+
                 <div class="progress-track"><div id="progressBar" class="progress-fill"></div></div>
-                <div style="display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)">
+
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;font-size:.8rem;color:var(--muted)">
                   <span id="transferredBytesText">0 MB / 0 MB</span>
-                  <span id="transferSpeedText">0 MB/s</span>
+                  <span id="transferSpeedText" style="font-weight:700">0 MB/s</span>
+                  <span class="eta-badge"><i class="fa-regular fa-clock"></i> <span id="remainingTimeText">Calculating...</span></span>
                 </div>
+
+                <div id="batchEtaRow" class="notice" style="font-size:.76rem" hidden>
+                  <i class="fa-solid fa-boxes-stacked"></i> <span id="batchEtaText"></span>
+                </div>
+
                 <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--line)">
                   <span id="pauseStatusNotice" class="notice" style="color:#10b981;font-weight:700">Streaming Live P2P</span>
-                  <button id="pauseResumeBtn" type="button" onclick="togglePauseTransfer()" class="secondary-btn" style="padding:6px 12px;font-size:.8rem">⏸ Pause</button>
+                  <button id="pauseResumeBtn" type="button" onclick="togglePauseTransfer()" class="secondary-btn" style="padding:6px 12px;font-size:.8rem">
+                    <i class="fa-solid fa-pause"></i> <span>Pause</span>
+                  </button>
                 </div>
               </div>
 
-              <div id="idleTransferPlaceholder" style="text-align:center;padding:24px 10px" class="notice">
+              <div id="idleTransferPlaceholder" style="text-align:center;padding:28px 10px" class="notice">
+                <i class="fa-solid fa-arrows-rotate" style="font-size:1.7rem;opacity:.35;margin-bottom:8px;display:block"></i>
                 Ready to stream data.<br>Connect to a remote device to begin transferring.
               </div>
 
+              <!-- Received Downloads -->
               <div style="padding-top:12px;border-top:1px solid var(--line)">
-                <strong style="display:block;font-size:.88rem;margin-bottom:8px">Received Downloads</strong>
+                <strong style="display:block;font-size:.88rem;margin-bottom:8px"><i class="fa-solid fa-inbox"></i> Received Downloads</strong>
                 <div id="receivedFilesContainer" class="batch-list" style="max-height:175px;overflow-y:auto">
                   <p id="noReceivedFilesText" class="notice" style="margin:4px 0">No incoming files yet</p>
                 </div>
@@ -356,40 +357,43 @@
   <footer class="site-footer">
     <div class="container">
       <div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0">
-        <span>© <span data-year></span> EasyKity. All rights reserved.</span>
-        <span><a href="../../index.html#tools">← Back to All Tools</a></span>
+        <span>© <span data-year></span> EasyKity. Direct LAN &amp; 4G/5G WebRTC File &amp; Folder Transfer.</span>
+        <span><a href="../../index.html#tools"><i class="fa-solid fa-arrow-left"></i> Back to All Tools</a></span>
       </div>
     </div>
   </footer>
 
-  <!-- QR Modal -->
+  <!-- QR Code Generator Modal -->
   <div id="qrModal" class="ek-modal" hidden>
     <div class="ek-modal-card">
-      <h3 style="margin:0">Scan from Phone / Tablet</h3>
-      <p class="notice" style="margin:0">Scan this code with another device's camera to pair instantly.</p>
+      <h3 style="margin:0"><i class="fa-solid fa-qrcode" style="color:var(--brand)"></i> Scan from iPhone / Android</h3>
+      <p class="notice" style="margin:0">Scan this code with another phone camera to instantly pair.</p>
       <div class="qr-white-box" id="qrcodeCanvas"></div>
       <button type="button" onclick="closeQRCodeModal()" class="secondary-btn ripple-target">Close</button>
     </div>
   </div>
 
-  <!-- Scanner Modal -->
+  <!-- QR Code Scanner Modal -->
   <div id="scannerModal" class="ek-modal" hidden>
     <div class="ek-modal-card">
-      <h3 style="margin:0">Scan Remote QR Code</h3>
-      <div id="qr-reader" style="border-radius:12px;overflow:hidden;border:1px solid var(--line)"></div>
+      <h3 style="margin:0"><i class="fa-solid fa-camera" style="color:var(--cyan)"></i> Scan Remote QR Code</h3>
+      <div id="qr-reader" style="border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#000"></div>
       <p id="scannerFeedback" class="notice" style="margin:0">Point your camera at the EasyKity P2P QR code</p>
       <button type="button" onclick="closeScannerModal()" class="secondary-btn ripple-target">Cancel</button>
     </div>
   </div>
 
-  <!-- Toast -->
-  <div id="toast" class="ek-toast"><span id="toastMsg">Ready</span></div>
+  <!-- Toast Notification -->
+  <div id="toast" class="ek-toast">
+    <i id="toastIcon" class="fa-solid fa-circle-check" style="color:#10b981"></i>
+    <span id="toastMsg">Ready</span>
+  </div>
 
   <script src="../../assets/js/theme.js"></script>
   <script src="../../assets/js/app.js"></script>
   <script>
     let myPeer = null;
-    let myCode = "";
+    let myCode = '';
     let activeConnection = null;
     let queuedFiles = [];
     let isTransferring = false;
@@ -398,89 +402,110 @@
     let connectionWatchdog = null;
     let keepAliveTimer = null;
 
+    function formatSpeed(bps) {
+      if (!bps || bps <= 0) return '0 KB/s';
+      if (bps < 1024 * 1024) return `${(bps / 1024).toFixed(0)} KB/s`;
+      return `${(bps / (1024 * 1024)).toFixed(2)} MB/s`;
+    }
+
+    function formatEta(seconds) {
+      if (!isFinite(seconds) || seconds <= 0) return 'Calculating...';
+      if (seconds < 1) return '< 1s left';
+      const s = Math.round(seconds);
+      if (s < 60) return `${s}s left`;
+      const m = Math.floor(s / 60), remS = s % 60;
+      if (m < 60) return `${m}m ${remS}s left`;
+      const h = Math.floor(m / 60), remM = m % 60;
+      return `${h}h ${remM}m left`;
+    }
+
     function detectDeviceName() {
       const ua = navigator.userAgent;
-      let name = "Desktop PC";
-      if (/iPhone/i.test(ua)) name = "Apple iPhone";
-      else if (/iPad/i.test(ua)) name = "Apple iPad";
-      else if (/Android/i.test(ua)) name = "Android Phone";
-      else if (/Macintosh/i.test(ua)) name = "MacBook";
-      else if (/Windows/i.test(ua)) name = "Windows PC";
-      else if (/Linux/i.test(ua)) name = "Linux PC";
-      else if (/SmartTV|TV/i.test(ua)) name = "Smart TV";
-      document.getElementById("myDeviceName").innerText = name;
+      let name = 'Desktop PC';
+      let icon = 'fa-laptop';
+
+      if (/iPhone/i.test(ua)) { name = 'Apple iPhone'; icon = 'fa-mobile-screen-button'; }
+      else if (/iPad/i.test(ua)) { name = 'Apple iPad'; icon = 'fa-tablet-screen-button'; }
+      else if (/Android/i.test(ua)) { name = 'Android Phone'; icon = 'fa-mobile-screen-button'; }
+      else if (/Macintosh/i.test(ua)) { name = 'MacBook'; icon = 'fa-laptop'; }
+      else if (/Windows/i.test(ua)) { name = 'Windows PC'; icon = 'fa-desktop'; }
+      else if (/Linux/i.test(ua)) { name = 'Linux PC'; icon = 'fa-desktop'; }
+      else if (/SmartTV|TV/i.test(ua)) { name = 'Smart TV'; icon = 'fa-tv'; }
+
+      document.getElementById('myDeviceName').innerText = name;
+      document.getElementById('deviceTypeIcon').className = `fa-solid ${icon}`;
       return name;
     }
 
     async function fetchNetworkIP() {
       try {
-        const res = await fetch("https://api.ipify.org?format=json");
+        const res = await fetch('https://api.ipify.org?format=json');
         const data = await res.json();
-        document.getElementById("ipDisplayBadge").innerText = `IP: ${data.ip}`;
-      } catch (_) {
-        document.getElementById("ipDisplayBadge").innerText = "IP: Local P2P";
+        document.getElementById('ipDisplayBadge').innerText = `IP: ${data.ip}`;
+      } catch (e) {
+        document.getElementById('ipDisplayBadge').innerText = `IP: Local P2P`;
       }
     }
 
     function initPeerNode() {
-      if (typeof Peer === "undefined") {
-        document.getElementById("connIndicator").className = "dot-pulse off";
-        document.getElementById("networkStatus").innerText = "PeerJS blocked/offline";
-        showToast("PeerJS library could not load. Check internet connection.", true);
+      if (typeof Peer === 'undefined') {
+        document.getElementById('connIndicator').className = "dot-pulse off";
+        document.getElementById('networkStatus').innerText = "PeerJS failed to load";
+        showToast("P2P engine could not load. Check internet connection.", true);
         return;
       }
 
       myCode = Math.floor(10000 + Math.random() * 90000).toString();
-      document.getElementById("myPeerId").innerText = myCode;
+      document.getElementById('myPeerId').innerText = myCode;
 
-      myPeer = new Peer("airwave-" + myCode, {
+      const iceServersList = [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun.cloudflare.com:3478' },
+        { urls: 'stun:stun.services.mozilla.com' },
+        { urls: 'stun:global.stun.twilio.com:3478' }
+      ];
+
+      myPeer = new Peer('airwave-' + myCode, {
         debug: 1,
-        config: {
-          iceCandidatePoolSize: 10,
-          iceServers: [
-            { urls: "stun:stun.l.google.com:19302" },
-            { urls: "stun:stun1.l.google.com:19302" },
-            { urls: "stun:stun2.l.google.com:19302" },
-            { urls: "stun:stun.cloudflare.com:3478" },
-            { urls: "stun:stun.services.mozilla.com" },
-            { urls: "stun:global.stun.twilio.com:3478" }
-          ]
-        }
+        config: { iceCandidatePoolSize: 10, iceServers: iceServersList }
       });
 
-      myPeer.on("open", () => {
-        document.getElementById("connIndicator").className = "dot-pulse";
-        document.getElementById("networkStatus").innerText = "Ready & Discoverable";
+      myPeer.on('open', () => {
+        document.getElementById('connIndicator').className = "dot-pulse";
+        document.getElementById('networkStatus').innerText = "Ready & Discoverable";
         showToast("Connected to P2P network. Code: " + myCode);
 
         clearInterval(keepAliveTimer);
         keepAliveTimer = setInterval(() => {
           if (myPeer && !myPeer.destroyed && myPeer.socket && myPeer.socket.connected) {
-            myPeer.socket.send({ type: "PING" });
+            myPeer.socket.send({ type: 'PING' });
           }
         }, 3000);
 
-        const remote = new URLSearchParams(window.location.search).get("connect");
+        const urlParams = new URLSearchParams(window.location.search);
+        const remote = urlParams.get('connect');
         if (remote && remote !== myCode) {
-          document.getElementById("targetPeerIdInput").value = remote;
+          document.getElementById('targetPeerIdInput').value = remote;
           setTimeout(initiateConnection, 500);
         }
       });
 
-      myPeer.on("connection", (conn) => setupConnectionHandlers(conn));
+      myPeer.on('connection', (conn) => setupConnectionHandlers(conn));
 
-      myPeer.on("disconnected", () => {
-        document.getElementById("connIndicator").className = "dot-pulse warn";
-        document.getElementById("networkStatus").innerText = "Reconnecting P2P...";
+      myPeer.on('disconnected', () => {
+        document.getElementById('connIndicator').className = "dot-pulse warn";
+        document.getElementById('networkStatus').innerText = "Reconnecting P2P...";
         myPeer.reconnect();
       });
 
-      myPeer.on("error", (err) => {
+      myPeer.on('error', (err) => {
         clearTimeout(connectionWatchdog);
-        if (err.type === "peer-unavailable") {
-          showToast("Device " + document.getElementById("targetPeerIdInput").value + " not found or offline", true);
+        if (err.type === 'peer-unavailable') {
+          showToast("Device " + document.getElementById('targetPeerIdInput').value + " not found or offline", true);
         } else {
-          showToast("Connection error: " + err.type, true);
+          showToast("Connection: " + err.type, true);
         }
         applyDisconnectedTheme();
       });
@@ -496,7 +521,7 @@
 
     function initiateConnection() {
       if (!myPeer) return;
-      const target = document.getElementById("targetPeerIdInput").value.trim();
+      const target = document.getElementById('targetPeerIdInput').value.trim();
       if (!target || target.length !== 5) {
         showToast("Enter a valid 5-digit Device Code", true);
         return;
@@ -506,34 +531,35 @@
         return;
       }
 
-      document.getElementById("activePeerText").innerText = `1/3 Finding ${target}...`;
-      document.getElementById("btnText").innerText = "⏳ Connecting...";
+      document.getElementById('activePeerText').innerText = `1/3 Finding ${target}...`;
+      document.getElementById('btnText').innerText = "Connecting...";
+      document.getElementById('btnIcon').className = "fa-solid fa-spinner fa-spin";
 
       setTimeout(() => {
         if (activeConnection && !activeConnection.open) {
-          document.getElementById("activePeerText").innerText = "2/3 Punching Firewall...";
+          document.getElementById('activePeerText').innerText = "2/3 Punching Firewall...";
         }
       }, 3000);
 
       setTimeout(() => {
         if (activeConnection && !activeConnection.open) {
-          document.getElementById("activePeerText").innerText = "3/3 Creating P2P Tunnel...";
+          document.getElementById('activePeerText').innerText = "3/3 Creating P2P Tunnel...";
         }
       }, 7000);
 
       clearTimeout(connectionWatchdog);
       connectionWatchdog = setTimeout(() => {
         if (!activeConnection || !activeConnection.open) {
-          showToast("Connection timed out. Try connecting from the other device!", true);
+          showToast("Connecting took too long. Try connecting from the other device!", true);
           applyDisconnectedTheme();
           if (activeConnection) {
-            try { activeConnection.close(); } catch (_) {}
+            try { activeConnection.close(); } catch (e) {}
             activeConnection = null;
           }
         }
       }, 18000);
 
-      const conn = myPeer.connect("airwave-" + target, {
+      const conn = myPeer.connect('airwave-' + target, {
         reliable: true,
         metadata: { deviceName: detectDeviceName() }
       });
@@ -549,139 +575,194 @@
         isMarkedReady = true;
         clearTimeout(connectionWatchdog);
 
-        const remoteName = conn.metadata?.deviceName || "Remote Device";
-        applyConnectedTheme(remoteName);
-        showToast(`Connected with ${remoteName}!`);
+        const remotePeerName = (conn.metadata && conn.metadata.deviceName) ? conn.metadata.deviceName : 'Remote Device';
+        applyConnectedTheme(remotePeerName);
+        showToast(`Connected with ${remotePeerName}!`);
 
         if (queuedFiles.length > 0) {
-          document.getElementById("sendActionBtn").disabled = false;
+          document.getElementById('sendActionBtn').disabled = false;
         }
-        if ("wakeLock" in navigator) {
-          try { navigator.wakeLock.request("screen"); } catch (_) {}
+        if ('wakeLock' in navigator) {
+          try { navigator.wakeLock.request('screen'); } catch (e) {}
         }
       };
 
-      conn.on("open", triggerReady);
+      conn.on('open', triggerReady);
 
       const checkDataChannel = setInterval(() => {
-        if (conn.dataChannel && conn.dataChannel.readyState === "open") {
+        if (conn.dataChannel && conn.dataChannel.readyState === 'open') {
           clearInterval(checkDataChannel);
           triggerReady();
         }
       }, 100);
 
       if (conn.peerConnection) {
-        conn.peerConnection.addEventListener("iceconnectionstatechange", () => {
-          const st = conn.peerConnection.iceConnectionState;
-          if (st === "connected" || st === "completed") setTimeout(triggerReady, 300);
+        conn.peerConnection.addEventListener('iceconnectionstatechange', () => {
+          const state = conn.peerConnection.iceConnectionState;
+          if (state === 'connected' || state === 'completed') setTimeout(triggerReady, 300);
         });
       }
 
-      conn.on("data", handleIncomingData);
-      conn.on("close", () => { clearInterval(checkDataChannel); clearTimeout(connectionWatchdog); handlePeerDisconnectionNotice(); });
-      conn.on("error", () => { clearInterval(checkDataChannel); clearTimeout(connectionWatchdog); handlePeerDisconnectionNotice(); });
+      conn.on('data', handleIncomingData);
+      conn.on('close', () => { clearInterval(checkDataChannel); clearTimeout(connectionWatchdog); handlePeerDisconnectionNotice(); });
+      conn.on('error', () => { clearInterval(checkDataChannel); clearTimeout(connectionWatchdog); handlePeerDisconnectionNotice(); });
     }
 
     function applyConnectedTheme(remoteName) {
-      document.getElementById("connectPeerCard").className = "peer-card connected";
-      const btn = document.getElementById("connectToggleBtn");
+      document.getElementById('connectPeerCard').className = "peer-card connected";
+      const btn = document.getElementById('connectToggleBtn');
       btn.className = "btn-success ripple-target";
-      document.getElementById("btnText").innerText = "✓ Connected";
-      document.getElementById("activePeerDot").className = "dot-pulse";
-      document.getElementById("activePeerText").innerText = `Connected: ${remoteName}`;
-      const badge = document.getElementById("peerDeviceInfoBadge");
-      badge.innerText = "P2P Online";
+      document.getElementById('btnIcon').className = "fa-solid fa-check";
+      document.getElementById('btnText').innerText = "Connected";
+      document.getElementById('activePeerDot').className = "dot-pulse";
+      document.getElementById('activePeerText').innerText = `Connected: ${remoteName}`;
+      const badge = document.getElementById('peerDeviceInfoBadge');
+      badge.innerText = "P2P Link Online";
       badge.style.color = "#10b981";
     }
 
     function applyDisconnectedTheme() {
-      document.getElementById("connectPeerCard").className = "peer-card disconnected";
-      const btn = document.getElementById("connectToggleBtn");
+      document.getElementById('connectPeerCard').className = "peer-card disconnected";
+      const btn = document.getElementById('connectToggleBtn');
       btn.className = "btn-danger ripple-target";
-      document.getElementById("btnText").innerText = "🔗 Connect";
-      document.getElementById("activePeerDot").className = "dot-pulse off";
-      document.getElementById("activePeerText").innerText = "No remote device connected";
-      const badge = document.getElementById("peerDeviceInfoBadge");
+      document.getElementById('btnIcon').className = "fa-solid fa-link";
+      document.getElementById('btnText').innerText = "Connect";
+      document.getElementById('activePeerDot').className = "dot-pulse off";
+      document.getElementById('activePeerText').innerText = "No remote device connected";
+      const badge = document.getElementById('peerDeviceInfoBadge');
       badge.innerText = "Disconnected";
       badge.style.color = "#ef4444";
-      document.getElementById("sendActionBtn").disabled = true;
+      document.getElementById('sendActionBtn').disabled = true;
     }
 
     function disconnectActivePeer(manual = false) {
       if (activeConnection) {
-        try { activeConnection.send({ type: "PEER_DISCONNECT_EVENT" }); activeConnection.close(); } catch (_) {}
+        try { activeConnection.send({ type: 'PEER_DISCONNECT_EVENT' }); activeConnection.close(); } catch (e) {}
       }
       activeConnection = null;
       applyDisconnectedTheme();
       abortActiveTransfer();
-      showToast(manual ? "Device disconnected." : "Disconnected from peer.", true);
+      showToast(manual ? "Device disconnected manually." : "Disconnected from peer.", true);
     }
 
     function handlePeerDisconnectionNotice() {
       activeConnection = null;
       applyDisconnectedTheme();
       abortActiveTransfer();
-      showToast("Peer disconnected from network!", true);
+      showToast("Alert: Peer disconnected from network!", true);
     }
 
+    // Binary Streaming Engine with Live Smoothed Speed & Remaining Time (ETA)
     const CHUNK_SIZE = 64 * 1024;
     let currentFileSliceOffset = 0;
     let continueTransferResolver = null;
+    let batchTotalBytes = 0, batchSentBeforeCurrent = 0, sendSmoothedBps = 0;
 
     async function startSendingFiles() {
-      if (!activeConnection || !activeConnection.open) { showToast("No active device connected!", true); return; }
-      if (!queuedFiles.length || isTransferring) return;
+      if (!activeConnection || !activeConnection.open) {
+        showToast("No active device connected!", true);
+        return;
+      }
+      if (queuedFiles.length === 0 || isTransferring) return;
 
       isTransferring = true;
       isTransferPaused = false;
-      document.getElementById("sendActionBtn").disabled = true;
-      document.getElementById("idleTransferPlaceholder").hidden = true;
-      document.getElementById("progressSection").hidden = false;
-      document.getElementById("pauseResumeBtn").hidden = false;
-      document.getElementById("transferTypeBadge").innerText = "Sending";
+      sendSmoothedBps = 0;
+      batchSentBeforeCurrent = 0;
+      batchTotalBytes = queuedFiles.reduce((sum, x) => sum + x.file.size, 0);
+
+      document.getElementById('sendActionBtn').disabled = true;
+      document.getElementById('idleTransferPlaceholder').hidden = true;
+      document.getElementById('progressSection').hidden = false;
+      document.getElementById('pauseResumeBtn').hidden = false;
+      document.getElementById('batchEtaRow').hidden = queuedFiles.length < 2;
+      document.getElementById('transferTypeBadge').innerText = "Sending";
       updatePauseButtonUI();
 
       for (let i = 0; i < queuedFiles.length; i++) {
         if (!activeConnection) break;
-        await streamSingleFile(queuedFiles[i], i + 1, queuedFiles.length);
+        await streamSingleFileWithPauseResume(queuedFiles[i], i + 1, queuedFiles.length);
+        batchSentBeforeCurrent += queuedFiles[i].file.size;
       }
 
       isTransferring = false;
       queuedFiles = [];
       renderQueue();
-      showToast("All queued files sent!");
+      showToast("All queued files streamed successfully!");
       setTimeout(() => {
-        document.getElementById("progressSection").hidden = true;
-        document.getElementById("idleTransferPlaceholder").hidden = false;
-        document.getElementById("transferTypeBadge").innerText = "Idle";
-      }, 2500);
+        document.getElementById('progressSection').hidden = true;
+        document.getElementById('batchEtaRow').hidden = true;
+        document.getElementById('idleTransferPlaceholder').hidden = false;
+        document.getElementById('transferTypeBadge').innerText = "Idle";
+      }, 2800);
     }
 
-    function streamSingleFile(file, index, total) {
+    function streamSingleFileWithPauseResume(item, index, total) {
+      const file = item.file;
       return new Promise((resolve) => {
         currentFileSliceOffset = 0;
-        document.getElementById("currentFileName").innerText = `(${index}/${total}) ${file.name}`;
-        activeConnection.send({ type: "FILE_HEADER", fileName: file.name, fileSize: file.size, fileType: file.type });
-        const startTime = Date.now();
+        document.getElementById('currentFileName').innerText = `(${index}/${total}) ${item.displayName}`;
+
+        activeConnection.send({
+          type: 'FILE_HEADER',
+          fileName: file.name,
+          displayName: item.displayName,
+          fileSize: file.size,
+          fileType: file.type,
+          batchRemainingBytes: batchTotalBytes - batchSentBeforeCurrent
+        });
+
+        let lastUiTime = 0;
+        let lastMeasureTime = Date.now();
+        let lastMeasureOffset = 0;
+
+        function updateSendUI(force = false) {
+          const now = Date.now();
+          if (!force && now - lastUiTime < 150) return;
+
+          const dt = (now - lastMeasureTime) / 1000;
+          if (dt >= 0.15) {
+            const instBps = (currentFileSliceOffset - lastMeasureOffset) / dt;
+            sendSmoothedBps = sendSmoothedBps ? sendSmoothedBps * 0.72 + instBps * 0.28 : instBps;
+            lastMeasureTime = now;
+            lastMeasureOffset = currentFileSliceOffset;
+          }
+          lastUiTime = now;
+
+          const percent = Math.min(100, Math.round((currentFileSliceOffset / Math.max(1, file.size)) * 100));
+          const fileRemaining = Math.max(0, file.size - currentFileSliceOffset);
+          const etaSec = sendSmoothedBps > 0 ? fileRemaining / sendSmoothedBps : 0;
+
+          document.getElementById('progressBar').style.width = `${percent}%`;
+          document.getElementById('progressPercent').innerText = `${percent}%`;
+          document.getElementById('transferredBytesText').innerText = `${formatBytes(currentFileSliceOffset)} / ${formatBytes(file.size)}`;
+          document.getElementById('transferSpeedText').innerText = formatSpeed(sendSmoothedBps);
+          document.getElementById('remainingTimeText').innerText = currentFileSliceOffset >= file.size ? 'Done' : formatEta(etaSec);
+
+          if (total > 1) {
+            const totalSent = batchSentBeforeCurrent + currentFileSliceOffset;
+            const batchLeft = Math.max(0, batchTotalBytes - totalSent);
+            const batchEta = sendSmoothedBps > 0 ? batchLeft / sendSmoothedBps : 0;
+            document.getElementById('batchEtaText').textContent = `Total Batch: ${formatBytes(totalSent)} / ${formatBytes(batchTotalBytes)} • ${formatEta(batchEta)}`;
+          }
+        }
 
         function sendNextChunk() {
           if (!activeConnection || !activeConnection.open) { resolve(); return; }
           if (isTransferPaused) { continueTransferResolver = sendNextChunk; return; }
-          if (currentFileSliceOffset >= file.size) { activeConnection.send({ type: "FILE_END", fileName: file.name }); resolve(); return; }
+          if (currentFileSliceOffset >= file.size) {
+            updateSendUI(true);
+            activeConnection.send({ type: 'FILE_END', fileName: file.name });
+            resolve();
+            return;
+          }
 
           const slice = file.slice(currentFileSliceOffset, currentFileSliceOffset + CHUNK_SIZE);
           const reader = new FileReader();
-          reader.onload = (e) => {
-            activeConnection.send({ type: "FILE_CHUNK", chunk: e.target.result });
+          reader.onload = function (e) {
+            activeConnection.send({ type: 'FILE_CHUNK', chunk: e.target.result });
             currentFileSliceOffset += e.target.result.byteLength;
-            const pct = Math.min(100, Math.round((currentFileSliceOffset / file.size) * 100));
-            const elapsed = (Date.now() - startTime) / 1000;
-            const speed = elapsed > 0 ? (currentFileSliceOffset / (1024 * 1024) / elapsed).toFixed(1) : "0";
-
-            document.getElementById("progressBar").style.width = `${pct}%`;
-            document.getElementById("progressPercent").innerText = `${pct}%`;
-            document.getElementById("transferredBytesText").innerText = `${formatBytes(currentFileSliceOffset)} / ${formatBytes(file.size)}`;
-            document.getElementById("transferSpeedText").innerText = `${speed} MB/s`;
+            updateSendUI(false);
 
             if (activeConnection.dataChannel && activeConnection.dataChannel.bufferedAmount > 3 * 1024 * 1024) {
               setTimeout(sendNextChunk, 35);
@@ -700,7 +781,7 @@
       isTransferPaused = !isTransferPaused;
       updatePauseButtonUI();
       if (activeConnection && activeConnection.open) {
-        activeConnection.send({ type: isTransferPaused ? "TRANSFER_PAUSED" : "TRANSFER_RESUMED" });
+        activeConnection.send({ type: isTransferPaused ? 'TRANSFER_PAUSED' : 'TRANSFER_RESUMED' });
       }
       if (!isTransferPaused && continueTransferResolver) {
         continueTransferResolver();
@@ -709,14 +790,14 @@
     }
 
     function updatePauseButtonUI() {
-      const btn = document.getElementById("pauseResumeBtn");
-      const notice = document.getElementById("pauseStatusNotice");
+      const btn = document.getElementById('pauseResumeBtn');
+      const notice = document.getElementById('pauseStatusNotice');
       if (isTransferPaused) {
-        btn.innerText = "▶ Resume";
+        btn.innerHTML = `<i class="fa-solid fa-play"></i> <span>Resume</span>`;
         notice.innerText = "Paused by you";
         notice.style.color = "#f59e0b";
       } else {
-        btn.innerText = "⏸ Pause";
+        btn.innerHTML = `<i class="fa-solid fa-pause"></i> <span>Pause</span>`;
         notice.innerText = "Streaming Live P2P";
         notice.style.color = "#10b981";
       }
@@ -725,97 +806,122 @@
     function abortActiveTransfer() {
       isTransferring = false;
       isTransferPaused = false;
-      document.getElementById("progressSection").hidden = true;
-      document.getElementById("idleTransferPlaceholder").hidden = false;
-      document.getElementById("transferTypeBadge").innerText = "Idle";
+      document.getElementById('progressSection').hidden = true;
+      document.getElementById('batchEtaRow').hidden = true;
+      document.getElementById('idleTransferPlaceholder').hidden = false;
+      document.getElementById('transferTypeBadge').innerText = "Idle";
     }
 
-    let incomingMetadata = null, incomingChunks = [], incomingReceivedBytes = 0, incomingStartTime = 0;
+    let incomingMetadata = null, incomingChunks = [], incomingReceivedBytes = 0;
+    let inLastUiTime = 0, inLastMeasureTime = 0, inLastMeasureBytes = 0, inSmoothedBps = 0;
 
     function handleIncomingData(data) {
-      if (data.type === "PEER_DISCONNECT_EVENT") { handlePeerDisconnectionNotice(); return; }
-      if (data.type === "TRANSFER_PAUSED") {
-        const n = document.getElementById("pauseStatusNotice");
+      if (data.type === 'PEER_DISCONNECT_EVENT') { handlePeerDisconnectionNotice(); return; }
+      if (data.type === 'TRANSFER_PAUSED') {
+        const n = document.getElementById('pauseStatusNotice');
         n.innerText = "Transfer paused by sender"; n.style.color = "#f59e0b";
+        document.getElementById('pauseResumeBtn').hidden = true;
         return;
       }
-      if (data.type === "TRANSFER_RESUMED") {
-        const n = document.getElementById("pauseStatusNotice");
+      if (data.type === 'TRANSFER_RESUMED') {
+        const n = document.getElementById('pauseStatusNotice');
         n.innerText = "Streaming resumed..."; n.style.color = "#10b981";
+        inLastMeasureTime = Date.now(); inLastMeasureBytes = incomingReceivedBytes;
         return;
       }
-      if (data.type === "FILE_HEADER") {
-        incomingMetadata = data; incomingChunks = []; incomingReceivedBytes = 0; incomingStartTime = Date.now();
-        document.getElementById("idleTransferPlaceholder").hidden = true;
-        document.getElementById("progressSection").hidden = false;
-        document.getElementById("pauseResumeBtn").hidden = true;
-        document.getElementById("currentFileName").innerText = `Receiving: ${data.fileName}`;
-        document.getElementById("transferTypeBadge").innerText = "Receiving";
-      } else if (data.type === "FILE_CHUNK") {
+      if (data.type === 'FILE_HEADER') {
+        incomingMetadata = data;
+        incomingChunks = [];
+        incomingReceivedBytes = 0;
+        inLastUiTime = 0;
+        inLastMeasureTime = Date.now();
+        inLastMeasureBytes = 0;
+        inSmoothedBps = 0;
+
+        document.getElementById('idleTransferPlaceholder').hidden = true;
+        document.getElementById('progressSection').hidden = false;
+        document.getElementById('pauseResumeBtn').hidden = true;
+        document.getElementById('batchEtaRow').hidden = true;
+        document.getElementById('currentFileName').innerText = `Receiving: ${data.displayName || data.fileName}`;
+        document.getElementById('remainingTimeText').innerText = 'Calculating...';
+        document.getElementById('transferTypeBadge').innerText = "Receiving";
+      } else if (data.type === 'FILE_CHUNK') {
         incomingChunks.push(data.chunk);
         incomingReceivedBytes += data.chunk.byteLength;
-        if (incomingMetadata) {
-          const pct = Math.min(100, Math.round((incomingReceivedBytes / incomingMetadata.fileSize) * 100));
-          const elapsed = (Date.now() - incomingStartTime) / 1000;
-          const speed = elapsed > 0 ? (incomingReceivedBytes / (1024 * 1024) / elapsed).toFixed(1) : "0";
-          document.getElementById("progressBar").style.width = `${pct}%`;
-          document.getElementById("progressPercent").innerText = `${pct}%`;
-          document.getElementById("transferredBytesText").innerText = `${formatBytes(incomingReceivedBytes)} / ${formatBytes(incomingMetadata.fileSize)}`;
-          document.getElementById("transferSpeedText").innerText = `${speed} MB/s`;
+        if (!incomingMetadata) return;
+
+        const now = Date.now();
+        if (now - inLastUiTime >= 150 || incomingReceivedBytes >= incomingMetadata.fileSize) {
+          const dt = (now - inLastMeasureTime) / 1000;
+          if (dt >= 0.15) {
+            const instBps = (incomingReceivedBytes - inLastMeasureBytes) / dt;
+            inSmoothedBps = inSmoothedBps ? inSmoothedBps * 0.72 + instBps * 0.28 : instBps;
+            inLastMeasureTime = now;
+            inLastMeasureBytes = incomingReceivedBytes;
+          }
+          inLastUiTime = now;
+
+          const percent = Math.min(100, Math.round((incomingReceivedBytes / Math.max(1, incomingMetadata.fileSize)) * 100));
+          const leftBytes = Math.max(0, incomingMetadata.fileSize - incomingReceivedBytes);
+          const etaSec = inSmoothedBps > 0 ? leftBytes / inSmoothedBps : 0;
+
+          document.getElementById('progressBar').style.width = `${percent}%`;
+          document.getElementById('progressPercent').innerText = `${percent}%`;
+          document.getElementById('transferredBytesText').innerText = `${formatBytes(incomingReceivedBytes)} / ${formatBytes(incomingMetadata.fileSize)}`;
+          document.getElementById('transferSpeedText').innerText = formatSpeed(inSmoothedBps);
+          document.getElementById('remainingTimeText').innerText = incomingReceivedBytes >= incomingMetadata.fileSize ? 'Done' : formatEta(etaSec);
         }
-      } else if (data.type === "FILE_END") {
-        const blob = new Blob(incomingChunks, { type: incomingMetadata.fileType || "application/octet-stream" });
-        saveReceivedFile(blob, incomingMetadata.fileName, incomingMetadata.fileSize);
-        incomingMetadata = null; incomingChunks = [];
+      } else if (data.type === 'FILE_END') {
+        const receivedBlob = new Blob(incomingChunks, { type: incomingMetadata.fileType || 'application/octet-stream' });
+        saveReceivedFile(receivedBlob, incomingMetadata.fileName, incomingMetadata.displayName || incomingMetadata.fileName, incomingMetadata.fileSize);
+        incomingMetadata = null;
+        incomingChunks = [];
         setTimeout(() => {
-          document.getElementById("progressSection").hidden = true;
-          document.getElementById("idleTransferPlaceholder").hidden = false;
-          document.getElementById("transferTypeBadge").innerText = "Idle";
+          document.getElementById('progressSection').hidden = true;
+          document.getElementById('idleTransferPlaceholder').hidden = false;
+          document.getElementById('transferTypeBadge').innerText = "Idle";
         }, 2000);
       }
     }
 
-    function saveReceivedFile(blob, fileName, size) {
-      const url = URL.createObjectURL(blob);
-      const container = document.getElementById("receivedFilesContainer");
-      const noText = document.getElementById("noReceivedFilesText");
+    function saveReceivedFile(blob, fileName, displayName, size) {
+      const downloadUrl = URL.createObjectURL(blob);
+      const container = document.getElementById('receivedFilesContainer');
+      const noText = document.getElementById('noReceivedFilesText');
       if (noText) noText.remove();
 
-      const item = document.createElement("div");
+      const item = document.createElement('div');
       item.className = "batch-item";
-      item.innerHTML = `<div style="min-width:0"><strong style="display:block;font-size:.85rem;word-break:break-all">${fileName}</strong><span class="notice">${formatBytes(size)}</span></div>
-        <a href="${url}" download="${fileName}" class="primary-btn ripple-target" style="padding:7px 12px;font-size:.8rem">Save ⬇</a>`;
+      item.innerHTML = `
+        <div style="min-width:0">
+          <strong style="display:block;font-size:.84rem;word-break:break-all">${displayName}</strong>
+          <span class="notice">${formatBytes(size)}</span>
+        </div>
+        <a href="${downloadUrl}" download="${fileName}" class="primary-btn ripple-target" style="padding:7px 12px;font-size:.8rem">
+          <i class="fa-solid fa-download"></i> Save
+        </a>`;
       container.prepend(item);
 
-      const a = document.createElement("a");
-      a.href = url; a.download = fileName;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
       showToast(`Received: ${fileName}`);
     }
 
-    function showQRCodeModal() {
-      if (typeof QRCode === "undefined") { showToast("QR library not loaded.", true); return; }
-      document.getElementById("qrModal").hidden = false;
-      const box = document.getElementById("qrcodeCanvas");
-      box.innerHTML = "";
-      new QRCode(box, {
-        text: window.location.origin + window.location.pathname + `?connect=${myCode}`,
-        width: 170, height: 170, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H
-      });
-    }
-    function closeQRCodeModal() { document.getElementById("qrModal").hidden = true; }
-
     function openScannerModal() {
-      if (typeof Html5Qrcode === "undefined") { showToast("QR Scanner library not loaded.", true); return; }
-      document.getElementById("scannerModal").hidden = false;
+      if (typeof Html5Qrcode === 'undefined') { showToast("QR scanner failed to load.", true); return; }
+      document.getElementById('scannerModal').hidden = false;
       html5QrScanner = new Html5Qrcode("qr-reader");
       html5QrScanner.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 200, height: 200 } },
         (decodedText) => {
-          let code = decodedText.includes("connect=") ? decodedText.split("connect=")[1].substring(0, 5) : decodedText;
+          let code = decodedText.includes('connect=') ? decodedText.split('connect=')[1].substring(0, 5) : decodedText;
           if (code && code.length >= 5) {
-            document.getElementById("targetPeerIdInput").value = code.substring(0, 5);
+            document.getElementById('targetPeerIdInput').value = code.substring(0, 5);
             closeScannerModal();
             showToast(`QR Code scanned: ${code.substring(0, 5)}`);
             initiateConnection();
@@ -823,47 +929,150 @@
         },
         () => {}
       ).catch(() => {
-        document.getElementById("scannerFeedback").innerText = "Camera permission denied or camera not found.";
+        document.getElementById('scannerFeedback').innerText = "Camera permission denied or camera not found.";
       });
     }
 
     function closeScannerModal() {
       if (html5QrScanner) {
-        html5QrScanner.stop().then(() => { html5QrScanner.clear(); document.getElementById("scannerModal").hidden = true; })
-          .catch(() => { document.getElementById("scannerModal").hidden = true; });
+        html5QrScanner.stop().then(() => {
+          html5QrScanner.clear();
+          document.getElementById('scannerModal').hidden = true;
+        }).catch(() => { document.getElementById('scannerModal').hidden = true; });
       } else {
-        document.getElementById("scannerModal").hidden = true;
+        document.getElementById('scannerModal').hidden = true;
       }
     }
 
-    function handleDragOver(e) { e.preventDefault(); e.currentTarget.classList.add("dragover"); }
-    function handleDragLeave(e) { e.preventDefault(); e.currentTarget.classList.remove("dragover"); }
-    function handleFileDrop(e) { e.preventDefault(); e.currentTarget.classList.remove("dragover"); if (e.dataTransfer.files) addFiles(e.dataTransfer.files); }
-    function handleFileSelect(e) { if (e.target.files) addFiles(e.target.files); }
+    function showQRCodeModal() {
+      if (typeof QRCode === 'undefined') { showToast("QR generator failed to load.", true); return; }
+      document.getElementById('qrModal').hidden = false;
+      const targetContainer = document.getElementById('qrcodeCanvas');
+      targetContainer.innerHTML = "";
+      const currentUrl = window.location.origin + window.location.pathname + `?connect=${myCode}`;
+      new QRCode(targetContainer, {
+        text: currentUrl, width: 170, height: 170,
+        colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H
+      });
+    }
+    function closeQRCodeModal() { document.getElementById('qrModal').hidden = true; }
+
+    function triggerFolderPicker() {
+      const folderInput = document.getElementById('folderSelector');
+      if (!('webkitdirectory' in folderInput)) {
+        showToast("This mobile browser doesn't support folder picker — opening multi-file picker instead.", true);
+        document.getElementById('fileSelector').click();
+        return;
+      }
+      folderInput.click();
+    }
+
+    function handleDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('dragover'); }
+    function handleDragLeave(e) { e.preventDefault(); e.currentTarget.classList.remove('dragover'); }
+
+    async function readEntryRecursively(entry, path = "") {
+      if (entry.isFile) {
+        return new Promise((res) => entry.file((f) => res([{ file: f, displayName: path + f.name }]), () => res([])));
+      }
+      if (entry.isDirectory) {
+        const reader = entry.createReader();
+        const entries = await new Promise((res) => {
+          const all = [];
+          const readBatch = () => reader.readEntries((batch) => {
+            if (!batch.length) res(all);
+            else { all.push(...batch); readBatch(); }
+          }, () => res(all));
+          readBatch();
+        });
+        const nested = await Promise.all(entries.map((ent) => readEntryRecursively(ent, path + entry.name + "/")));
+        return nested.flat();
+      }
+      return [];
+    }
+
+    async function handleFileDrop(e) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('dragover');
+      const dtItems = e.dataTransfer?.items;
+      if (dtItems && dtItems.length && dtItems[0].webkitGetAsEntry) {
+        const collected = [];
+        for (const item of dtItems) {
+          const entry = item.webkitGetAsEntry();
+          if (entry) collected.push(...await readEntryRecursively(entry));
+        }
+        if (collected.length) { stageItems(collected); return; }
+      }
+      if (e.dataTransfer.files) addFiles(e.dataTransfer.files);
+    }
+
+    function handleFileSelect(e) { if (e.target.files) addFiles(e.target.files); e.target.value = ""; }
+    function handleFolderSelect(e) {
+      if (!e.target.files) return;
+      const list = [...e.target.files].map((f) => ({ file: f, displayName: f.webkitRelativePath || f.name }));
+      stageItems(list);
+      e.target.value = "";
+    }
 
     function addFiles(files) {
-      for (const f of files) queuedFiles.push(f);
+      const list = [...files].map((f) => ({ file: f, displayName: f.webkitRelativePath || f.name }));
+      stageItems(list);
+    }
+
+    function stageItems(items) {
+      queuedFiles.push(...items);
       renderQueue();
-      if (activeConnection && activeConnection.open) document.getElementById("sendActionBtn").disabled = false;
-      showToast(`${files.length} file(s) added to queue`);
+      if (activeConnection && activeConnection.open) {
+        document.getElementById('sendActionBtn').disabled = false;
+      }
+      showToast(`${items.length} file(s) staged`);
+    }
+
+    async function packQueueAsZip() {
+      if (typeof JSZip === 'undefined' || !queuedFiles.length) return;
+      const btn = document.getElementById('zipQueueBtn');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Zipping...`;
+      try {
+        const zip = new JSZip();
+        queuedFiles.forEach((item) => zip.file(item.displayName, item.file));
+        const blob = await zip.generateAsync({ type: 'blob' });
+        const zipFile = new File([blob], `easykity-folder-${Date.now()}.zip`, { type: 'application/zip' });
+        queuedFiles = [{ file: zipFile, displayName: zipFile.name }];
+        renderQueue();
+        showToast("Folder packed into .zip ready to send!");
+      } catch (_) {
+        showToast("Could not pack folder as zip.", true);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-file-zipper"></i> Pack as .zip`;
+      }
     }
 
     function renderQueue() {
-      const container = document.getElementById("fileQueueContainer");
-      document.getElementById("queueCount").innerText = queuedFiles.length;
-      if (!queuedFiles.length) {
+      const container = document.getElementById('fileQueueContainer');
+      document.getElementById('queueCount').innerText = queuedFiles.length;
+      document.getElementById('zipQueueBtn').hidden = queuedFiles.length < 2;
+
+      if (queuedFiles.length === 0) {
         container.innerHTML = `<p id="emptyQueueMsg" class="notice" style="text-align:center;margin:8px 0">No files selected</p>`;
-        document.getElementById("sendActionBtn").disabled = true;
+        document.getElementById('sendActionBtn').disabled = true;
         return;
       }
-      container.innerHTML = "";
-      queuedFiles.forEach((f, idx) => {
-        const row = document.createElement("div");
+
+      container.innerHTML = '';
+      queuedFiles.forEach((item, idx) => {
+        const row = document.createElement('div');
         row.className = "batch-item";
-        row.innerHTML = `<span style="font-size:.84rem;font-weight:600;word-break:break-all">${f.name}</span>
+        const isFolderItem = item.displayName.includes('/');
+        row.innerHTML = `
+          <span style="font-size:.82rem;font-weight:600;word-break:break-all">
+            <i class="fa-solid ${isFolderItem ? 'fa-folder-open' : 'fa-file'}" style="color:var(--brand);margin-right:5px"></i>${item.displayName}
+          </span>
           <div style="display:flex;align-items:center;gap:8px">
-            <span class="notice">${formatBytes(f.size)}</span>
-            <button type="button" class="secondary-btn" style="padding:4px 9px" onclick="removeQueuedFile(${idx})">✕</button>
+            <span class="notice">${formatBytes(item.file.size)}</span>
+            <button type="button" onclick="removeQueuedFile(${idx})" class="secondary-btn" style="padding:3px 8px;color:#ef4444" title="Remove">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
           </div>`;
         container.appendChild(row);
       });
@@ -875,26 +1084,29 @@
     function copyMyCode() {
       if (!myCode) return;
       navigator.clipboard.writeText(myCode);
-      showToast("Device code copied!");
+      showToast("Device code copied to clipboard!");
     }
 
     function formatBytes(bytes) {
-      if (!bytes) return "0 B";
-      const k = 1024, sizes = ["B", "KB", "MB", "GB"];
+      if (bytes === 0) return '0 B';
+      const k = 1024, sizes = ['B', 'KB', 'MB', 'GB'];
       const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     }
 
     let toastTimer = null;
     function showToast(msg, isError = false) {
-      const t = document.getElementById("toast");
-      document.getElementById("toastMsg").innerText = (isError ? "⚠️ " : "✓ ") + msg;
+      const t = document.getElementById('toast');
+      document.getElementById('toastMsg').innerText = msg;
+      const icon = document.getElementById('toastIcon');
+      icon.className = isError ? "fa-solid fa-triangle-exclamation" : "fa-solid fa-circle-check";
+      icon.style.color = isError ? "#ef4444" : "#10b981";
       t.className = "ek-toast show" + (isError ? " err" : "");
       clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => { t.classList.remove("show"); }, 3200);
+      toastTimer = setTimeout(() => { t.classList.remove('show'); }, 3200);
     }
 
-    window.addEventListener("DOMContentLoaded", () => {
+    window.addEventListener('DOMContentLoaded', () => {
       detectDeviceName();
       fetchNetworkIP();
       initPeerNode();
