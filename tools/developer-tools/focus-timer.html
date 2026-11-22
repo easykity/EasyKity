@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Stopwatch, Alarm &amp; Pomodoro Timer — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+  <style>
+    [hidden]{display:none!important}
+    .big-clock { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: clamp(2.6rem, 8vw, 4.4rem); font-weight: 900; letter-spacing: 0.04em; text-align: center; margin: 12px 0; }
+  </style>
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">Creator &amp; Media</p><div class="drawer-links"><a href="wifi-qr-generator.html">Wi-Fi QR Maker</a><a href="focus-timer.html">Focus Timer</a><a href="../entertainment-tools/screen-recorder.html">Screen Recorder</a><a href="../entertainment-tools/youtube-thumbnail.html">YT Thumbnail</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-developer">Developer &amp; Media</a> / <span>Stopwatch, Alarm &amp; Pomodoro</span></nav>
+      <h1>Focus Timer, <span class="gradient-text">Stopwatch &amp; Alarm</span></h1>
+      <p>Stay productive with a Pomodoro study timer, lap stopwatch, and browser alarm clock.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <div class="chip-group">
+          <button type="button" class="chip-btn active ripple-target" data-tab="pomo">🍅 Pomodoro Timer</button>
+          <button type="button" class="chip-btn ripple-target" data-tab="sw">⏱️ Stopwatch</button>
+          <button type="button" class="chip-btn ripple-target" data-tab="alarm">⏰ Alarm Clock</button>
+        </div>
+
+        <!-- Tab 1: Pomodoro -->
+        <div id="tab-pomo" class="control-box tool-layout" style="text-align:center">
+          <div class="chip-group" style="justify-content:center">
+            <button type="button" class="chip-btn active" data-mins="25">Focus (25m)</button>
+            <button type="button" class="chip-btn" data-mins="5">Short Break (5m)</button>
+            <button type="button" class="chip-btn" data-mins="15">Long Break (15m)</button>
+            <button type="button" class="chip-btn" data-mins="45">Deep Study (45m)</button>
+          </div>
+          <div class="big-clock" id="pomoClock">25:00</div>
+          <div class="action-bar" style="justify-content:center">
+            <button id="pomoStart" type="button" class="primary-btn ripple-target">▶ Start</button>
+            <button id="pomoReset" type="button" class="secondary-btn ripple-target">↻ Reset</button>
+          </div>
+          <div class="notice">Completed Sessions: <strong id="pomoCount">0</strong></div>
+        </div>
+
+        <!-- Tab 2: Stopwatch -->
+        <div id="tab-sw" class="control-box tool-layout" style="text-align:center" hidden>
+          <div class="big-clock" id="swClock">00:00.00</div>
+          <div class="action-bar" style="justify-content:center">
+            <button id="swStart" type="button" class="primary-btn ripple-target">▶ Start</button>
+            <button id="swLap" type="button" class="secondary-btn ripple-target" disabled>🏁 Lap</button>
+            <button id="swReset" type="button" class="secondary-btn ripple-target">↻ Reset</button>
+          </div>
+          <div id="lapsList" class="batch-list"></div>
+        </div>
+
+        <!-- Tab 3: Alarm -->
+        <div id="tab-alarm" class="control-box tool-layout" style="text-align:center" hidden>
+          <div class="notice">Current Time</div>
+          <div class="big-clock" id="nowClock" style="font-size:2.4rem">--:--:--</div>
+          <div class="tool-grid-2" style="max-width:460px;margin:auto;text-align:left">
+            <div class="field"><label for="alTime">Alarm Time</label><input id="alTime" type="time"></div>
+            <div class="field"><label for="alNote">Label</label><input id="alNote" type="text" placeholder="Study / Break"></div>
+          </div>
+          <div class="action-bar" style="justify-content:center">
+            <button id="alSetBtn" type="button" class="primary-btn ripple-target">⏰ Set Alarm</button>
+            <button id="alStopBtn" type="button" class="secondary-btn ripple-target" hidden style="border-color:#ef4444;color:#ef4444">🔕 Stop Ringing</button>
+          </div>
+          <div id="alStatus" class="notice"></div>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      function playBeep(repeat = 3) {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          for (let i = 0; i < repeat; i++) {
+            const osc = ctx.createOscillator(), gain = ctx.createGain();
+            osc.type = "sine"; osc.frequency.value = 880;
+            gain.gain.setValueAtTime(0.18, ctx.currentTime + i * 0.35);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.35 + 0.25);
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(ctx.currentTime + i * 0.35); osc.stop(ctx.currentTime + i * 0.35 + 0.26);
+          }
+        } catch (_) {}
+      }
+
+      document.querySelectorAll("[data-tab]").forEach((b) => b.onclick = () => {
+        document.querySelectorAll("[data-tab]").forEach((x) => x.classList.toggle("active", x === b));
+        ["pomo", "sw", "alarm"].forEach((id) => document.getElementById(`tab-${id}`).hidden = b.dataset.tab !== id);
+      });
+
+      // 1. Pomodoro
+      let pomoMins = 25, pomoLeft = 25 * 60, pomoIv = null, sessions = 0;
+      const pomoClock = document.getElementById("pomoClock"), pomoStart = document.getElementById("pomoStart");
+      const drawPomo = () => {
+        pomoClock.textContent = `${String(Math.floor(pomoLeft / 60)).padStart(2, "0")}:${String(pomoLeft % 60).padStart(2, "0")}`;
+      };
+      document.querySelectorAll("[data-mins]").forEach((b) => b.onclick = () => {
+        clearInterval(pomoIv); pomoIv = null; pomoStart.textContent = "▶ Start";
+        document.querySelectorAll("[data-mins]").forEach((x) => x.classList.toggle("active", x === b));
+        pomoMins = Number(b.dataset.mins); pomoLeft = pomoMins * 60; drawPomo();
+      });
+      pomoStart.onclick = () => {
+        if (pomoIv) { clearInterval(pomoIv); pomoIv = null; pomoStart.textContent = "▶ Resume"; return; }
+        pomoStart.textContent = "⏸ Pause";
+        pomoIv = setInterval(() => {
+          if (pomoLeft > 0) { pomoLeft--; drawPomo(); }
+          else {
+            clearInterval(pomoIv); pomoIv = null; pomoStart.textContent = "▶ Start";
+            sessions++; document.getElementById("pomoCount").textContent = sessions;
+            playBeep(4);
+          }
+        }, 1000);
+      };
+      document.getElementById("pomoReset").onclick = () => {
+        clearInterval(pomoIv); pomoIv = null; pomoStart.textContent = "▶ Start"; pomoLeft = pomoMins * 60; drawPomo();
+      };
+
+      // 2. Stopwatch
+      let swElapsed = 0, swStartAt = 0, swRaf = null, laps = [];
+      const swClock = document.getElementById("swClock"), swStart = document.getElementById("swStart"), swLap = document.getElementById("swLap");
+      const fmtSw = (ms) => {
+        const m = Math.floor(ms / 60000), s = Math.floor((ms % 60000) / 1000), cs = Math.floor((ms % 1000) / 10);
+        return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}.${String(cs).padStart(2, "0")}`;
+      };
+      const tickSw = () => {
+        swClock.textContent = fmtSw(swElapsed + (performance.now() - swStartAt));
+        swRaf = requestAnimationFrame(tickSw);
+      };
+      swStart.onclick = () => {
+        if (swRaf) {
+          cancelAnimationFrame(swRaf); swRaf = null; swElapsed += performance.now() - swStartAt;
+          swStart.textContent = "▶ Resume"; swLap.disabled = true;
+        } else {
+          swStartAt = performance.now(); swStart.textContent = "⏸ Pause"; swLap.disabled = false; tickSw();
+        }
+      };
+      swLap.onclick = () => {
+        const val = fmtSw(swElapsed + (performance.now() - swStartAt));
+        laps.unshift(`Lap #${laps.length + 1}: ${val}`);
+        document.getElementById("lapsList").innerHTML = laps.map((l) => `<div class="batch-item"><strong>${l}</strong></div>`).join("");
+      };
+      document.getElementById("swReset").onclick = () => {
+        cancelAnimationFrame(swRaf); swRaf = null; swElapsed = 0; laps = [];
+        swClock.textContent = "00:00.00"; swStart.textContent = "▶ Start"; swLap.disabled = true;
+        document.getElementById("lapsList").innerHTML = "";
+      };
+
+      // 3. Alarm
+      let alarmTarget = "", alarmRingIv = null;
+      setInterval(() => {
+        const now = new Date();
+        document.getElementById("nowClock").textContent = now.toTimeString().slice(0, 8);
+        const hm = now.toTimeString().slice(0, 5);
+        if (alarmTarget && hm === alarmTarget && now.getSeconds() === 0 && !alarmRingIv) {
+          document.getElementById("alStatus").textContent = `🔔 ALARM RINGING: ${document.getElementById("alNote").value || alarmTarget}`;
+          document.getElementById("alStopBtn").hidden = false;
+          playBeep(3);
+          alarmRingIv = setInterval(() => playBeep(2), 1800);
+        }
+      }, 1000);
+
+      document.getElementById("alSetBtn").onclick = () => {
+        const v = document.getElementById("alTime").value;
+        if (!v) return;
+        alarmTarget = v;
+        document.getElementById("alStatus").textContent = `✓ Alarm armed for ${v}`;
+      };
+      document.getElementById("alStopBtn").onclick = () => {
+        clearInterval(alarmRingIv); alarmRingIv = null; alarmTarget = "";
+        document.getElementById("alStopBtn").hidden = true;
+        document.getElementById("alStatus").textContent = "Alarm stopped.";
+      };
+    })();
+  </script>
+</body>
+  </html>
