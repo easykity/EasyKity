@@ -1,3 +1,5 @@
+
+[hidden] { display: none !important; }
 /* Shared Workspace Styles for All EasyKity Tool Pages */
 .breadcrumb {
   display: flex;
