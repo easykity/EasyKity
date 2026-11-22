@@ -19,7 +19,6 @@
   <style>
     [hidden] { display: none !important; }
 
-    /* Sticky Sejda-Style Floating Toolbar */
     .sejda-dock {
       position: sticky;
       top: 72px;
@@ -39,249 +38,96 @@
       box-shadow: 0 12px 28px rgba(20, 35, 78, 0.12);
     }
 
-    .dock-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 6px;
-    }
+    .dock-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
     .dock-group {
-      display: inline-flex;
-      align-items: center;
-      background: var(--surface-alt);
-      border: 1px solid var(--line);
-      border-radius: 11px;
-      padding: 2px;
-      gap: 2px;
-      flex-shrink: 0;
+      display: inline-flex; align-items: center; background: var(--surface-alt);
+      border: 1px solid var(--line); border-radius: 11px; padding: 2px; gap: 2px; flex-shrink: 0;
     }
     .dock-btn {
-      border: 0;
-      background: transparent;
-      color: var(--ink);
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      white-space: nowrap;
-      transition: background 0.16s, color 0.16s;
+      border: 0; background: transparent; color: var(--ink); padding: 6px 10px; border-radius: 8px;
+      font-size: 0.8rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center;
+      gap: 5px; white-space: nowrap; transition: background 0.16s, color 0.16s;
     }
     .dock-btn:hover { background: var(--soft); color: var(--brand); }
     .dock-btn.active {
       background: linear-gradient(110deg, var(--brand), var(--brand2));
-      color: #fff;
-      box-shadow: 0 4px 12px rgba(49, 94, 235, 0.3);
+      color: #fff; box-shadow: 0 4px 12px rgba(49, 94, 235, 0.3);
     }
     .dock-btn:disabled { opacity: 0.35; cursor: not-allowed; }
     .dock-btn.danger:hover { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
 
     .fmt-strip {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 6px;
-      padding-top: 6px;
-      border-top: 1px solid var(--line);
+      display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+      padding-top: 6px; border-top: 1px solid var(--line);
     }
     .fmt-strip select, .fmt-strip input[type="number"] {
-      height: 34px;
-      padding: 3px 8px;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      background: var(--surface);
-      color: var(--ink);
-      font-size: 0.8rem;
-      font-weight: 600;
+      height: 34px; padding: 3px 8px; border-radius: 8px; border: 1px solid var(--line);
+      background: var(--surface); color: var(--ink); font-size: 0.8rem; font-weight: 600;
     }
     .color-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 2px 7px;
-      height: 34px;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      background: var(--surface);
-      font-size: 0.76rem;
-      font-weight: 700;
+      display: inline-flex; align-items: center; gap: 5px; padding: 2px 7px; height: 34px;
+      border-radius: 8px; border: 1px solid var(--line); background: var(--surface);
+      font-size: 0.76rem; font-weight: 700;
     }
-    .color-pill input[type="color"] {
-      width: 20px;
-      height: 20px;
-      border: 0;
-      padding: 0;
-      background: none;
-      cursor: pointer;
-    }
+    .color-pill input[type="color"] { width: 22px; height: 22px; border: 0; padding: 0; background: none; cursor: pointer; }
 
-    /* Crop Action Strip */
     .crop-confirm-bar {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 10px 14px;
-      border-radius: 12px;
-      background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.45);
-      font-size: 0.84rem;
-      font-weight: 700;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 10px 14px; border-radius: 12px;
+      background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.45);
+      font-size: 0.84rem; font-weight: 700;
     }
 
-    /* Stage */
     .pdf-stage-wrap {
-      background: #1a2234;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 16px 10px 76px;
-      overflow: auto;
-      display: grid;
-      place-items: center;
-      min-height: 440px;
-      max-width: 100%;
+      background: #1a2234; border: 1px solid var(--line); border-radius: 18px;
+      padding: 16px 10px 76px; overflow: auto; display: grid; place-items: center;
+      min-height: 440px; max-width: 100%;
     }
-    .pdf-page-box {
-      position: relative;
-      background: #fff;
-      box-shadow: 0 20px 55px rgba(0, 0, 0, 0.45);
-      touch-action: none;
-      flex-shrink: 0;
-    }
+    .pdf-page-box { position: relative; background: #fff; box-shadow: 0 20px 55px rgba(0, 0, 0, 0.45); touch-action: none; flex-shrink: 0; }
     .pdf-page-box canvas { display: block; }
     .overlay-layer { position: absolute; inset: 0; overflow: hidden; }
 
-    /* Sejda-style Direct Click-to-Edit PDF Text Boxes */
     .pdf-native-hit {
-      position: absolute;
-      border: 1px dashed rgba(49, 94, 235, 0.22);
-      background: transparent;
-      cursor: text;
-      transition: background 0.14s, border-color 0.14s;
+      position: absolute; border: 1px dashed rgba(49, 94, 235, 0.2);
+      background: transparent; cursor: text; transition: background 0.14s, border-color 0.14s;
     }
-    .pdf-native-hit:hover {
-      background: rgba(49, 94, 235, 0.14);
-      border: 1.5px dashed #315eeb;
-    }
+    .pdf-native-hit:hover { background: rgba(49, 94, 235, 0.14); border: 1.5px dashed #315eeb; }
 
-    .pdf-item {
-      position: absolute;
-      cursor: move;
-      border: 1.5px dashed transparent;
-      box-sizing: border-box;
-      line-height: 1.22;
-    }
-    .pdf-item.selected {
-      border-color: #315eeb;
-      box-shadow: 0 0 0 2px rgba(49, 94, 235, 0.25);
-      z-index: 4;
-    }
-    .pdf-item-text {
-      padding: 1px 3px;
-      min-width: 18px;
-      min-height: 14px;
-      white-space: pre-wrap;
-      outline: none;
-      word-break: break-word;
-    }
-    .pdf-item-text[contenteditable="true"] {
-      cursor: text;
-      -webkit-user-select: text !important;
-      user-select: text !important;
-    }
+    .pdf-item { position: absolute; cursor: move; border: 1.5px dashed transparent; box-sizing: border-box; line-height: 1.22; z-index: 3; }
+    .pdf-item.selected { border-color: #315eeb; box-shadow: 0 0 0 2px rgba(49, 94, 235, 0.25); z-index: 5; }
+    .pdf-item-text { padding: 1px 3px; min-width: 18px; min-height: 14px; white-space: pre-wrap; outline: none; word-break: break-word; }
+    .pdf-item-text[contenteditable="true"] { cursor: text; -webkit-user-select: text !important; user-select: text !important; }
     .resize-handle {
-      position: absolute;
-      right: -6px;
-      bottom: -6px;
-      width: 13px;
-      height: 13px;
-      border-radius: 50%;
-      background: #315eeb;
-      border: 2px solid #fff;
-      cursor: nwse-resize;
-      display: none;
+      position: absolute; right: -6px; bottom: -6px; width: 13px; height: 13px;
+      border-radius: 50%; background: #315eeb; border: 2px solid #fff; cursor: nwse-resize; display: none;
     }
     .pdf-item.selected .resize-handle { display: block; }
 
     .crop-box {
-      position: absolute;
-      border: 2px dashed #10b981;
-      background: rgba(16, 185, 129, 0.16);
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
-      pointer-events: none;
-      z-index: 6;
+      position: absolute; border: 2px dashed #10b981; background: rgba(16, 185, 129, 0.14);
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.38); pointer-events: none; z-index: 6;
     }
 
-    /* Bottom Sticky Export Pill */
     .floating-apply-bar {
-      position: sticky;
-      bottom: 12px;
-      z-index: 34;
-      margin: -56px auto 0;
-      width: min(100%, 720px);
-      background: rgba(17, 25, 44, 0.94);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      padding: 8px 10px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      position: sticky; bottom: 12px; z-index: 34; margin: -56px auto 0;
+      width: min(100%, 760px); background: rgba(17, 25, 44, 0.94); backdrop-filter: blur(12px);
+      border: 1px solid var(--line); border-radius: 20px; padding: 8px 10px;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px;
       box-shadow: 0 14px 35px rgba(0, 0, 0, 0.38);
     }
-    :root[data-theme="light"] .floating-apply-bar {
-      background: rgba(255, 255, 255, 0.96);
-    }
+    :root[data-theme="light"] .floating-apply-bar { background: rgba(255, 255, 255, 0.96); }
     .bar-select {
-      height: 36px;
-      padding: 0 10px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-      background: var(--surface);
-      color: var(--ink);
-      font-size: 0.8rem;
-      font-weight: 700;
+      height: 36px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line);
+      background: var(--surface); color: var(--ink); font-size: 0.8rem; font-weight: 700;
     }
 
-    .ek-modal {
-      position: fixed;
-      inset: 0;
-      z-index: 85;
-      background: rgba(6, 10, 20, 0.78);
-      backdrop-filter: blur(6px);
-      display: grid;
-      place-items: center;
-      padding: 16px;
-    }
+    .ek-modal { position: fixed; inset: 0; z-index: 85; background: rgba(6, 10, 20, 0.78); backdrop-filter: blur(6px); display: grid; place-items: center; padding: 16px; }
     .ek-modal-card {
-      width: min(500px, 100%);
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: 22px;
-      padding: 20px;
-      display: grid;
-      gap: 14px;
-      box-shadow: var(--shadow);
-      max-height: 90vh;
-      overflow-y: auto;
+      width: min(500px, 100%); background: var(--surface); border: 1px solid var(--line);
+      border-radius: 22px; padding: 20px; display: grid; gap: 14px; box-shadow: var(--shadow); max-height: 90vh; overflow-y: auto;
     }
-    .sig-pad {
-      width: 100%;
-      height: 170px;
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      touch-action: none;
-      cursor: crosshair;
-    }
+    .sig-pad { width: 100%; height: 170px; background: #fff; border: 1px solid var(--line); border-radius: 12px; touch-action: none; cursor: crosshair; }
 
-    /* Mobile Optimization for PDF Editor */
     @media (max-width: 680px) {
       .sejda-dock { top: 64px; padding: 7px; border-radius: 14px; }
       .dock-row { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
@@ -292,22 +138,13 @@
       .bar-select { flex: 1 1 130px; }
     }
 
-    /* Print ONLY the Edited PDF Pages */
     #printPages { display: none; }
     @media print {
       @page { margin: 0; }
       body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
       body > *:not(#printPages) { display: none !important; }
-      #printPages {
-        display: block !important;
-        width: 100%;
-      }
-      #printPages img {
-        display: block;
-        width: 100%;
-        height: auto;
-        page-break-after: always;
-      }
+      #printPages { display: block !important; width: 100%; }
+      #printPages img { display: block; width: 100%; height: auto; page-break-after: always; }
     }
   </style>
 </head>
@@ -343,7 +180,7 @@
       <div class="container">
         <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-pdf">PDF &amp; Docs</a> / <span>PDF Editor Pro</span></nav>
         <h1>PDF <span class="gradient-text">Editor Pro</span></h1>
-        <p>Click any text on your PDF to edit directly, add Bangla/Hindi/Arabic/Ticket fonts, sign, crop, split/merge &amp; print.</p>
+        <p>Click any text on your PDF to edit with original colors &amp; fonts, pick colors, sign, crop, split/merge, print &amp; export.</p>
       </div>
     </section>
 
@@ -379,11 +216,11 @@
           <!-- Active Editor Workspace -->
           <div id="editorApp" class="tool-layout" hidden>
 
-            <!-- Floating Sticky Sejda-Style Toolbar -->
+            <!-- Sticky Toolbar -->
             <div class="sejda-dock">
               <div class="dock-row">
                 <div class="dock-group">
-                  <button type="button" class="dock-btn active" data-mode="select" title="Click existing text to edit or move items">👆 Edit / Select</button>
+                  <button type="button" class="dock-btn active" data-mode="select">👆 Edit / Select</button>
                   <button type="button" class="dock-btn" data-mode="text">🔤 Add Text</button>
                   <button type="button" class="dock-btn" id="openSigBtn">✍️ Sign</button>
                   <label class="dock-btn" style="cursor:pointer">🖼️ Image <input id="addImgInput" type="file" accept="image/*" hidden></label>
@@ -391,15 +228,19 @@
 
                 <div class="dock-group">
                   <button type="button" class="dock-btn" data-mode="whiteout">⬜ Whiteout</button>
-                  <button type="button" class="dock-btn" id="eyedropBtn" title="Pick page color">💉 Pick BG</button>
+                  <button type="button" class="dock-btn" id="pickTextClrBtn" title="Pick a color from PDF and apply to Text">💉 Pick Text Color</button>
+                  <button type="button" class="dock-btn" id="pickBgClrBtn" title="Pick page color for Cover BG / Whiteout">💉 Pick BG</button>
                   <button type="button" class="dock-btn" data-mode="highlight">🟨 Highlight</button>
-                  <button type="button" class="dock-btn" data-mode="rect">▭ Box</button>
-                  <button type="button" class="dock-btn" data-mode="line">╱ Line</button>
                 </div>
 
                 <div class="dock-group">
+                  <button type="button" class="dock-btn" data-mode="rect">▭ Box</button>
+                  <button type="button" class="dock-btn" data-mode="line">╱ Line</button>
                   <button type="button" class="dock-btn" data-mode="crop">✂️ Crop</button>
                   <button type="button" class="dock-btn" id="openPagesBtn">📑 Split/Merge</button>
+                </div>
+
+                <div class="dock-group">
                   <button type="button" class="dock-btn" id="undoBtn" disabled title="Undo (Ctrl+Z)">↶</button>
                   <button type="button" class="dock-btn" id="redoBtn" disabled title="Redo (Ctrl+Y)">↷</button>
                   <button type="button" class="dock-btn danger" id="deleteItemBtn">🗑️</button>
@@ -412,11 +253,10 @@
                 <select id="fFamily" title="Font Family" style="max-width:185px">
                   <optgroup label="Standard &amp; Ticket Fonts">
                     <option value="Helvetica, Arial, sans-serif" data-std="Helvetica">Arial / Helvetica</option>
-                    <option value="'Roboto', sans-serif">Roboto (Modern)</option>
+                    <option value="'Open Sans', sans-serif">Open Sans (Ticket/Clean)</option>
+                    <option value="'Roboto', sans-serif">Roboto</option>
                     <option value="'Oswald', sans-serif">Oswald (Air/Bus Ticket)</option>
                     <option value="'IBM Plex Mono', monospace">IBM Plex Mono (Ticket)</option>
-                    <option value="'Inter', sans-serif">Inter</option>
-                    <option value="'Open Sans', sans-serif">Open Sans</option>
                     <option value="'Lato', sans-serif">Lato</option>
                     <option value="'Montserrat', sans-serif">Montserrat</option>
                     <option value="'Poppins', sans-serif">Poppins</option>
@@ -445,8 +285,8 @@
                 <button type="button" class="dock-btn" id="btnItalic" style="border:1px solid var(--line)"><i>I</i></button>
                 <button type="button" class="dock-btn" id="btnUnder" style="border:1px solid var(--line)"><u>U</u></button>
 
-                <label class="color-pill">Text <input id="fColor" type="color" value="#111827"></label>
-                <label class="color-pill">Cover <input id="fBgColor" type="color" value="#ffffff"></label>
+                <label class="color-pill" title="Change Text Color">Text <input id="fColor" type="color" value="#111827"></label>
+                <label class="color-pill" title="Change Cover / Whiteout Color">Cover <input id="fBgColor" type="color" value="#ffffff"></label>
                 <label class="check-row" style="font-size:.76rem"><input id="fUseBg" type="checkbox"> Cover BG</label>
 
                 <div style="margin-left:auto;display:flex;align-items:center;gap:4px">
@@ -458,9 +298,9 @@
                 </div>
               </div>
 
-              <!-- Crop Confirmation Strip (Shown when crop box is drawn) -->
+              <!-- Crop Confirmation Strip -->
               <div id="cropConfirmBar" class="crop-confirm-bar" hidden>
-                <span>✂️ Crop area selected — apply to see &amp; export cropped page:</span>
+                <span>✂️ Crop area selected — apply now, then download as PDF or Image below:</span>
                 <div class="action-bar">
                   <button type="button" id="applyCropPageBtn" class="primary-btn" style="padding:6px 12px;font-size:.78rem">✓ Crop This Page</button>
                   <button type="button" id="applyCropAllBtn" class="secondary-btn" style="padding:6px 12px;font-size:.78rem">Crop All Pages</button>
@@ -478,7 +318,7 @@
               </div>
             </div>
 
-            <!-- Sticky Bottom Export Pill with Quality for PDF & Images -->
+            <!-- Bottom Export Pill -->
             <div class="floating-apply-bar">
               <select id="exportFmt" class="bar-select" aria-label="Save Format">
                 <option value="pdf">Save as PDF (.pdf)</option>
@@ -495,7 +335,7 @@
               <button id="newPdfBtn" type="button" class="secondary-btn ripple-target" style="border-radius:999px;padding:8px 13px;font-size:.8rem">New PDF</button>
             </div>
 
-            <div id="saveStatus" class="notice" style="text-align:center"></div>
+            <div id="saveStatus" class="notice" style="text-align:center;font-weight:600"></div>
           </div>
         </div>
       </div>
@@ -525,7 +365,7 @@
     </div>
   </div>
 
-  <!-- Split / Merge Pages Modal -->
+  <!-- Split / Merge Modal -->
   <div id="pagesModal" class="ek-modal" hidden>
     <div class="ek-modal-card">
       <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Split &amp; Merge PDF</h3><button type="button" class="dock-btn" id="closePagesBtn">✕</button></div>
@@ -551,7 +391,7 @@
     </div></div>
   </footer>
 
-  <!-- Direct Print Stage (Direct child of body so ONLY PDF prints) -->
+  <!-- Print-only Container (Direct child of body) -->
   <div id="printPages"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -576,11 +416,13 @@
       const cropBox = document.getElementById("cropBox");
       const cropConfirmBar = document.getElementById("cropConfirmBar");
 
-      let rawPdfBytes = null, pdfJsDoc = null, totalPages = 1, currentPage = 1;
+      let rawPdfBytes = null, pdfJsDoc = null, currentPdfJsPage = null;
+      let totalPages = 1, currentPage = 1;
       let viewScale = window.innerWidth < 680 ? 0.85 : 1.25;
       let mode = "select", itemsByPage = {}, selectedId = null, idSeq = 1;
-      let undoStack = [], redoStack = [], nativeTextHits = [], eyedropActive = false;
-      let pendingCrop = null; // { x0, y0, x1, y1 } normalized
+      let undoStack = [], redoStack = [], nativeTextHits = [];
+      let eyedropMode = null; // "text" | "bg" | null
+      let pendingCrop = null;
 
       const fFamily = document.getElementById("fFamily"), fSize = document.getElementById("fSize");
       const fColor = document.getElementById("fColor"), fBgColor = document.getElementById("fBgColor"), fUseBg = document.getElementById("fUseBg");
@@ -600,11 +442,23 @@
         document.getElementById("redoBtn").disabled = redoStack.length === 0;
       }
 
+      function triggerDownload(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 2500);
+      }
+
       async function initFromBytes(bytes, keepItems = false) {
         if (!window.pdfjsLib || !window.PDFLib) { showError("PDF engines failed to load. Check internet connection."); return; }
         try {
-          rawPdfBytes = bytes;
-          pdfJsDoc = await pdfjsLib.getDocument({ data: new Uint8Array(bytes) }).promise;
+          // ALWAYS keep an independent un-detached copy for pdf-lib!
+          rawPdfBytes = new Uint8Array(bytes).slice();
+          pdfJsDoc = await pdfjsLib.getDocument({ data: rawPdfBytes.slice() }).promise;
           totalPages = pdfJsDoc.numPages;
           currentPage = Math.min(currentPage, totalPages);
           if (!keepItems) { itemsByPage = {}; undoStack = []; redoStack = []; }
@@ -614,10 +468,10 @@
           showError(""); updateUndoButtons();
           await renderPage();
           saveStatus.textContent = nativeTextHits.length
-            ? "Tip: Click directly on any text in the PDF to edit it!"
-            : "Tip: This page is scanned/vector-based — use 'Pick BG' + 'Whiteout' + 'Add Text' to edit.";
-        } catch (_) {
-          showError("Unable to open this PDF (it may be encrypted or invalid).");
+            ? "Tip: Click directly on any text in the PDF to edit it (original colors & font auto-matched)!"
+            : "Tip: Scanned/vector page — use 'Pick BG' + 'Whiteout' + 'Add Text' to edit cleanly.";
+        } catch (e) {
+          showError("Unable to open this PDF: " + (e?.message || "Invalid or encrypted file."));
         }
       }
 
@@ -641,7 +495,7 @@
           if (!res.ok) throw new Error("HTTP " + res.status);
           await initFromBytes(await res.arrayBuffer());
         } catch (_) {
-          showError("Remote server blocked direct URL loading (CORS). Please download the PDF first and upload it above.");
+          showError("Remote server blocked direct URL loading (CORS). Download the PDF first and drop it above.");
         } finally {
           btn.textContent = "Load URL ↗"; btn.disabled = false;
         }
@@ -654,15 +508,15 @@
       });
 
       async function renderPage() {
-        const page = await pdfJsDoc.getPage(currentPage);
-        const vp = page.getViewport({ scale: viewScale });
+        currentPdfJsPage = await pdfJsDoc.getPage(currentPage);
+        const vp = currentPdfJsPage.getViewport({ scale: viewScale });
         pdfCanvas.width = vp.width; pdfCanvas.height = vp.height;
         pageBox.style.width = `${vp.width}px`; pageBox.style.height = `${vp.height}px`;
-        await page.render({ canvasContext: pdfCanvas.getContext("2d"), viewport: vp }).promise;
+        await currentPdfJsPage.render({ canvasContext: pdfCanvas.getContext("2d", { willReadFrequently: true }), viewport: vp }).promise;
         document.getElementById("pageLabel").textContent = `${currentPage} / ${totalPages}`;
 
-        // Pixel-accurate PDF text detection using pdfjsLib.Util.transform
-        const content = await page.getTextContent();
+        const content = await currentPdfJsPage.getTextContent();
+        const styles = content.styles || {};
         nativeTextHits = content.items.map((t) => {
           const str = t.str || "";
           if (!str.trim()) return null;
@@ -672,11 +526,12 @@
           const yNorm = Math.max(0, (m[5] - fontPx * 0.85) / vp.height);
           const wNorm = Math.max(0.02, ((t.width || str.length * 6) * viewScale) / vp.width);
           const hNorm = Math.max(0.015, (fontPx * 1.25) / vp.height);
+          const st = styles[t.fontName] || {};
           return {
             str,
             fontPt: Math.max(7, Math.round(fontPx / viewScale)),
             xNorm, yNorm, wNorm, hNorm,
-            fontName: t.fontName || ""
+            fontName: (t.fontName || "") + " " + (st.fontFamily || "")
           };
         }).filter(Boolean);
 
@@ -684,29 +539,74 @@
       }
 
       const getPageItems = () => (itemsByPage[currentPage] ||= []);
+      const toHex = (r, g, b) => "#" + [r, g, b].map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")).join("");
 
-      function sampleCanvasBgHex(xNorm, yNorm) {
-        const ctx = pdfCanvas.getContext("2d");
-        const px = Math.min(pdfCanvas.width - 2, Math.max(1, Math.round(xNorm * pdfCanvas.width) - 2));
-        const py = Math.min(pdfCanvas.height - 2, Math.max(1, Math.round(yNorm * pdfCanvas.height) - 1));
+      function samplePixelHex(xNorm, yNorm) {
+        const ctx = pdfCanvas.getContext("2d", { willReadFrequently: true });
+        const px = Math.min(pdfCanvas.width - 1, Math.max(0, Math.round(xNorm * pdfCanvas.width)));
+        const py = Math.min(pdfCanvas.height - 1, Math.max(0, Math.round(yNorm * pdfCanvas.height)));
         const d = ctx.getImageData(px, py, 1, 1).data;
-        return "#" + [d[0], d[1], d[2]].map((v) => v.toString(16).padStart(2, "0")).join("");
+        return { hex: toHex(d[0], d[1], d[2]), rgb: [d[0], d[1], d[2]] };
+      }
+
+      // Smart Background + Original Text Ink Color Detection!
+      function detectHitColors(hit) {
+        const ctx = pdfCanvas.getContext("2d", { willReadFrequently: true });
+        const W = pdfCanvas.width, H = pdfCanvas.height;
+        const x0 = Math.max(0, Math.floor(hit.xNorm * W));
+        const y0 = Math.max(0, Math.floor(hit.yNorm * H));
+        const bw = Math.min(W - x0, Math.max(4, Math.ceil(hit.wNorm * W)));
+        const bh = Math.min(H - y0, Math.max(4, Math.ceil(hit.hNorm * H)));
+
+        // Sample corner/just-above pixel as background
+        const bgSample = samplePixelHex(Math.max(0, hit.xNorm - 0.003), Math.max(0, hit.yNorm));
+        const [br, bg, bb] = bgSample.rgb;
+
+        const imgData = ctx.getImageData(x0, y0, bw, bh).data;
+        let maxDist = 0, bestR = 17, bestG = 24, bestB = 39;
+        const strongPixels = [];
+
+        for (let i = 0; i < imgData.length; i += 4) {
+          const r = imgData[i], g = imgData[i + 1], b = imgData[i + 2];
+          const dist = Math.abs(r - br) + Math.abs(g - bg) + Math.abs(b - bb);
+          if (dist > maxDist) { maxDist = dist; bestR = r; bestG = g; bestB = b; }
+          if (dist > 45) strongPixels.push([dist, r, g, b]);
+        }
+
+        let fgHex = "#111827";
+        if (strongPixels.length) {
+          strongPixels.sort((a, b) => b[0] - a[0]);
+          const topSlice = strongPixels.slice(0, Math.max(1, Math.ceil(strongPixels.length * 0.2)));
+          const avg = topSlice.reduce((acc, p) => [acc[0] + p[1], acc[1] + p[2], acc[2] + p[3]], [0, 0, 0]);
+          fgHex = toHex(avg[0] / topSlice.length, avg[1] / topSlice.length, avg[2] / topSlice.length);
+        } else if (maxDist > 20) {
+          fgHex = toHex(bestR, bestG, bestB);
+        }
+        return { bgHex: bgSample.hex, fgHex };
+      }
+
+      // Auto-match best font family for detected text
+      function matchBestFont(hit) {
+        if (/[\u0980-\u09FF]/.test(hit.str)) return "'Hind Siliguri', sans-serif";
+        if (/[\u0600-\u06FF]/.test(hit.str)) return "'Cairo', sans-serif";
+        if (/[\u0900-\u097F]/.test(hit.str)) return "'Noto Sans Devanagari', sans-serif";
+        if (/mono|courier|consola/i.test(hit.fontName)) return "'IBM Plex Mono', monospace";
+        if (/times|serif|georgia|garamond/i.test(hit.fontName)) return "'Times New Roman', serif";
+        if (/condensed|narrow|oswald/i.test(hit.fontName)) return "'Oswald', sans-serif";
+        return "'Open Sans', sans-serif";
       }
 
       function renderOverlay() {
         overlayLayer.innerHTML = "";
         const W = pdfCanvas.width, H = pdfCanvas.height;
 
-        // Always show direct click-to-edit hits in Select mode (like Sejda!)
         if (mode === "select") {
           nativeTextHits.forEach((hit, idx) => {
             const box = document.createElement("div");
             box.className = "pdf-native-hit";
             box.title = "Click to edit text";
-            box.style.left = `${hit.xNorm * W}px`;
-            box.style.top = `${hit.yNorm * H}px`;
-            box.style.width = `${hit.wNorm * W}px`;
-            box.style.height = `${hit.hNorm * H}px`;
+            box.style.left = `${hit.xNorm * W}px`; box.style.top = `${hit.yNorm * H}px`;
+            box.style.width = `${hit.wNorm * W}px`; box.style.height = `${hit.hNorm * H}px`;
             box.dataset.hitIdx = idx;
             overlayLayer.appendChild(box);
           });
@@ -716,8 +616,7 @@
           const el = document.createElement("div");
           el.className = "pdf-item" + (it.id === selectedId ? " selected" : "");
           el.dataset.id = it.id;
-          el.style.left = `${it.x * W}px`;
-          el.style.top = `${it.y * H}px`;
+          el.style.left = `${it.x * W}px`; el.style.top = `${it.y * H}px`;
 
           if (it.kind === "text") {
             el.style.minWidth = `${Math.max(24, it.w * W)}px`;
@@ -778,10 +677,15 @@
         if (rerender) renderOverlay();
       }
 
+      function clearEyedrop() {
+        eyedropMode = null;
+        document.getElementById("pickTextClrBtn").classList.remove("active");
+        document.getElementById("pickBgClrBtn").classList.remove("active");
+      }
+
       function setMode(m) {
-        mode = m; eyedropActive = false;
+        mode = m; clearEyedrop();
         document.querySelectorAll("[data-mode]").forEach((b) => b.classList.toggle("active", b.dataset.mode === m));
-        document.getElementById("eyedropBtn").classList.remove("active");
         overlayLayer.style.cursor = m === "crop" ? "crosshair" : "default";
         if (m !== "crop") { cropBox.hidden = true; cropConfirmBar.hidden = true; pendingCrop = null; }
         if (m === "crop") saveStatus.textContent = "Drag across the PDF page to select the area you want to crop.";
@@ -789,11 +693,20 @@
       }
       document.querySelectorAll("[data-mode]").forEach((b) => b.addEventListener("click", () => setMode(b.dataset.mode)));
 
-      document.getElementById("eyedropBtn").addEventListener("click", () => {
-        eyedropActive = true;
-        document.getElementById("eyedropBtn").classList.add("active");
+      document.getElementById("pickTextClrBtn").addEventListener("click", () => {
+        clearEyedrop();
+        eyedropMode = "text";
+        document.getElementById("pickTextClrBtn").classList.add("active");
         overlayLayer.style.cursor = "crosshair";
-        saveStatus.textContent = "Click anywhere on the PDF page to sample its background color!";
+        saveStatus.textContent = "Click any color on the PDF to apply it to your selected/new Text!";
+      });
+
+      document.getElementById("pickBgClrBtn").addEventListener("click", () => {
+        clearEyedrop();
+        eyedropMode = "bg";
+        document.getElementById("pickBgClrBtn").classList.add("active");
+        overlayLayer.style.cursor = "crosshair";
+        saveStatus.textContent = "Click anywhere on the PDF background to copy its exact Cover/Whiteout color!";
       });
 
       overlayLayer.addEventListener("pointerdown", (e) => {
@@ -801,18 +714,30 @@
         const W = pdfCanvas.width, H = pdfCanvas.height;
         const nx = (e.clientX - rect.left) / W, ny = (e.clientY - rect.top) / H;
 
-        // 1. Eyedropper
-        if (eyedropActive) {
-          const hex = sampleCanvasBgHex(nx, ny);
-          fBgColor.value = hex; fUseBg.checked = true;
-          eyedropActive = false;
-          document.getElementById("eyedropBtn").classList.remove("active");
+        // 1. Smart Eyedropper (Text Color OR BG Color)
+        if (eyedropMode) {
+          const picked = samplePixelHex(nx, ny).hex;
+          const activeItem = getPageItems().find((x) => x.id === selectedId);
+          if (eyedropMode === "text") {
+            fColor.value = picked;
+            if (activeItem) { pushHistory(); activeItem.color = picked; renderOverlay(); }
+            saveStatus.textContent = `✓ Applied text color: ${picked}`;
+          } else {
+            fBgColor.value = picked; fUseBg.checked = true;
+            if (activeItem) {
+              pushHistory();
+              activeItem.bgColor = picked;
+              if (activeItem.kind === "text") activeItem.useBg = true;
+              renderOverlay();
+            }
+            saveStatus.textContent = `✓ Applied cover background color: ${picked}`;
+          }
+          clearEyedrop();
           overlayLayer.style.cursor = "default";
-          saveStatus.textContent = `Picked background color: ${hex}`;
           return;
         }
 
-        // 2. Drag Crop Area (shows Apply / Cancel bar)
+        // 2. Drag Crop Area
         if (mode === "crop") {
           const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
           cropBox.hidden = false; cropConfirmBar.hidden = true;
@@ -877,21 +802,24 @@
           return;
         }
 
-        // 4. Direct Click on Existing PDF Text (Sejda-style!)
+        // 4. Direct Click on Existing PDF Text -> Preserves Original Color & Best-Match Font!
         const hitEl = e.target.closest(".pdf-native-hit");
         if (hitEl && mode === "select") {
           const hit = nativeTextHits[Number(hitEl.dataset.hitIdx)];
           pushHistory();
-          const bgHex = sampleCanvasBgHex(hit.xNorm, hit.yNorm);
+          const { bgHex, fgHex } = detectHitColors(hit);
+          const autoFont = matchBestFont(hit);
+          const isBold = /bold|black|heavy|600|700/i.test(hit.fontName);
+          const isItalic = /italic|oblique/i.test(hit.fontName);
+
           const newId = idSeq++;
           getPageItems().push({
             id: newId, kind: "text", x: hit.xNorm, y: hit.yNorm, w: hit.wNorm, h: hit.hNorm,
-            text: hit.str, family: fFamily.value, size: hit.fontPt,
-            bold: /bold/i.test(hit.fontName), italic: /italic|oblique/i.test(hit.fontName), under: false,
-            color: fColor.value, bgColor: bgHex, useBg: true
+            text: hit.str, family: autoFont, size: hit.fontPt,
+            bold: isBold, italic: isItalic, under: false,
+            color: fgHex, bgColor: bgHex, useBg: true
           });
-          selectedId = newId;
-          renderOverlay();
+          selectItem(newId, true);
           setTimeout(() => {
             const node = overlayLayer.querySelector(`[data-id="${newId}"] .pdf-item-text`);
             if (node) { node.focus(); document.execCommand?.("selectAll", false, null); }
@@ -899,7 +827,7 @@
           return;
         }
 
-        // 5. Add New Element (Text / Whiteout / Highlight / Box / Line)
+        // 5. Add New Element
         if (["text", "whiteout", "highlight", "rect", "line"].includes(mode)) {
           pushHistory();
           const newId = idSeq++;
@@ -923,35 +851,39 @@
         }
       });
 
-      // Apply Crop Handlers
+      // Apply Crop accurately using pdf.js Viewport -> PDF Coordinate conversion!
       async function applyCrop(allPages) {
-        if (!pendingCrop) return;
-        const { x0, y0, x1, y1 } = pendingCrop;
-        const doc = await PDFLib.PDFDocument.load(rawPdfBytes);
-        const indices = allPages ? doc.getPageIndices() : [currentPage - 1];
-        indices.forEach((idx) => {
-          const pg = doc.getPage(idx);
-          const mb = pg.getCropBox() || pg.getMediaBox();
-          const nx = mb.x + x0 * mb.width;
-          const ny = mb.y + (1 - y1) * mb.height;
-          const nw = (x1 - x0) * mb.width;
-          const nh = (y1 - y0) * mb.height;
-          pg.setCropBox(nx, ny, nw, nh);
-          pg.setMediaBox(nx, ny, nw, nh);
-        });
-        setMode("select");
-        await initFromBytes(await doc.save(), false);
-        saveStatus.textContent = "✓ Page cropped! Choose Save as PDF / PNG / JPG / WebP below to download.";
+        if (!pendingCrop || !currentPdfJsPage) return;
+        try {
+          saveStatus.textContent = "Applying crop...";
+          const vp1 = currentPdfJsPage.getViewport({ scale: 1 });
+          const pA = vp1.convertToPdfPoint(pendingCrop.x0 * vp1.width, pendingCrop.y0 * vp1.height);
+          const pB = vp1.convertToPdfPoint(pendingCrop.x1 * vp1.width, pendingCrop.y1 * vp1.height);
+          const minX = Math.min(pA[0], pB[0]), minY = Math.min(pA[1], pB[1]);
+          const cropW = Math.abs(pB[0] - pA[0]), cropH = Math.abs(pB[1] - pA[1]);
+
+          const doc = await PDFLib.PDFDocument.load(rawPdfBytes.slice());
+          const indices = allPages ? doc.getPageIndices() : [currentPage - 1];
+          indices.forEach((idx) => {
+            const pg = doc.getPage(idx);
+            pg.setCropBox(minX, minY, cropW, cropH);
+            pg.setMediaBox(minX, minY, cropW, cropH);
+          });
+          setMode("select");
+          await initFromBytes(await doc.save(), false);
+          saveStatus.textContent = "✓ Cropped! Click 'Apply & Download' below to save as PDF / PNG / JPG / WebP.";
+        } catch (err) {
+          showError("Crop failed: " + (err?.message || "Unknown error"));
+        }
       }
       document.getElementById("applyCropPageBtn").onclick = () => applyCrop(false);
       document.getElementById("applyCropAllBtn").onclick = () => applyCrop(true);
       document.getElementById("cancelCropBtn").onclick = () => setMode("select");
 
-      // Formatting sync
+      // Formatting sync (works seamlessly with Text Color & Cover Color pickers)
       function syncFormat() {
         const it = getPageItems().find((x) => x.id === selectedId);
         if (!it) return;
-        pushHistory();
         if (it.kind === "text") {
           it.family = fFamily.value; it.size = Number(fSize.value) || 14;
           it.color = fColor.value; it.bgColor = fBgColor.value; it.useBg = fUseBg.checked;
@@ -964,9 +896,9 @@
         renderOverlay();
       }
       [fFamily, fSize, fColor, fBgColor, fUseBg].forEach((el) => el.addEventListener("input", syncFormat));
-      btnBold.onclick = () => { bold = !bold; btnBold.classList.toggle("active", bold); syncFormat(); };
-      btnItalic.onclick = () => { italic = !italic; btnItalic.classList.toggle("active", italic); syncFormat(); };
-      btnUnder.onclick = () => { under = !under; btnUnder.classList.toggle("active", under); syncFormat(); };
+      btnBold.onclick = () => { bold = !bold; btnBold.classList.toggle("active", bold); pushHistory(); syncFormat(); };
+      btnItalic.onclick = () => { italic = !italic; btnItalic.classList.toggle("active", italic); pushHistory(); syncFormat(); };
+      btnUnder.onclick = () => { under = !under; btnUnder.classList.toggle("active", under); pushHistory(); syncFormat(); };
 
       document.getElementById("undoBtn").onclick = () => {
         if (!undoStack.length) return;
@@ -993,7 +925,6 @@
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") { e.preventDefault(); document.getElementById("redoBtn").click(); }
       });
 
-      // Add Image
       document.getElementById("addImgInput").addEventListener("change", (e) => {
         const f = e.target.files[0]; if (!f) return;
         const r = new FileReader();
@@ -1057,7 +988,7 @@
 
       document.getElementById("mergeAppendInput").addEventListener("change", async (e) => {
         const f = e.target.files[0]; if (!f) return;
-        const mainDoc = await PDFLib.PDFDocument.load(rawPdfBytes);
+        const mainDoc = await PDFLib.PDFDocument.load(rawPdfBytes.slice());
         const addDoc = await PDFLib.PDFDocument.load(await f.arrayBuffer());
         const copied = await mainDoc.copyPages(addDoc, addDoc.getPageIndices());
         copied.forEach((p) => mainDoc.addPage(p));
@@ -1076,38 +1007,36 @@
           else { const n = Number(part.trim()); if (n >= 1 && n <= totalPages) indices.add(n - 1); }
         });
         if (!indices.size) { alert("Enter a valid page range (e.g. 1-2 or 1,3)."); return; }
-        const src = await PDFLib.PDFDocument.load(rawPdfBytes);
+        const src = await PDFLib.PDFDocument.load(rawPdfBytes.slice());
         const out = await PDFLib.PDFDocument.create();
         const copied = await out.copyPages(src, [...indices]);
         copied.forEach((p) => out.addPage(p));
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(new Blob([await out.save()], { type: "application/pdf" }));
-        a.download = "easykity-split.pdf"; a.click();
+        triggerDownload(new Blob([await out.save()], { type: "application/pdf" }), "easykity-split.pdf");
       });
 
       document.getElementById("delCurrentPageBtn").addEventListener("click", async () => {
         if (totalPages <= 1) { alert("Cannot delete the only page."); return; }
-        const doc = await PDFLib.PDFDocument.load(rawPdfBytes);
+        const doc = await PDFLib.PDFDocument.load(rawPdfBytes.slice());
         doc.removePage(currentPage - 1);
         pagesModal.hidden = true;
         await initFromBytes(await doc.save(), false);
       });
 
-      // Nav & Zoom
       document.getElementById("prevPage").onclick = () => { if (currentPage > 1) { currentPage--; selectedId = null; renderPage(); } };
       document.getElementById("nextPage").onclick = () => { if (currentPage < totalPages) { currentPage++; selectedId = null; renderPage(); } };
       document.getElementById("zoomIn").onclick = () => { viewScale = Math.min(2.4, viewScale + 0.2); renderPage(); };
       document.getElementById("zoomOut").onclick = () => { viewScale = Math.max(0.55, viewScale - 0.15); renderPage(); };
 
       const hexToRgb = (hex) => {
-        const n = parseInt((hex || "#111827").slice(1), 16);
+        const clean = (hex || "#111827").replace("#", "");
+        const n = parseInt(clean, 16) || 0;
         return PDFLib.rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255);
       };
 
       function textToCrispPng(it) {
         const scale = 4;
         const c = document.createElement("canvas"), ctx = c.getContext("2d");
-        const lines = it.text.split("\n"), px = it.size * scale;
+        const lines = it.text.replace(/\r/g, "").split("\n"), px = it.size * scale;
         const fontStr = `${it.italic ? "italic " : ""}${it.bold ? "bold " : ""}${px}px ${it.family}`;
         ctx.font = fontStr;
         const maxW = Math.max(...lines.map((l) => ctx.measureText(l).width), 20) + 10 * scale;
@@ -1140,7 +1069,7 @@
           else if (it.kind === "image") {
             await new Promise((res) => { const im = new Image(); im.onload = () => { ctx.drawImage(im, x, y, it.w * c.width, it.h * c.height); res(); }; im.src = it.dataUrl; });
           } else if (it.kind === "text") {
-            const px = it.size * scale, lines = it.text.split("\n"), lineH = px * 1.22;
+            const px = it.size * scale, lines = it.text.replace(/\r/g, "").split("\n"), lineH = px * 1.22;
             ctx.font = `${it.italic ? "italic " : ""}${it.bold ? "bold " : ""}${px}px ${it.family}`;
             if (it.useBg) {
               const mw = Math.max(...lines.map((l) => ctx.measureText(l).width), 16) + 6 * scale;
@@ -1156,130 +1085,136 @@
         return c;
       }
 
-      // Print ONLY the Edited PDF Pages
       document.getElementById("printPdfBtn").addEventListener("click", async () => {
-        saveStatus.textContent = "Preparing PDF pages for printing...";
-        const container = document.getElementById("printPages");
-        container.innerHTML = "";
-        for (let p = 1; p <= totalPages; p++) {
-          const c = await renderPageToCanvas(p, 2);
-          const img = document.createElement("img");
-          img.src = c.toDataURL("image/png");
-          container.appendChild(img);
+        try {
+          saveStatus.textContent = "Preparing PDF pages for printing...";
+          const container = document.getElementById("printPages");
+          container.innerHTML = "";
+          for (let p = 1; p <= totalPages; p++) {
+            const c = await renderPageToCanvas(p, 2);
+            const img = document.createElement("img");
+            img.src = c.toDataURL("image/png");
+            container.appendChild(img);
+          }
+          saveStatus.textContent = "";
+          setTimeout(() => window.print(), 250);
+        } catch (err) {
+          showError("Print preparation failed: " + (err?.message || ""));
         }
-        saveStatus.textContent = "";
-        setTimeout(() => window.print(), 250);
       });
 
-      // Save & Download with Quality Presets (High / Medium / Low) for BOTH PDF and Images
       document.getElementById("saveBtn").addEventListener("click", async () => {
         const fmt = document.getElementById("exportFmt").value;
         const qPreset = document.getElementById("exportQualityPreset").value;
         const scaleMap = { high: 3, medium: 2, low: 1.15 };
         const jpgQualityMap = { high: 0.96, medium: 0.82, low: 0.55 };
 
+        showError("");
         saveStatus.textContent = "Exporting...";
 
-        if (fmt === "pdf") {
-          if (qPreset === "high") {
-            // Vector High Quality PDF export
-            const doc = await PDFLib.PDFDocument.load(rawPdfBytes);
-            const pages = doc.getPages();
+        try {
+          if (fmt === "pdf") {
+            if (qPreset === "high") {
+              const doc = await PDFLib.PDFDocument.load(rawPdfBytes.slice());
+              const pages = doc.getPages();
 
-            for (let pIdx = 0; pIdx < pages.length; pIdx++) {
-              const page = pages[pIdx];
-              const box = page.getCropBox() || page.getMediaBox();
-              const ox = box.x, oy = box.y, pw = box.width, ph = box.height;
+              for (let pIdx = 0; pIdx < pages.length; pIdx++) {
+                const page = pages[pIdx];
+                const box = page.getCropBox() || page.getMediaBox();
+                const ox = box.x, oy = box.y, pw = box.width, ph = box.height;
 
-              for (const it of (itemsByPage[pIdx + 1] || [])) {
-                if (it.kind === "whiteout" || it.kind === "highlight") {
-                  const rw = it.w * pw, rh = it.h * ph;
-                  page.drawRectangle({
-                    x: ox + it.x * pw, y: oy + ph - it.y * ph - rh, width: rw, height: rh,
-                    color: it.kind === "whiteout" ? hexToRgb(it.bgColor || "#ffffff") : PDFLib.rgb(0.98, 0.8, 0.08),
-                    opacity: it.kind === "whiteout" ? 1 : 0.42
-                  });
-                } else if (it.kind === "rect") {
-                  const rw = it.w * pw, rh = it.h * ph;
-                  page.drawRectangle({ x: ox + it.x * pw, y: oy + ph - it.y * ph - rh, width: rw, height: rh, borderColor: hexToRgb(it.color), borderWidth: 2 });
-                } else if (it.kind === "line") {
-                  const y = oy + ph - it.y * ph;
-                  page.drawLine({ start: { x: ox + it.x * pw, y }, end: { x: ox + (it.x + it.w) * pw, y }, thickness: 2.5, color: hexToRgb(it.color) });
-                } else if (it.kind === "image") {
-                  const bytes = await fetch(it.dataUrl).then((r) => r.arrayBuffer());
-                  const emb = it.dataUrl.includes("image/jpeg") ? await doc.embedJpg(bytes) : await doc.embedPng(bytes);
-                  const rw = it.w * pw, rh = it.h * ph;
-                  page.drawImage(emb, { x: ox + it.x * pw, y: oy + ph - it.y * ph - rh, width: rw, height: rh });
-                } else if (it.kind === "text" && it.text.trim()) {
-                  const opt = fFamily.querySelector(`option[value="${it.family.replace(/"/g, '\\"')}"]`);
-                  const stdName = opt?.dataset?.std;
-                  const isWinAnsi = /^[\x20-\xFF\n\r]*$/.test(it.text);
-
-                  if (stdName && isWinAnsi) {
-                    const F = PDFLib.StandardFonts;
-                    const fKey = stdName === "Times"
-                      ? (it.bold && it.italic ? F.TimesRomanBoldItalic : it.bold ? F.TimesRomanBold : it.italic ? F.TimesRomanItalic : F.TimesRoman)
-                      : stdName === "Courier"
-                      ? (it.bold && it.italic ? F.CourierBoldOblique : it.bold ? F.CourierBold : it.italic ? F.CourierOblique : F.Courier)
-                      : (it.bold && it.italic ? F.HelveticaBoldOblique : it.bold ? F.HelveticaBold : it.italic ? F.HelveticaOblique : F.Helvetica);
-                    const font = await doc.embedFont(fKey);
-                    const lines = it.text.split("\n"), lineH = it.size * 1.24;
-                    if (it.useBg) {
-                      const bgW = Math.max(...lines.map((l) => font.widthOfTextAtSize(l, it.size)), 16) + 6;
-                      const bgH = lines.length * lineH + 4;
-                      page.drawRectangle({ x: ox + it.x * pw, y: oy + ph - it.y * ph - bgH, width: bgW, height: bgH, color: hexToRgb(it.bgColor || "#ffffff") });
-                    }
-                    const clr = hexToRgb(it.color);
-                    lines.forEach((line, idx) => {
-                      const yPos = oy + ph - it.y * ph - it.size * 0.9 - idx * lineH;
-                      page.drawText(line, { x: ox + it.x * pw + 2, y: yPos, size: it.size, font, color: clr });
-                      if (it.under) {
-                        const lw = font.widthOfTextAtSize(line, it.size);
-                        page.drawLine({ start: { x: ox + it.x * pw + 2, y: yPos - 2 }, end: { x: ox + it.x * pw + 2 + lw, y: yPos - 2 }, thickness: Math.max(0.8, it.size * 0.07), color: clr });
-                      }
+                for (const it of (itemsByPage[pIdx + 1] || [])) {
+                  if (it.kind === "whiteout" || it.kind === "highlight") {
+                    const rw = it.w * pw, rh = it.h * ph;
+                    page.drawRectangle({
+                      x: ox + it.x * pw, y: oy + ph - it.y * ph - rh, width: rw, height: rh,
+                      color: it.kind === "whiteout" ? hexToRgb(it.bgColor || "#ffffff") : PDFLib.rgb(0.98, 0.8, 0.08),
+                      opacity: it.kind === "whiteout" ? 1 : 0.42
                     });
-                  } else {
-                    const png = textToCrispPng(it);
-                    const bytes = await fetch(png.dataUrl).then((r) => r.arrayBuffer());
-                    const emb = await doc.embedPng(bytes);
-                    page.drawImage(emb, { x: ox + it.x * pw, y: oy + ph - it.y * ph - png.ptH, width: png.ptW, height: png.ptH });
+                  } else if (it.kind === "rect") {
+                    const rw = it.w * pw, rh = it.h * ph;
+                    page.drawRectangle({ x: ox + it.x * pw, y: oy + ph - it.y * ph - rh, width: rw, height: rh, borderColor: hexToRgb(it.color), borderWidth: 2 });
+                  } else if (it.kind === "line") {
+                    const y = oy + ph - it.y * ph;
+                    page.drawLine({ start: { x: ox + it.x * pw, y }, end: { x: ox + (it.x + it.w) * pw, y }, thickness: 2.5, color: hexToRgb(it.color) });
+                  } else if (it.kind === "image") {
+                    const bytes = await (await fetch(it.dataUrl)).arrayBuffer();
+                    const emb = it.dataUrl.includes("image/jpeg") ? await doc.embedJpg(bytes) : await doc.embedPng(bytes);
+                    const rw = it.w * pw, rh = it.h * ph;
+                    page.drawImage(emb, { x: ox + it.x * pw, y: oy + ph - it.y * ph - rh, width: rw, height: rh });
+                  } else if (it.kind === "text" && it.text.trim()) {
+                    const cleanText = it.text.replace(/\r/g, "");
+                    const matchedOpt = [...fFamily.options].find((o) => o.value === it.family);
+                    const stdName = matchedOpt?.dataset?.std;
+                    const isPureAscii = /^[\x20-\x7E\n]*$/.test(cleanText);
+                    let drewVector = false;
+
+                    if (stdName && isPureAscii) {
+                      try {
+                        const F = PDFLib.StandardFonts;
+                        const fKey = stdName === "Times"
+                          ? (it.bold && it.italic ? F.TimesRomanBoldItalic : it.bold ? F.TimesRomanBold : it.italic ? F.TimesRomanItalic : F.TimesRoman)
+                          : stdName === "Courier"
+                          ? (it.bold && it.italic ? F.CourierBoldOblique : it.bold ? F.CourierBold : it.italic ? F.CourierOblique : F.Courier)
+                          : (it.bold && it.italic ? F.HelveticaBoldOblique : it.bold ? F.HelveticaBold : it.italic ? F.HelveticaOblique : F.Helvetica);
+                        const font = await doc.embedFont(fKey);
+                        const lines = cleanText.split("\n"), lineH = it.size * 1.24;
+                        if (it.useBg) {
+                          const bgW = Math.max(...lines.map((l) => font.widthOfTextAtSize(l, it.size)), 16) + 6;
+                          const bgH = lines.length * lineH + 4;
+                          page.drawRectangle({ x: ox + it.x * pw, y: oy + ph - it.y * ph - bgH, width: bgW, height: bgH, color: hexToRgb(it.bgColor || "#ffffff") });
+                        }
+                        const clr = hexToRgb(it.color);
+                        lines.forEach((line, idx) => {
+                          const yPos = oy + ph - it.y * ph - it.size * 0.9 - idx * lineH;
+                          page.drawText(line, { x: ox + it.x * pw + 2, y: yPos, size: it.size, font, color: clr });
+                          if (it.under) {
+                            const lw = font.widthOfTextAtSize(line, it.size);
+                            page.drawLine({ start: { x: ox + it.x * pw + 2, y: yPos - 2 }, end: { x: ox + it.x * pw + 2 + lw, y: yPos - 2 }, thickness: Math.max(0.8, it.size * 0.07), color: clr });
+                          }
+                        });
+                        drewVector = true;
+                      } catch (_) { drewVector = false; }
+                    }
+
+                    if (!drewVector) {
+                      const png = textToCrispPng(it);
+                      const bytes = await (await fetch(png.dataUrl)).arrayBuffer();
+                      const emb = await doc.embedPng(bytes);
+                      page.drawImage(emb, { x: ox + it.x * pw, y: oy + ph - it.y * ph - png.ptH, width: png.ptW, height: png.ptH });
+                    }
                   }
                 }
               }
+              triggerDownload(new Blob([await doc.save()], { type: "application/pdf" }), "easykity-edited-high.pdf");
+            } else {
+              const outDoc = await PDFLib.PDFDocument.create();
+              const rScale = qPreset === "medium" ? 1.65 : 1.05;
+              const jpgQ = jpgQualityMap[qPreset];
+              for (let p = 1; p <= totalPages; p++) {
+                const c = await renderPageToCanvas(p, rScale);
+                const jpgBytes = await (await fetch(c.toDataURL("image/jpeg", jpgQ))).arrayBuffer();
+                const emb = await outDoc.embedJpg(jpgBytes);
+                const page = outDoc.addPage([c.width / rScale, c.height / rScale]);
+                page.drawImage(emb, { x: 0, y: 0, width: page.getWidth(), height: page.getHeight() });
+              }
+              triggerDownload(new Blob([await outDoc.save()], { type: "application/pdf" }), `easykity-edited-${qPreset}.pdf`);
             }
-            const a = document.createElement("a");
-            a.href = URL.createObjectURL(new Blob([await doc.save()], { type: "application/pdf" }));
-            a.download = "easykity-edited-high.pdf"; a.click();
+            saveStatus.textContent = `✓ PDF downloaded (${qPreset} quality)!`;
           } else {
-            // Medium / Low Compressed PDF Export
-            const outDoc = await PDFLib.PDFDocument.create();
-            const rScale = qPreset === "medium" ? 1.65 : 1.05;
-            const jpgQ = jpgQualityMap[qPreset];
+            const scale = scaleMap[qPreset];
+            const q = jpgQualityMap[qPreset];
+            const ext = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" }[fmt];
             for (let p = 1; p <= totalPages; p++) {
-              const c = await renderPageToCanvas(p, rScale);
-              const jpgBytes = await (await fetch(c.toDataURL("image/jpeg", jpgQ))).arrayBuffer();
-              const emb = await outDoc.embedJpg(jpgBytes);
-              const page = outDoc.addPage([c.width / rScale, c.height / rScale]);
-              page.drawImage(emb, { x: 0, y: 0, width: page.getWidth(), height: page.getHeight() });
+              const c = await renderPageToCanvas(p, scale);
+              const blob = await new Promise((res) => c.toBlob(res, fmt, q));
+              if (blob) triggerDownload(blob, `easykity-page-${p}-${qPreset}.${ext}`);
             }
-            const a = document.createElement("a");
-            a.href = URL.createObjectURL(new Blob([await outDoc.save()], { type: "application/pdf" }));
-            a.download = `easykity-edited-${qPreset}.pdf`; a.click();
+            saveStatus.textContent = `✓ Exported ${totalPages} page(s) as ${ext.toUpperCase()} (${qPreset} quality)!`;
           }
-          saveStatus.textContent = `✓ PDF saved (${qPreset} quality)!`;
-        } else {
-          // Image Export (PNG / JPG / WebP) with High / Medium / Low Quality
-          const scale = scaleMap[qPreset];
-          const q = jpgQualityMap[qPreset];
-          const ext = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" }[fmt];
-          for (let p = 1; p <= totalPages; p++) {
-            const c = await renderPageToCanvas(p, scale);
-            const a = document.createElement("a");
-            a.href = c.toDataURL(fmt, q);
-            a.download = `easykity-page-${p}-${qPreset}.${ext}`;
-            a.click();
-          }
-          saveStatus.textContent = `✓ Exported ${totalPages} page(s) as ${ext.toUpperCase()} (${qPreset} quality)!`;
+        } catch (err) {
+          saveStatus.textContent = "";
+          showError("Export failed: " + (err?.message || "Please try Medium quality or PNG/JPG export."));
         }
       });
 
