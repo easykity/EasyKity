@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Text to Speech Generator — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <link rel="stylesheet" href="../../assets/css/themes.css">
+  <link rel="stylesheet" href="../../assets/css/responsive.css">
+  <link rel="stylesheet" href="../../assets/css/tools-common.css">
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation">
+        <a href="../../index.html">Home</a>
+        <a class="active" href="../../index.html#tools">Tools</a>
+        <a href="../../about.html">About</a>
+        <a href="../../contact.html">Contact</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false">
+          <span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span>
+        </button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden>
+      <div class="container drawer-inner">
+        <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+        <div class="drawer-col"><p class="drawer-title">Text Tools</p><div class="drawer-links"><a href="text-to-speech.html">Text to Speech</a><a href="word-counter.html">Word Counter</a><a href="text-formatter.html">Text Formatter</a></div></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero">
+      <div class="container">
+        <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-text">Text &amp; Voice</a> / <span>Text to Speech</span></nav>
+        <h1>Text to <span class="gradient-text">Speech</span></h1>
+        <p>Listen to any written text instantly with adjustable voice, speed, and pitch.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="tool-workspace tool-layout">
+          <div id="supportAlert" class="alert-box alert-error" hidden>
+            Your browser does not support Web Speech Synthesis. Try Chrome, Edge, or Safari.
+          </div>
+
+          <div class="field">
+            <label for="ttsText">Enter Text <span id="charInfo">0 characters</span></label>
+            <textarea id="ttsText" placeholder="Type or paste text here...">Welcome to EasyKity! Everything Made Easy. Type anything here and click Speak to listen.</textarea>
+          </div>
+
+          <div class="chip-group">
+            <button type="button" class="chip-btn ripple-target" data-sample="Hello! Welcome to EasyKity, your everyday digital toolkit.">Sample: English</button>
+            <button type="button" class="chip-btn ripple-target" data-sample="হ্যালো! ইজিকিটি ওয়েবসাইটে আপনাকে স্বাগতম।">Sample: বাংলা</button>
+          </div>
+
+          <div class="control-box tool-grid-2">
+            <div class="field" style="grid-column:1 / -1">
+              <label for="voiceSelect">Select Voice</label>
+              <select id="voiceSelect"></select>
+            </div>
+            <div class="field">
+              <label for="rateRange">Speed <span id="rateVal">1.0x</span></label>
+              <input id="rateRange" type="range" min="0.5" max="2" step="0.1" value="1">
+            </div>
+            <div class="field">
+              <label for="pitchRange">Pitch <span id="pitchVal">1.0</span></label>
+              <input id="pitchRange" type="range" min="0.5" max="2" step="0.1" value="1">
+            </div>
+          </div>
+
+          <div class="action-bar">
+            <button id="speakBtn" class="primary-btn ripple-target" type="button">▶ Speak Text</button>
+            <button id="pauseBtn" class="secondary-btn ripple-target" type="button">⏸ Pause / Resume</button>
+            <button id="stopBtn" class="secondary-btn ripple-target" type="button">⏹ Stop</button>
+            <button id="clearBtn" class="secondary-btn ripple-target" type="button">Clear</button>
+            <span id="statusText" class="notice"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0">
+        <span>© <span data-year></span> EasyKity. All rights reserved.</span>
+        <span><a href="../../index.html#tools">← Back to All Tools</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const synth = window.speechSynthesis;
+      const textEl = document.getElementById("ttsText");
+      const voiceSelect = document.getElementById("voiceSelect");
+      const rateRange = document.getElementById("rateRange");
+      const pitchRange = document.getElementById("pitchRange");
+      const statusText = document.getElementById("statusText");
+      const charInfo = document.getElementById("charInfo");
+
+      if (!synth) {
+        document.getElementById("supportAlert").hidden = false;
+        return;
+      }
+
+      let voices = [];
+
+      function populateVoices() {
+        voices = synth.getVoices();
+        voiceSelect.innerHTML = "";
+        voices.forEach((v, i) => {
+          const opt = document.createElement("option");
+          opt.value = i;
+          opt.textContent = `${v.name} (${v.lang})`;
+          if (v.default) opt.selected = true;
+          voiceSelect.appendChild(opt);
+        });
+      }
+
+      populateVoices();
+      if (synth.onvoiceschanged !== undefined) {
+        synth.onvoiceschanged = populateVoices;
+      }
+
+      function updateCount() {
+        charInfo.textContent = `${textEl.value.length} characters`;
+      }
+      updateCount();
+      textEl.addEventListener("input", updateCount);
+
+      rateRange.addEventListener("input", () => { document.getElementById("rateVal").textContent = `${Number(rateRange.value).toFixed(1)}x`; });
+      pitchRange.addEventListener("input", () => { document.getElementById("pitchVal").textContent = Number(pitchRange.value).toFixed(1); });
+
+      document.querySelectorAll("[data-sample]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          textEl.value = btn.dataset.sample;
+          updateCount();
+        });
+      });
+
+      document.getElementById("speakBtn").addEventListener("click", () => {
+        const text = textEl.value.trim();
+        if (!text) { statusText.textContent = "Please enter some text first."; return; }
+        synth.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        if (voices[voiceSelect.value]) utter.voice = voices[voiceSelect.value];
+        utter.rate = Number(rateRange.value);
+        utter.pitch = Number(pitchRange.value);
+        utter.onstart = () => { statusText.textContent = "🔊 Speaking..."; };
+        utter.onend = () => { statusText.textContent = "✅ Finished."; };
+        utter.onerror = () => { statusText.textContent = "⚠️ Could not play audio."; };
+        synth.speak(utter);
+      });
+
+      document.getElementById("pauseBtn").addEventListener("click", () => {
+        if (!synth.speaking) return;
+        if (synth.paused) { synth.resume(); statusText.textContent = "🔊 Resumed."; }
+        else { synth.pause(); statusText.textContent = "⏸ Paused."; }
+      });
+
+      document.getElementById("stopBtn").addEventListener("click", () => {
+        synth.cancel();
+        statusText.textContent = "⏹ Stopped.";
+      });
+
+      document.getElementById("clearBtn").addEventListener("click", () => {
+        synth.cancel();
+        textEl.value = "";
+        updateCount();
+        statusText.textContent = "";
+      });
+
+      window.addEventListener("beforeunload", () => synth.cancel());
+    })();
+  </script>
+</body>
+</html>
