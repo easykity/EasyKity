@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Screen &amp; Audio Recorder — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+  <style>
+    [hidden]{display:none!important}
+    .rec-dot { display:inline-block; width:10px; height:10px; border-radius:50%; background:#ef4444; animation: r-pulse 1.2s infinite; }
+    @keyframes r-pulse { 0%{opacity:1} 50%{opacity:.25} 100%{opacity:1} }
+    .video-stage { background:#060a14; border-radius:16px; border:1px solid var(--line); overflow:hidden; display:grid; place-items:center; min-height:280px; }
+    .video-stage video { width:100%; max-height:430px; display:block; }
+  </style>
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">Creator &amp; Media</p><div class="drawer-links"><a href="screen-recorder.html">Screen Recorder</a><a href="youtube-thumbnail.html">YT Thumbnail</a><a href="media-player.html">Media Player</a><a href="../developer-tools/wifi-qr-generator.html">Wi-Fi QR</a><a href="../developer-tools/focus-timer.html">Focus Timer</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-developer">Developer &amp; Media</a> / <span>Screen &amp; Audio Recorder</span></nav>
+      <h1>Screen &amp; <span class="gradient-text">Audio Recorder</span></h1>
+      <p>Record your PC screen, browser tab, or webcam with audio directly in your browser — no software needed.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <div class="control-box tool-grid-2">
+          <div class="field">
+            <label for="recSource">Recording Source</label>
+            <select id="recSource">
+              <option value="screen">🖥️ Screen / Window / Browser Tab</option>
+              <option value="webcam">📷 Webcam Camera</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Audio Options</label>
+            <div style="display:flex;gap:16px;align-items:center;min-height:44px;flex-wrap:wrap">
+              <label class="check-row"><input id="chkSysAudio" type="checkbox" checked> Tab/System Audio</label>
+              <label class="check-row"><input id="chkMic" type="checkbox"> Microphone</label>
+            </div>
+          </div>
+        </div>
+
+        <div id="errBox" class="alert-box alert-error" hidden></div>
+
+        <div class="action-bar">
+          <button id="startBtn" type="button" class="primary-btn ripple-target">⏺ Start Recording</button>
+          <button id="pauseBtn" type="button" class="secondary-btn ripple-target" hidden>⏸ Pause</button>
+          <button id="stopBtn" type="button" class="secondary-btn ripple-target" hidden style="border-color:#ef4444;color:#ef4444">⏹ Stop Recording</button>
+          <span id="recBadge" class="notice" hidden style="display:inline-flex;align-items:center;gap:8px;font-weight:700"><span class="rec-dot"></span> <span id="recClock">00:00</span></span>
+        </div>
+
+        <div class="video-stage">
+          <video id="liveVideo" autoplay muted playsinline hidden></video>
+          <video id="playVideo" controls playsinline hidden></video>
+          <p id="idleMsg" class="notice">Preview will appear here when recording starts.</p>
+        </div>
+
+        <div id="dlBar" class="action-bar" hidden>
+          <a id="dlLink" class="primary-btn ripple-target" download="easykity-recording.webm">⬇ Download Video</a>
+          <span id="sizeInfo" class="notice"></span>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const startBtn = document.getElementById("startBtn"), pauseBtn = document.getElementById("pauseBtn"), stopBtn = document.getElementById("stopBtn");
+      const liveVideo = document.getElementById("liveVideo"), playVideo = document.getElementById("playVideo"), idleMsg = document.getElementById("idleMsg");
+      const recBadge = document.getElementById("recBadge"), recClock = document.getElementById("recClock"), dlBar = document.getElementById("dlBar"), dlLink = document.getElementById("dlLink"), errBox = document.getElementById("errBox");
+
+      let recorder = null, streams = [], chunks = [], timer = null, secs = 0, outUrl = "", paused = false;
+
+      const fmtTime = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+
+      function pickMime() {
+        const list = ["video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"];
+        return list.find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || "";
+      }
+
+      startBtn.onclick = async () => {
+        errBox.hidden = true; dlBar.hidden = true; chunks = []; secs = 0; paused = false;
+        const src = document.getElementById("recSource").value;
+        const wantSys = document.getElementById("chkSysAudio").checked;
+        const wantMic = document.getElementById("chkMic").checked;
+
+        try {
+          let mainStream;
+          if (src === "screen") {
+            if (!navigator.mediaDevices?.getDisplayMedia) throw new Error("Screen recording is not supported on this mobile browser. Try Webcam or PC Chrome/Edge.");
+            mainStream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: wantSys });
+          } else {
+            mainStream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 } }, audio: wantMic });
+          }
+          streams.push(mainStream);
+
+          let finalStream = mainStream;
+          if (src === "screen" && wantMic) {
+            try {
+              const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              streams.push(micStream);
+              const actx = new AudioContext(), dest = actx.createMediaStreamDestination();
+              if (mainStream.getAudioTracks().length) actx.createMediaStreamSource(mainStream).connect(dest);
+              actx.createMediaStreamSource(micStream).connect(dest);
+              finalStream = new MediaStream([...mainStream.getVideoTracks(), ...dest.stream.getAudioTracks()]);
+            } catch (_) {}
+          }
+
+          liveVideo.srcObject = mainStream; liveVideo.hidden = false; playVideo.hidden = true; idleMsg.hidden = true;
+
+          const mime = pickMime();
+          recorder = new MediaRecorder(finalStream, mime ? { mimeType: mime } : {});
+          recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+          recorder.onstop = () => {
+            clearInterval(timer);
+            streams.forEach((s) => s.getTracks().forEach((t) => t.stop()));
+            streams = [];
+            liveVideo.hidden = true; recBadge.hidden = true;
+            startBtn.hidden = false; pauseBtn.hidden = true; stopBtn.hidden = true;
+
+            const type = recorder.mimeType || "video/webm";
+            const ext = type.includes("mp4") ? "mp4" : "webm";
+            const blob = new Blob(chunks, { type });
+            if (outUrl) URL.revokeObjectURL(outUrl);
+            outUrl = URL.createObjectURL(blob);
+            playVideo.src = outUrl; playVideo.hidden = false;
+            dlLink.href = outUrl; dlLink.download = `easykity-recording.${ext}`;
+            document.getElementById("sizeInfo").textContent = `Size: ${(blob.size / (1024 * 1024)).toFixed(2)} MB (${ext.toUpperCase()})`;
+            dlBar.hidden = false;
+          };
+
+          mainStream.getVideoTracks()[0].onended = () => { if (recorder && recorder.state !== "inactive") recorder.stop(); };
+
+          recorder.start(500);
+          startBtn.hidden = true; pauseBtn.hidden = false; stopBtn.hidden = false; recBadge.hidden = false;
+          recClock.textContent = "00:00";
+          timer = setInterval(() => { if (!paused) { secs++; recClock.textContent = fmtTime(secs); } }, 1000);
+        } catch (err) {
+          streams.forEach((s) => s.getTracks().forEach((t) => t.stop()));
+          streams = [];
+          errBox.textContent = err?.message || "Permission denied or recording unsupported."; errBox.hidden = false;
+        }
+      };
+
+      pauseBtn.onclick = () => {
+        if (!recorder) return;
+        if (!paused) { recorder.pause(); paused = true; pauseBtn.textContent = "▶ Resume"; }
+        else { recorder.resume(); paused = false; pauseBtn.textContent = "⏸ Pause"; }
+      };
+      stopBtn.onclick = () => { if (recorder && recorder.state !== "inactive") recorder.stop(); };
+    })();
+  </script>
+</body>
+</html>
