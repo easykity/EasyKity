@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Bijoy ⇄ Unicode Converter — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>[hidden]{display:none!important}</style>
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">Text &amp; Voice</p><div class="drawer-links"><a href="voice-to-text.html">Voice to Text</a><a href="bijoy-unicode.html">Bijoy ⇄ Unicode</a><a href="text-compare.html">Text Compare</a><a href="fancy-text-generator.html">Fancy Text</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-text">Text &amp; Voice</a> / <span>Bijoy ⇄ Unicode</span></nav>
+      <h1>Bijoy ⇄ <span class="gradient-text">Unicode Converter</span></h1>
+      <p>Convert Bangla text between Bijoy Classic (SutonnyMJ / ANSI) and Unicode seamlessly.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <div class="tool-grid-2">
+          <div class="field">
+            <label for="uniBox">Unicode Bangla (ইউনিকোড বাংলা) <button type="button" class="secondary-btn" id="copyUni" style="padding:3px 9px;font-size:.76rem">Copy</button></label>
+            <textarea id="uniBox" class="allow-copy" style="min-height:220px;font-family:'Hind Siliguri',sans-serif;font-size:1.05rem" placeholder="এখানে ইউনিকোড বাংলা লিখুন বা পেস্ট করুন..."></textarea>
+          </div>
+          <div class="field">
+            <label for="bijBox">Bijoy ANSI (বিজয় / SutonnyMJ) <button type="button" class="secondary-btn" id="copyBij" style="padding:3px 9px;font-size:.76rem">Copy</button></label>
+            <textarea id="bijBox" class="allow-copy" style="min-height:220px;font-family:monospace;font-size:1rem" placeholder="GLv‡b weRq (SutonnyMJ) †jLv †c÷ Kiæb..."></textarea>
+          </div>
+        </div>
+
+        <div class="action-bar" style="justify-content:center">
+          <button id="u2bBtn" type="button" class="primary-btn ripple-target">Unicode ➔ Bijoy ⬇</button>
+          <button id="b2uBtn" type="button" class="primary-btn ripple-target">Bijoy ➔ Unicode ⬆</button>
+          <button id="sampleBtn" type="button" class="secondary-btn ripple-target">Sample বাংলা</button>
+          <button id="clearBtn" type="button" class="secondary-btn ripple-target">Clear All</button>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const b2uCharMap = {
+        "Av": "আ", "A": "অ", "B": "ই", "C": "ঈ", "D": "উ", "E": "ঊ", "F": "ঋ", "G": "এ", "H": "ঐ", "I": "ও", "J": "ঔ",
+        "K": "ক", "L": "খ", "M": "গ", "N": "ঘ", "O": "ঙ", "P": "চ", "Q": "ছ", "R": "জ", "S": "ঝ", "T": "ঞ",
+        "U": "ট", "V": "ঠ", "W": "ড", "X": "ঢ", "Y": "ণ", "Z": "ত", "_": "থ", "`": "দ", "a": "ধ", "b": "ন",
+        "c": "প", "d": "ফ", "e": "ব", "f": "ভ", "g": "ম", "h": "য", "i": "র", "j": "ল", "k": "শ", "l": "ষ",
+        "m": "স", "n": "হ", "o": "ড়", "p": "ঢ়", "q": "য়", "r": "ৎ", "s": "ং", "t": "ঃ", "u": "ঁ",
+        "v": "া", "w": "ি", "x": "ী", "y": "ু", "z": "ূ", "~": "ূ", "„": "ৃ", "‡": "ে", "ˆ": "ৈ", "Š": "ৌ",
+        "&": "্", "¨": "্য", "«": "্র", "©": "র্", "|": "।",
+        "0": "০", "1": "১", "2": "২", "3": "৩", "4": "৪", "5": "৫", "6": "৬", "7": "৭", "8": "৮", "9": "৯",
+        "¶": "ক্ষ", "Á": "জ্ঞ", "¼": "ঙ্ক", "½": "ঙ্গ", "º": "ক্ত", "Ë": "ত্ত", "Ï": "দ্ধ", "×": "ন্ত", "Ø": "ন্দ",
+        "Ü": "প্ত", "Ý": "ব্দ", "ß": "ম্প", "á": "ম্ব", "â": "ম্ভ", "ä": "স্ক", "å": "স্ট", "æ": "স্ত", "ç": "স্থ",
+        "è": "স্প", "é": "স্ম", "ê": "হ্ম", "ö": "স্ব", "ù": "হ্ন", "ú": "হ্ল"
+      };
+
+      const u2bCharMap = {};
+      Object.entries(b2uCharMap).forEach(([k, v]) => {
+        if (!u2bCharMap[v]) u2bCharMap[v] = k;
+      });
+      u2bCharMap["ো"] = "‡v";
+      u2bCharMap["ৌ"] = "‡Š";
+      u2bCharMap["া"] = "v";
+      u2bCharMap["ু"] = "y";
+      u2bCharMap["ূ"] = "z";
+
+      const isCons = (ch) => /[\u0995-\u09B9\u09DC-\u09DF]/.test(ch);
+
+      function bijoyToUnicode(str) {
+        let s = str;
+        // Replace multi-char & single-char tokens
+        const keys = Object.keys(b2uCharMap).sort((a, b) => b.length - a.length);
+        const rx = new RegExp(keys.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"), "g");
+        s = s.replace(rx, (m) => b2uCharMap[m]);
+
+        // Split pre-vowels (ে, ৈ, ি) that come before a consonant/conjunct
+        s = s.replace(/([েৈি])((?:[\u0995-\u09B9\u09DC-\u09DF]\u09CD)*[\u0995-\u09B9\u09DC-\u09DF](?:্য|্র)?)/g, "$2$1");
+        // Combine ে + া -> ো and ে + ৌ -> ৌ
+        s = s.replace(/ো/g, "ো").replace(/েৌ/g, "ৌ");
+        // Move reph (র্) placed after consonant back before consonant
+        s = s.replace(/((?:[\u0995-\u09B9\u09DC-\u09DF]\u09CD)*[\u0995-\u09B9\u09DC-\u09DF])র্/g, "র্$1");
+        return s;
+      }
+
+      function unicodeToBijoy(str) {
+        let s = str;
+        // Normalize split vowels
+        s = s.replace(/ো/g, "ো").replace(/ৌ/g, "ৌ");
+        // Move reph (র্) after consonant cluster
+        s = s.replace(/র্((?:[\u0995-\u09B9\u09DC-\u09DF]\u09CD)*[\u0995-\u09B9\u09DC-\u09DF])/g, "$1©");
+        // Move pre-vowels (ি, ে, ৈ) before consonant cluster
+        s = s.replace(/((?:[\u0995-\u09B9\u09DC-\u09DF]\u09CD)*[\u0995-\u09B9\u09DC-\u09DF](?:\u09CD[যর])?)([িেৈ])/g, "$2$1");
+        // Phalas
+        s = s.replace(/\u09CDয/g, "¨").replace(/\u09CDর/g, "«");
+
+        const uKeys = Object.keys(u2bCharMap).sort((a, b) => b.length - a.length);
+        const rx = new RegExp(uKeys.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"), "g");
+        s = s.replace(rx, (m) => u2bCharMap[m]);
+        s = s.replace(/ৗ/g, "Š");
+        return s;
+      }
+
+      const uniBox = document.getElementById("uniBox"), bijBox = document.getElementById("bijBox");
+      document.getElementById("u2bBtn").onclick = () => { bijBox.value = unicodeToBijoy(uniBox.value); };
+      document.getElementById("b2uBtn").onclick = () => { uniBox.value = bijoyToUnicode(bijBox.value); };
+      document.getElementById("sampleBtn").onclick = () => {
+        uniBox.value = "আমার সোনার বাংলা, আমি তোমায় ভালোবাসি।\nইজিকিটি — সবকিছু এখন আরও সহজ। ২০২৬";
+        bijBox.value = unicodeToBijoy(uniBox.value);
+      };
+      document.getElementById("clearBtn").onclick = () => { uniBox.value = ""; bijBox.value = ""; };
+
+      const setupCopy = (btnId, box) => {
+        const b = document.getElementById(btnId);
+        b.onclick = async () => {
+          await navigator.clipboard.writeText(box.value);
+          b.textContent = "Copied! ✓";
+          setTimeout(() => b.textContent = "Copy", 1200);
+        };
+      };
+      setupCopy("copyUni", uniBox);
+      setupCopy("copyBij", bijBox);
+    })();
+  </script>
+</body>
+</html>
