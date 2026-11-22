@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PDF Editor — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <link rel="stylesheet" href="../../assets/css/themes.css">
+  <link rel="stylesheet" href="../../assets/css/responsive.css">
+  <link rel="stylesheet" href="../../assets/css/tools-common.css">
+  <style>
+    .editor-topbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      padding: 12px;
+      background: var(--surface-alt);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+    }
+    .tool-btn {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink);
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.16s;
+    }
+    .tool-btn:hover { border-color: var(--brand); }
+    .tool-btn.active {
+      background: linear-gradient(110deg, var(--brand), var(--brand2));
+      color: #fff;
+      border-color: transparent;
+    }
+    .fmt-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 12px;
+      background: var(--surface-alt);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+    .fmt-bar select, .fmt-bar input[type="number"] {
+      height: 36px;
+      padding: 4px 10px;
+      border-radius: 9px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 0.84rem;
+    }
+    .fmt-bar input[type="color"] {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 2px;
+      background: var(--surface);
+      cursor: pointer;
+    }
+
+    .pdf-stage-wrap {
+      background: #1e293b;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      overflow: auto;
+      display: grid;
+      place-items: center;
+      min-height: 460px;
+    }
+    .pdf-page-box {
+      position: relative;
+      background: #fff;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.4);
+      user-select: none;
+      touch-action: none;
+    }
+    .pdf-page-box canvas {
+      display: block;
+    }
+    .overlay-layer {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    .pdf-item {
+      position: absolute;
+      cursor: move;
+      border: 1.5px dashed transparent;
+      box-sizing: border-box;
+      line-height: 1.25;
+    }
+    .pdf-item.selected {
+      border-color: #315eeb;
+      box-shadow: 0 0 0 2px rgba(49, 94, 235, 0.25);
+    }
+    .pdf-item-text {
+      padding: 2px 4px;
+      min-width: 24px;
+      min-height: 18px;
+      white-space: pre-wrap;
+      outline: none;
+      word-break: break-word;
+    }
+    .pdf-item-text[contenteditable="true"] {
+      cursor: text;
+      -webkit-user-select: text !important;
+      user-select: text !important;
+    }
+    .resize-handle {
+      position: absolute;
+      right: -6px;
+      bottom: -6px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #315eeb;
+      border: 2px solid #fff;
+      cursor: nwse-resize;
+      display: none;
+    }
+    .pdf-item.selected .resize-handle { display: block; }
+
+    .sig-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 85;
+      background: rgba(6, 10, 20, 0.78);
+      backdrop-filter: blur(6px);
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+    .sig-modal[hidden] { display: none; }
+    .sig-card {
+      width: min(480px, 100%);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 20px;
+      display: grid;
+      gap: 14px;
+      box-shadow: var(--shadow);
+    }
+    .sig-pad {
+      width: 100%;
+      height: 180px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      touch-action: none;
+      cursor: crosshair;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation">
+        <a href="../../index.html">Home</a>
+        <a class="active" href="../../index.html#tools">Tools</a>
+        <a href="../../about.html">About</a>
+        <a href="../../contact.html">Contact</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false">
+          <span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span>
+        </button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden>
+      <div class="container drawer-inner">
+        <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+        <div class="drawer-col"><p class="drawer-title">PDF Tools</p><div class="drawer-links"><a href="pdf-editor.html">PDF Editor</a><a href="pdf-to-image.html">PDF to Image</a><a href="pdf-merger.html">PDF Merger</a><a href="image-to-pdf.html">Image to PDF</a><a href="invoice-maker.html">Invoice Maker</a></div></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero">
+      <div class="container">
+        <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-pdf">PDF &amp; Docs</a> / <span>PDF Editor</span></nav>
+        <h1>PDF <span class="gradient-text">Editor</span></h1>
+        <p>Add or edit text, insert signatures, change fonts/colors, highlight or whiteout, and export as PDF, PNG, JPG, or WebP.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="tool-workspace tool-layout">
+
+          <!-- Upload or Blank PDF -->
+          <div id="uploadPanel" class="tool-layout">
+            <label class="dropzone" id="dropzone">
+              <input id="pdfInput" type="file" accept="application/pdf">
+              <div class="dropzone-icon">📝</div>
+              <strong>Upload a PDF file to Edit</strong>
+              <span>100% browser-based — your document never leaves your device</span>
+            </label>
+            <div style="text-align:center">
+              <button id="blankPdfBtn" type="button" class="secondary-btn ripple-target">Or Start with a Blank A4 Page 📄</button>
+            </div>
+          </div>
+
+          <div id="errBox" class="alert-box alert-error" hidden></div>
+
+          <!-- Active Editor -->
+          <div id="editorApp" class="tool-layout" hidden>
+
+            <!-- Main Mode Toolbar -->
+            <div class="editor-topbar">
+              <button type="button" class="tool-btn active" data-mode="select">👆 Select / Move</button>
+              <button type="button" class="tool-btn" data-mode="text">🔤 Add Text</button>
+              <button type="button" class="tool-btn" id="detectTextBtn" title="Make existing PDF text editable">✏️ Edit Existing Text</button>
+              <button type="button" class="tool-btn" id="openSigBtn">✍️ Signature</button>
+              <label class="tool-btn" style="cursor:pointer">🖼️ Add Image <input id="addImgInput" type="file" accept="image/*" hidden></label>
+              <button type="button" class="tool-btn" data-mode="whiteout">⬜ Whiteout</button>
+              <button type="button" class="tool-btn" data-mode="highlight">🟨 Highlight</button>
+              <button type="button" class="tool-btn" id="deleteItemBtn" style="color:#ef4444">🗑️ Delete</button>
+            </div>
+
+            <!-- Formatting Bar (Font, Size, B/I/U, Color, Bg) -->
+            <div class="fmt-bar">
+              <select id="fFamily" title="Font Family">
+                <option value="Helvetica">Helvetica / Sans</option>
+                <option value="Times">Times New Roman</option>
+                <option value="Courier">Courier Mono</option>
+              </select>
+              <input id="fSize" type="number" min="8" max="96" value="16" style="width:72px" title="Font Size">
+              <button type="button" class="tool-btn" id="btnBold" title="Bold"><b>B</b></button>
+              <button type="button" class="tool-btn" id="btnItalic" title="Italic"><i>I</i></button>
+              <button type="button" class="tool-btn" id="btnUnder" title="Underline"><u>U</u></button>
+              <label style="display:inline-flex;align-items:center;gap:5px;font-size:.82rem;font-weight:700">Text <input id="fColor" type="color" value="#111827"></label>
+              <label class="check-row" style="font-size:.82rem"><input id="fWhiteBg" type="checkbox"> White Cover BG</label>
+
+              <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+                <button type="button" class="tool-btn" id="prevPage">◀</button>
+                <span id="pageLabel" class="notice" style="font-weight:700">Page 1 / 1</span>
+                <button type="button" class="tool-btn" id="nextPage">▶</button>
+                <button type="button" class="tool-btn" id="zoomOut">−</button>
+                <button type="button" class="tool-btn" id="zoomIn">+</button>
+              </div>
+            </div>
+
+            <!-- PDF Canvas + Interactive Overlay -->
+            <div class="pdf-stage-wrap">
+              <div class="pdf-page-box" id="pageBox">
+                <canvas id="pdfCanvas"></canvas>
+                <div class="overlay-layer" id="overlayLayer"></div>
+              </div>
+            </div>
+
+            <!-- Export & Quality Controls -->
+            <div class="control-box tool-layout">
+              <div class="tool-grid-3">
+                <div class="field">
+                  <label for="exportFmt">Save Format</label>
+                  <select id="exportFmt">
+                    <option value="pdf">PDF Document (.pdf)</option>
+                    <option value="image/png">PNG Image (.png)</option>
+                    <option value="image/jpeg">JPG Image (.jpg)</option>
+                    <option value="image/webp">WebP Image (.webp)</option>
+                  </select>
+                </div>
+                <div class="field" id="imgResWrap" hidden>
+                  <label for="exportScale">Image Resolution</label>
+                  <select id="exportScale">
+                    <option value="1.5">Standard (1.5x)</option>
+                    <option value="2" selected>High Quality (2x HD)</option>
+                    <option value="3">Print Ultra (3x)</option>
+                  </select>
+                </div>
+                <div class="field" id="imgQualWrap" hidden>
+                  <label for="exportQuality">Image Quality <span id="eqVal">95%</span></label>
+                  <input id="exportQuality" type="range" min="50" max="100" value="95">
+                </div>
+              </div>
+              <div class="action-bar">
+                <button id="saveBtn" type="button" class="primary-btn ripple-target">💾 Save &amp; Download</button>
+                <button id="newPdfBtn" type="button" class="secondary-btn ripple-target">Open Another PDF</button>
+                <span id="saveStatus" class="notice"></span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Signature Modal -->
+  <div id="sigModal" class="sig-modal" hidden>
+    <div class="sig-card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h3 style="margin:0">Create Signature</h3>
+        <button type="button" class="tool-btn" id="closeSigBtn">✕</button>
+      </div>
+      <div class="chip-group">
+        <button type="button" class="chip-btn active" data-sigtab="draw">Draw</button>
+        <button type="button" class="chip-btn" data-sigtab="type">Type</button>
+      </div>
+      <div id="sigDrawWrap">
+        <canvas id="sigPad" class="sig-pad" width="440" height="180"></canvas>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <label style="font-size:.82rem;font-weight:700;display:inline-flex;align-items:center;gap:6px">Ink Color <input id="sigColor" type="color" value="#111827"></label>
+          <button type="button" class="secondary-btn" id="clearSigBtn" style="padding:6px 12px;font-size:.8rem">Clear</button>
+        </div>
+      </div>
+      <div id="sigTypeWrap" hidden class="field">
+        <label for="sigTextInput">Type Your Name</label>
+        <input id="sigTextInput" type="text" placeholder="Your Signature" style="font-family:Georgia,serif;font-style:italic;font-size:1.3rem">
+      </div>
+      <button type="button" id="applySigBtn" class="primary-btn ripple-target">Add Signature to Page ✓</button>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0">
+        <span>© <span data-year></span> EasyKity. All rights reserved.</span>
+        <span><a href="../../index.html#tools">← Back to All Tools</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="../../assets/js/theme.js"></script>
+  <script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      if (window.pdfjsLib) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      }
+
+      const pdfInput = document.getElementById("pdfInput");
+      const dropzone = document.getElementById("dropzone");
+      const uploadPanel = document.getElementById("uploadPanel");
+      const editorApp = document.getElementById("editorApp");
+      const errBox = document.getElementById("errBox");
+      const pdfCanvas = document.getElementById("pdfCanvas");
+      const pageBox = document.getElementById("pageBox");
+      const overlayLayer = document.getElementById("overlayLayer");
+
+      let rawPdfBytes = null;
+      let pdfJsDoc = null;
+      let totalPages = 1;
+      let currentPage = 1;
+      let viewScale = 1.25;
+      let baseW = 595.28, baseH = 841.89;
+      let mode = "select";
+      let itemsByPage = {}; // { [pageNum]: Array<Item> }
+      let selectedId = null;
+      let idSeq = 1;
+
+      const fFamily = document.getElementById("fFamily");
+      const fSize = document.getElementById("fSize");
+      const fColor = document.getElementById("fColor");
+      const fWhiteBg = document.getElementById("fWhiteBg");
+      const btnBold = document.getElementById("btnBold");
+      const btnItalic = document.getElementById("btnItalic");
+      const btnUnder = document.getElementById("btnUnder");
+      let bold = false, italic = false, under = false;
+
+      const showError = (m) => { errBox.textContent = m; errBox.hidden = !m; };
+
+      async function initFromBytes(bytes) {
+        if (!window.pdfjsLib || !window.PDFLib) {
+          showError("PDF libraries could not load. Please check your internet connection.");
+          return;
+        }
+        try {
+          rawPdfBytes = bytes;
+          pdfJsDoc = await pdfjsLib.getDocument({ data: new Uint8Array(bytes) }).promise;
+          totalPages = pdfJsDoc.numPages;
+          currentPage = 1;
+          itemsByPage = {};
+          selectedId = null;
+          uploadPanel.hidden = true;
+          editorApp.hidden = false;
+          showError("");
+          await renderPage();
+        } catch (err) {
+          showError("Could not open PDF (it may be password-protected or corrupted).");
+        }
+      }
+
+      pdfInput.addEventListener("change", async () => {
+        const f = pdfInput.files[0];
+        if (f) initFromBytes(await f.arrayBuffer());
+      });
+      ["dragenter", "dragover"].forEach((e) => dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.add("dragover"); }));
+      ["dragleave", "drop"].forEach((e) => dropzone.addEventListener(e, (ev) => { e.preventDefault(); dropzone.classList.remove("dragover"); }));
+      dropzone.addEventListener("drop", async (e) => {
+        const f = e.dataTransfer.files[0];
+        if (f && f.type === "application/pdf") initFromBytes(await f.arrayBuffer());
+      });
+
+      document.getElementById("blankPdfBtn").addEventListener("click", async () => {
+        if (!window.PDFLib) { showError("PDF library failed to load."); return; }
+        const doc = await PDFLib.PDFDocument.create();
+        doc.addPage([595.28, 841.89]);
+        initFromBytes(await doc.save());
+      });
+
+      async function renderPage() {
+        const page = await pdfJsDoc.getPage(currentPage);
+        const vp1 = page.getViewport({ scale: 1 });
+        baseW = vp1.width; baseH = vp1.height;
+        const vp = page.getViewport({ scale: viewScale });
+        pdfCanvas.width = vp.width;
+        pdfCanvas.height = vp.height;
+        pageBox.style.width = `${vp.width}px`;
+        pageBox.style.height = `${vp.height}px`;
+        await page.render({ canvasContext: pdfCanvas.getContext("2d"), viewport: vp }).promise;
+        document.getElementById("pageLabel").textContent = `Page ${currentPage} / ${totalPages}`;
+        renderOverlay();
+      }
+
+      function getPageItems() {
+        if (!itemsByPage[currentPage]) itemsByPage[currentPage] = [];
+        return itemsByPage[currentPage];
+      }
+
+      function fontCss(fam) {
+        if (fam === "Times") return "'Times New Roman', Times, serif";
+        if (fam === "Courier") return "'Courier New', Courier, monospace";
+        return "Helvetica, Arial, sans-serif";
+      }
+
+      function renderOverlay() {
+        overlayLayer.innerHTML = "";
+        const W = pdfCanvas.width, H = pdfCanvas.height;
+        const items = getPageItems();
+
+        items.forEach((it) => {
+          const el = document.createElement("div");
+          el.className = "pdf-item" + (it.id === selectedId ? " selected" : "");
+          el.dataset.id = it.id;
+          el.style.left = `${it.x * W}px`;
+          el.style.top = `${it.y * H}px`;
+
+          if (it.kind === "text") {
+            el.style.minWidth = `${Math.max(30, it.w * W)}px`;
+            const inner = document.createElement("div");
+            inner.className = "pdf-item-text";
+            inner.contentEditable = "true";
+            inner.innerText = it.text;
+            inner.style.fontFamily = fontCss(it.family);
+            inner.style.fontSize = `${it.size * viewScale}px`;
+            inner.style.fontWeight = it.bold ? "700" : "400";
+            inner.style.fontStyle = it.italic ? "italic" : "normal";
+            inner.style.textDecoration = it.under ? "underline" : "none";
+            inner.style.color = it.color;
+            if (it.whiteBg) inner.style.background = "#ffffff";
+            inner.addEventListener("input", () => { it.text = inner.innerText; it.w = Math.max(el.offsetWidth / W, 0.05); it.h = el.offsetHeight / H; });
+            inner.addEventListener("focus", () => selectItem(it.id, false));
+            el.appendChild(inner);
+          } else if (it.kind === "whiteout") {
+            el.style.width = `${it.w * W}px`;
+            el.style.height = `${it.h * H}px`;
+            el.style.background = "#ffffff";
+          } else if (it.kind === "highlight") {
+            el.style.width = `${it.w * W}px`;
+            el.style.height = `${it.h * H}px`;
+            el.style.background = "rgba(250, 204, 21, 0.42)";
+          } else if (it.kind === "image") {
+            el.style.width = `${it.w * W}px`;
+            el.style.height = `${it.h * H}px`;
+            const img = document.createElement("img");
+            img.src = it.dataUrl;
+            img.style.cssText = "width:100%;height:100%;object-fit:contain;pointer-events:none;display:block";
+            el.appendChild(img);
+          }
+
+          const handle = document.createElement("div");
+          handle.className = "resize-handle";
+          el.appendChild(handle);
+          overlayLayer.appendChild(el);
+        });
+      }
+
+      function selectItem(id, rerender = true) {
+        selectedId = id;
+        const it = getPageItems().find((x) => x.id === id);
+        if (it && it.kind === "text") {
+          fFamily.value = it.family; fSize.value = it.size; fColor.value = it.color; fWhiteBg.checked = !!it.whiteBg;
+          bold = it.bold; italic = it.italic; under = it.under;
+          btnBold.classList.toggle("active", bold);
+          btnItalic.classList.toggle("active", italic);
+          btnUnder.classList.toggle("active", under);
+        }
+        if (rerender) renderOverlay();
+      }
+
+      // Mode switching
+      document.querySelectorAll("[data-mode]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          mode = btn.dataset.mode;
+          document.querySelectorAll("[data-mode]").forEach((b) => b.classList.toggle("active", b === btn));
+        });
+      });
+
+      // Click on PDF stage to add Text / Whiteout / Highlight
+      overlayLayer.addEventListener("pointerdown", (e) => {
+        const itemEl = e.target.closest(".pdf-item");
+        const rect = overlayLayer.getBoundingClientRect();
+        const W = pdfCanvas.width, H = pdfCanvas.height;
+
+        if (itemEl) {
+          const id = Number(itemEl.dataset.id);
+          const it = getPageItems().find((x) => x.id === id);
+          if (!it) return;
+          const isResize = e.target.classList.contains("resize-handle");
+          const isEditingText = e.target.classList.contains("pdf-item-text") && document.activeElement === e.target;
+          selectItem(id, false);
+          document.querySelectorAll(".pdf-item").forEach((el) => el.classList.toggle("selected", Number(el.dataset.id) === id));
+          if (isEditingText) return;
+
+          const startX = e.clientX, startY = e.clientY;
+          const origX = it.x, origY = it.y, origW = it.w, origH = it.h;
+
+          const onMove = (ev) => {
+            const dx = (ev.clientX - startX) / W;
+            const dy = (ev.clientY - startY) / H;
+            if (isResize) {
+              it.w = Math.max(0.03, origW + dx);
+              it.h = Math.max(0.02, origH + dy);
+              itemEl.style.width = `${it.w * W}px`;
+              if (it.kind !== "text") itemEl.style.height = `${it.h * H}px`;
+            } else {
+              it.x = Math.min(0.95, Math.max(0, origX + dx));
+              it.y = Math.min(0.95, Math.max(0, origY + dy));
+              itemEl.style.left = `${it.x * W}px`;
+              itemEl.style.top = `${it.y * H}px`;
+            }
+          };
+          const onUp = () => {
+            window.removeEventListener("pointermove", onMove);
+            window.removeEventListener("pointerup", onUp);
+          };
+          window.addEventListener("pointermove", onMove);
+          window.addEventListener("pointerup", onUp);
+          return;
+        }
+
+        const nx = (e.clientX - rect.left) / W;
+        const ny = (e.clientY - rect.top) / H;
+
+        if (mode === "text") {
+          const newId = idSeq++;
+          getPageItems().push({
+            id: newId, kind: "text", x: nx, y: ny, w: 0.22, h: 0.04,
+            text: "Type here", family: fFamily.value, size: Number(fSize.value) || 16,
+            bold, italic, under, color: fColor.value, whiteBg: fWhiteBg.checked
+          });
+          selectedId = newId;
+          mode = "select";
+          document.querySelectorAll("[data-mode]").forEach((b) => b.classList.toggle("active", b.dataset.mode === "select"));
+          renderOverlay();
+          setTimeout(() => overlayLayer.querySelector(`[data-id="${newId}"] .pdf-item-text`)?.focus(), 20);
+        } else if (mode === "whiteout" || mode === "highlight") {
+          const newId = idSeq++;
+          getPageItems().push({ id: newId, kind: mode, x: nx, y: ny, w: 0.18, h: 0.04 });
+          selectedId = newId;
+          mode = "select";
+          document.querySelectorAll("[data-mode]").forEach((b) => b.classList.toggle("active", b.dataset.mode === "select"));
+          renderOverlay();
+        } else {
+          selectedId = null;
+          renderOverlay();
+        }
+      });
+
+      // Format changes apply to selected text
+      function syncFormat() {
+        const it = getPageItems().find((x) => x.id === selectedId && x.kind === "text");
+        if (!it) return;
+        it.family = fFamily.value; it.size = Number(fSize.value) || 16;
+        it.color = fColor.value; it.whiteBg = fWhiteBg.checked;
+        it.bold = bold; it.italic = italic; it.under = under;
+        renderOverlay();
+      }
+      [fFamily, fSize, fColor, fWhiteBg].forEach((el) => el.addEventListener("input", syncFormat));
+      btnBold.onclick = () => { bold = !bold; btnBold.classList.toggle("active", bold); syncFormat(); };
+      btnItalic.onclick = () => { italic = !italic; btnItalic.classList.toggle("active", italic); syncFormat(); };
+      btnUnder.onclick = () => { under = !under; btnUnder.classList.toggle("active", under); syncFormat(); };
+
+      document.getElementById("deleteItemBtn").onclick = () => {
+        if (!selectedId) return;
+        itemsByPage[currentPage] = getPageItems().filter((x) => x.id !== selectedId);
+        selectedId = null;
+        renderOverlay();
+      };
+
+      // Detect Existing PDF Text -> Convert to Editable Whiteout + Text Overlays
+      document.getElementById("detectTextBtn").addEventListener("click", async () => {
+        const page = await pdfJsDoc.getPage(currentPage);
+        const content = await page.getTextContent();
+        const existing = getPageItems();
+        let added = 0;
+
+        content.items.forEach((t) => {
+          const str = (t.str || "").trim();
+          if (!str) return;
+          const tx = t.transform;
+          const fontSize = Math.max(8, Math.round(Math.hypot(tx[2], tx[3]) || tx[0] || 12));
+          const xNorm = Math.max(0, tx[4] / baseW);
+          const yNorm = Math.max(0, (baseH - tx[5] - fontSize * 0.9) / baseH);
+          const wNorm = Math.max(0.03, (t.width || str.length * fontSize * 0.5) / baseW);
+
+          existing.push({
+            id: idSeq++, kind: "text", x: xNorm, y: yNorm, w: wNorm, h: (fontSize * 1.3) / baseH,
+            text: str, family: "Helvetica", size: fontSize,
+            bold: false, italic: false, under: false, color: "#111827", whiteBg: true
+          });
+          added++;
+        });
+
+        renderOverlay();
+        document.getElementById("saveStatus").textContent = added
+          ? `Detected ${added} text blocks on this page — click any text to edit!`
+          : "No selectable text found on this page (it may be a scanned image).";
+      });
+
+      // Add Image
+      document.getElementById("addImgInput").addEventListener("change", (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        const r = new FileReader();
+        r.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            const wNorm = 0.25;
+            const hNorm = (wNorm * baseW * (img.height / img.width)) / baseH;
+            const id = idSeq++;
+            getPageItems().push({ id, kind: "image", x: 0.1, y: 0.1, w: wNorm, h: hNorm, dataUrl: r.result });
+            selectedId = id;
+            renderOverlay();
+          };
+          img.src = r.result;
+        };
+        r.readAsDataURL(f);
+        e.target.value = "";
+      });
+
+      // Signature Modal
+      const sigModal = document.getElementById("sigModal"), sigPad = document.getElementById("sigPad"), sCtx = sigPad.getContext("2d");
+      let drawing = false, sigMode = "draw";
+      document.getElementById("openSigBtn").onclick = () => { sigModal.hidden = false; };
+      document.getElementById("closeSigBtn").onclick = () => { sigModal.hidden = true; };
+      document.getElementById("clearSigBtn").onclick = () => { sCtx.clearRect(0, 0, sigPad.width, sigPad.height); };
+
+      document.querySelectorAll("[data-sigtab]").forEach((b) => b.onclick = () => {
+        sigMode = b.dataset.sigtab;
+        document.querySelectorAll("[data-sigtab]").forEach((x) => x.classList.toggle("active", x === b));
+        document.getElementById("sigDrawWrap").hidden = sigMode !== "draw";
+        document.getElementById("sigTypeWrap").hidden = sigMode !== "type";
+      });
+
+      sigPad.addEventListener("pointerdown", (e) => {
+        drawing = true;
+        const r = sigPad.getBoundingClientRect();
+        sCtx.beginPath();
+        sCtx.strokeStyle = document.getElementById("sigColor").value;
+        sCtx.lineWidth = 3; sCtx.lineCap = "round"; sCtx.lineJoin = "round";
+        sCtx.moveTo(((e.clientX - r.left) / r.width) * sigPad.width, ((e.clientY - r.top) / r.height) * sigPad.height);
+      });
+      sigPad.addEventListener("pointermove", (e) => {
+        if (!drawing) return;
+        const r = sigPad.getBoundingClientRect();
+        sCtx.lineTo(((e.clientX - r.left) / r.width) * sigPad.width, ((e.clientY - r.top) / r.height) * sigPad.height);
+        sCtx.stroke();
+      });
+      window.addEventListener("pointerup", () => { drawing = false; });
+
+      document.getElementById("applySigBtn").onclick = () => {
+        let dataUrl = "";
+        if (sigMode === "draw") {
+          dataUrl = sigPad.toDataURL("image/png");
+        } else {
+          const text = document.getElementById("sigTextInput").value.trim() || "Signature";
+          const c = document.createElement("canvas"); c.width = 440; c.height = 130;
+          const cx = c.getContext("2d");
+          cx.font = "italic 54px Georgia, serif";
+          cx.fillStyle = document.getElementById("sigColor").value;
+          cx.fillText(text, 16, 85);
+          dataUrl = c.toDataURL("image/png");
+        }
+        const id = idSeq++;
+        getPageItems().push({ id, kind: "image", x: 0.6, y: 0.78, w: 0.25, h: 0.08, dataUrl });
+        selectedId = id;
+        sigModal.hidden = true;
+        renderOverlay();
+      };
+
+      // Pagination & Zoom
+      document.getElementById("prevPage").onclick = () => { if (currentPage > 1) { currentPage--; selectedId = null; renderPage(); } };
+      document.getElementById("nextPage").onclick = () => { if (currentPage < totalPages) { currentPage++; selectedId = null; renderPage(); } };
+      document.getElementById("zoomIn").onclick = () => { viewScale = Math.min(2.5, viewScale + 0.2); renderPage(); };
+      document.getElementById("zoomOut").onclick = () => { viewScale = Math.max(0.6, viewScale - 0.2); renderPage(); };
+
+      // Export Controls Toggle
+      const exportFmt = document.getElementById("exportFmt");
+      const exportQuality = document.getElementById("exportQuality");
+      exportFmt.addEventListener("change", () => {
+        const isImg = exportFmt.value !== "pdf";
+        document.getElementById("imgResWrap").hidden = !isImg;
+        document.getElementById("imgQualWrap").hidden = !isImg || exportFmt.value === "image/png";
+      });
+      exportQuality.addEventListener("input", () => { document.getElementById("eqVal").textContent = `${exportQuality.value}%`; });
+
+      const hexToRgb = (hex) => {
+        const n = parseInt(hex.slice(1), 16);
+        return PDFLib.rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255);
+      };
+
+      function pickPdfFont(family, isB, isI) {
+        const F = PDFLib.StandardFonts;
+        if (family === "Times") return isB && isI ? F.TimesRomanBoldItalic : isB ? F.TimesRomanBold : isI ? F.TimesRomanItalic : F.TimesRoman;
+        if (family === "Courier") return isB && isI ? F.CourierBoldOblique : isB ? F.CourierBold : isI ? F.CourierOblique : F.Courier;
+        return isB && isI ? F.HelveticaBoldOblique : isB ? F.HelveticaBold : isI ? F.HelveticaOblique : F.Helvetica;
+      }
+
+      // Render Unicode/Bangla text cleanly to transparent PNG for pdf-lib embedding
+      function textToPng(it) {
+        const scale = 3;
+        const c = document.createElement("canvas");
+        const ctx = c.getContext("2d");
+        const lines = it.text.split("\n");
+        const px = it.size * scale;
+        const fontStr = `${it.italic ? "italic " : ""}${it.bold ? "bold " : ""}${px}px ${fontCss(it.family)}`;
+        ctx.font = fontStr;
+        const maxW = Math.max(...lines.map((l) => ctx.measureText(l).width), 20) + 12 * scale;
+        const lineH = px * 1.25;
+        c.width = Math.ceil(maxW);
+        c.height = Math.ceil(lines.length * lineH + 8 * scale);
+        if (it.whiteBg) { ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, c.width, c.height); }
+        ctx.font = fontStr;
+        ctx.fillStyle = it.color;
+        ctx.textBaseline = "top";
+        lines.forEach((l, i) => {
+          const y = 4 * scale + i * lineH;
+          ctx.fillText(l, 4 * scale, y);
+          if (it.under) {
+            ctx.fillRect(4 * scale, y + px * 1.02, ctx.measureText(l).width, Math.max(2, px * 0.07));
+          }
+        });
+        return { dataUrl: c.toDataURL("image/png"), ptW: c.width / scale, ptH: c.height / scale };
+      }
+
+      // Save & Download (PDF OR PNG/JPG/WebP)
+      document.getElementById("saveBtn").addEventListener("click", async () => {
+        const status = document.getElementById("saveStatus");
+        const fmt = exportFmt.value;
+        status.textContent = "Preparing download...";
+
+        if (fmt === "pdf") {
+          const doc = await PDFLib.PDFDocument.load(rawPdfBytes);
+          const pages = doc.getPages();
+
+          for (let pIdx = 0; pIdx < pages.length; pIdx++) {
+            const page = pages[pIdx];
+            const { width: pw, height: ph } = page.getSize();
+            const list = itemsByPage[pIdx + 1] || [];
+
+            for (const it of list) {
+              if (it.kind === "whiteout" || it.kind === "highlight") {
+                const rw = it.w * pw, rh = it.h * ph;
+                page.drawRectangle({
+                  x: it.x * pw,
+                  y: ph - it.y * ph - rh,
+                  width: rw, height: rh,
+                  color: it.kind === "whiteout" ? PDFLib.rgb(1, 1, 1) : PDFLib.rgb(0.98, 0.8, 0.08),
+                  opacity: it.kind === "whiteout" ? 1 : 0.42
+                });
+              } else if (it.kind === "image") {
+                const bytes = await fetch(it.dataUrl).then((r) => r.arrayBuffer());
+                const emb = it.dataUrl.includes("image/jpeg") ? await doc.embedJpg(bytes) : await doc.embedPng(bytes);
+                const rw = it.w * pw, rh = it.h * ph;
+                page.drawImage(emb, { x: it.x * pw, y: ph - it.y * ph - rh, width: rw, height: rh });
+              } else if (it.kind === "text" && it.text.trim()) {
+                const hasUnicode = /[^\x20-\xFF\n\r]/.test(it.text);
+                if (hasUnicode) {
+                  const png = textToPng(it);
+                  const bytes = await fetch(png.dataUrl).then((r) => r.arrayBuffer());
+                  const emb = await doc.embedPng(bytes);
+                  page.drawImage(emb, { x: it.x * pw, y: ph - it.y * ph - png.ptH, width: png.ptW, height: png.ptH });
+                } else {
+                  const font = await doc.embedFont(pickPdfFont(it.family, it.bold, it.italic));
+                  const lines = it.text.split("\n");
+                  const lineH = it.size * 1.25;
+                  if (it.whiteBg) {
+                    const bgW = Math.max(...lines.map((l) => font.widthOfTextAtSize(l, it.size)), 20) + 8;
+                    const bgH = lines.length * lineH + 4;
+                    page.drawRectangle({ x: it.x * pw, y: ph - it.y * ph - bgH, width: bgW, height: bgH, color: PDFLib.rgb(1, 1, 1) });
+                  }
+                  const clr = hexToRgb(it.color);
+                  lines.forEach((line, idx) => {
+                    const yPos = ph - it.y * ph - it.size * 0.9 - idx * lineH;
+                    page.drawText(line, { x: it.x * pw + 3, y: yPos, size: it.size, font, color: clr });
+                    if (it.under) {
+                      const lw = font.widthOfTextAtSize(line, it.size);
+                      page.drawLine({ start: { x: it.x * pw + 3, y: yPos - 2 }, end: { x: it.x * pw + 3 + lw, y: yPos - 2 }, thickness: Math.max(0.8, it.size * 0.07), color: clr });
+                    }
+                  });
+                }
+              }
+            }
+          }
+
+          const outBytes = await doc.save();
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(new Blob([outBytes], { type: "application/pdf" }));
+          a.download = "easykity-edited.pdf"; a.click();
+          status.textContent = "✓ PDF saved!";
+        } else {
+          // Export every page as PNG / JPG / WebP at chosen Resolution & Quality
+          const scale = Number(document.getElementById("exportScale").value);
+          const quality = Number(exportQuality.value) / 100;
+          const ext = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" }[fmt];
+
+          for (let p = 1; p <= totalPages; p++) {
+            const page = await pdfJsDoc.getPage(p);
+            const vp = page.getViewport({ scale });
+            const c = document.createElement("canvas");
+            c.width = vp.width; c.height = vp.height;
+            const ctx = c.getContext("2d");
+            ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, c.width, c.height);
+            await page.render({ canvasContext: ctx, viewport: vp }).promise;
+
+            const list = itemsByPage[p] || [];
+            for (const it of list) {
+              const x = it.x * c.width, y = it.y * c.height;
+              if (it.kind === "whiteout") {
+                ctx.fillStyle = "#ffffff"; ctx.fillRect(x, y, it.w * c.width, it.h * c.height);
+              } else if (it.kind === "highlight") {
+                ctx.fillStyle = "rgba(250, 204, 21, 0.42)"; ctx.fillRect(x, y, it.w * c.width, it.h * c.height);
+              } else if (it.kind === "image") {
+                await new Promise((res) => {
+                  const im = new Image();
+                  im.onload = () => { ctx.drawImage(im, x, y, it.w * c.width, it.h * c.height); res(); };
+                  im.src = it.dataUrl;
+                });
+              } else if (it.kind === "text") {
+                const fontSizePx = it.size * scale;
+                const lines = it.text.split("\n");
+                const lineH = fontSizePx * 1.25;
+                ctx.font = `${it.italic ? "italic " : ""}${it.bold ? "bold " : ""}${fontSizePx}px ${fontCss(it.family)}`;
+                if (it.whiteBg) {
+                  const maxW = Math.max(...lines.map((l) => ctx.measureText(l).width), 20) + 8 * scale;
+                  ctx.fillStyle = "#ffffff"; ctx.fillRect(x, y, maxW, lines.length * lineH + 4 * scale);
+                }
+                ctx.fillStyle = it.color; ctx.textBaseline = "top";
+                lines.forEach((l, i) => {
+                  const ly = y + i * lineH;
+                  ctx.fillText(l, x + 3 * scale, ly);
+                  if (it.under) ctx.fillRect(x + 3 * scale, ly + fontSizePx * 1.02, ctx.measureText(l).width, Math.max(1.5, fontSizePx * 0.07));
+                });
+              }
+            }
+
+            const a = document.createElement("a");
+            a.href = c.toDataURL(fmt, quality);
+            a.download = `easykity-page-${p}.${ext}`;
+            a.click();
+          }
+          status.textContent = `✓ Exported ${totalPages} page(s) as ${ext.toUpperCase()}!`;
+        }
+      });
+
+      document.getElementById("newPdfBtn").addEventListener("click", () => {
+        editorApp.hidden = true;
+        uploadPanel.hidden = false;
+        pdfInput.value = "";
+      });
+    })();
+  </script>
+</body>
+</html>
