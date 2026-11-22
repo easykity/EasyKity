@@ -11,10 +11,10 @@
   <link rel="stylesheet" href="../../assets/css/responsive.css">
   <link rel="stylesheet" href="../../assets/css/tools-common.css">
 
-  <!-- Google Fonts: Ticket, Standard, Bangla, Hindi, Arabic -->
+  <!-- Google Fonts: Metric-Match, Ticket, Standard, Bangla, Hindi, Arabic -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@400;600;700&family=Galada&family=Hind+Siliguri:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600;700&family=Lato:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;600;700&family=Noto+Naskh+Arabic:wght@400;700&family=Noto+Sans+Bengali:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&family=Open+Sans:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;500;700&family=Poppins:wght@400;600;700&family=Roboto:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@400;600;700&family=Tiro+Bangla&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Arimo:ital,wght@0,400;0,700;1,400&family=Barlow+Condensed:wght@400;600;700&family=Cairo:wght@400;600;700&family=Caladea:ital,wght@0,400;0,700;1,400&family=Carlito:ital,wght@0,400;0,700;1,400&family=Cousine:ital,wght@0,400;0,700;1,400&family=Galada&family=Hind+Siliguri:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600;700&family=Lato:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;600;700&family=Noto+Naskh+Arabic:wght@400;700&family=Noto+Sans+Bengali:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&family=Open+Sans:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;500;700&family=Poppins:wght@400;600;700&family=Roboto:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@400;600;700&family=Tinos:ital,wght@0,400;0,700;1,400&family=Tiro+Bangla&display=swap" rel="stylesheet">
 
   <style>
     [hidden] { display: none !important; }
@@ -180,7 +180,7 @@
       <div class="container">
         <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-pdf">PDF &amp; Docs</a> / <span>PDF Editor Pro</span></nav>
         <h1>PDF <span class="gradient-text">Editor Pro</span></h1>
-        <p>Click any text on your PDF to edit with original colors &amp; fonts, pick colors, sign, crop, split/merge, print &amp; export.</p>
+        <p>Click any text on your PDF to edit with auto-matched PDF fonts &amp; colors, sign, crop, split/merge, print &amp; export.</p>
       </div>
     </section>
 
@@ -250,19 +250,23 @@
 
               <!-- Font, Size, B/I/U, Colors & Page Nav -->
               <div class="fmt-strip">
-                <select id="fFamily" title="Font Family" style="max-width:185px">
+                <select id="fFamily" title="Font Family" style="max-width:195px">
+                  <optgroup id="pdfFontsGroup" label="Detected in This PDF" hidden></optgroup>
                   <optgroup label="Standard &amp; Ticket Fonts">
-                    <option value="Helvetica, Arial, sans-serif" data-std="Helvetica">Arial / Helvetica</option>
+                    <option value="'Arimo', Helvetica, Arial, sans-serif" data-std="Helvetica">Arial / Helvetica (Arimo)</option>
+                    <option value="'Carlito', sans-serif">Calibri Match (Carlito)</option>
                     <option value="'Open Sans', sans-serif">Open Sans (Ticket/Clean)</option>
-                    <option value="'Roboto', sans-serif">Roboto</option>
+                    <option value="'Barlow Condensed', sans-serif">Barlow Condensed (Ticket)</option>
                     <option value="'Oswald', sans-serif">Oswald (Air/Bus Ticket)</option>
+                    <option value="'Roboto', sans-serif">Roboto</option>
                     <option value="'IBM Plex Mono', monospace">IBM Plex Mono (Ticket)</option>
                     <option value="'Lato', sans-serif">Lato</option>
                     <option value="'Montserrat', sans-serif">Montserrat</option>
                     <option value="'Poppins', sans-serif">Poppins</option>
                     <option value="'Source Sans 3', sans-serif">Source Sans 3</option>
-                    <option value="'Times New Roman', serif" data-std="Times">Times New Roman</option>
-                    <option value="'Courier New', monospace" data-std="Courier">Courier New</option>
+                    <option value="'Tinos', 'Times New Roman', serif" data-std="Times">Times New Roman (Tinos)</option>
+                    <option value="'Caladea', Georgia, serif">Cambria Match (Caladea)</option>
+                    <option value="'Cousine', 'Courier New', monospace" data-std="Courier">Courier New (Cousine)</option>
                   </optgroup>
                   <optgroup label="বাংলা (Bangla Fonts)">
                     <option value="'Hind Siliguri', sans-serif">Hind Siliguri (বাংলা)</option>
@@ -415,14 +419,16 @@
       const overlayLayer = document.getElementById("overlayLayer");
       const cropBox = document.getElementById("cropBox");
       const cropConfirmBar = document.getElementById("cropConfirmBar");
+      const pdfFontsGroup = document.getElementById("pdfFontsGroup");
 
       let rawPdfBytes = null, pdfJsDoc = null, currentPdfJsPage = null;
       let totalPages = 1, currentPage = 1;
       let viewScale = window.innerWidth < 680 ? 0.85 : 1.25;
       let mode = "select", itemsByPage = {}, selectedId = null, idSeq = 1;
       let undoStack = [], redoStack = [], nativeTextHits = [];
-      let eyedropMode = null; // "text" | "bg" | null
-      let pendingCrop = null;
+      let eyedropMode = null, pendingCrop = null;
+      const loadedGoogleFonts = new Set();
+      const registeredPdfFontOptions = new Set();
 
       const fFamily = document.getElementById("fFamily"), fSize = document.getElementById("fSize");
       const fColor = document.getElementById("fColor"), fBgColor = document.getElementById("fBgColor"), fUseBg = document.getElementById("fUseBg");
@@ -445,44 +451,112 @@
       function triggerDownload(blob, filename) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
         setTimeout(() => URL.revokeObjectURL(url), 2500);
+      }
+
+      // Layer 2 & 3: Dynamic Google Font Loader + Metric-Equivalent Resolver
+      function cleanPdfFontBaseName(rawName) {
+        if (!rawName) return "";
+        // Remove PDF subset prefix like "BCDFEE+" and style suffixes
+        return rawName
+          .replace(/^[A-Z]{6}\+/, "")
+          .replace(/(PS)?[-_,]?(Bold|Italic|Oblique|Regular|Medium|SemiBold|Light|Black|Heavy|Book|Condensed|MT|Std|Pro)+/gi, " ")
+          .replace(/([a-z])([A-Z])/g, "$1 $2")
+          .replace(/\s+/g, " ")
+          .trim();
+      }
+
+      function tryLoadDynamicGoogleFont(fontName) {
+        if (!fontName || fontName.length < 3 || loadedGoogleFonts.has(fontName)) return;
+        const skip = /^(arial|helvetica|times|courier|calibri|cambria|segoe|verdana|tahoma|trebuchet|georgia|symbol|zapf|wingdings|sans|serif|mono)/i;
+        if (skip.test(fontName)) return;
+        loadedGoogleFonts.add(fontName);
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontName)}:ital,wght@0,400;0,700;1,400&display=swap`;
+        document.head.appendChild(link);
+      }
+
+      function getMetricFallbackStack(cleanName, styleFamily) {
+        const ref = `${cleanName} ${styleFamily}`.toLowerCase();
+        if (/calibri/.test(ref)) return "'Carlito', sans-serif";
+        if (/cambria/.test(ref)) return "'Caladea', Georgia, serif";
+        if (/arial|helvetica|swiss/.test(ref)) return "'Arimo', Helvetica, Arial, sans-serif";
+        if (/times|tnr|roman/.test(ref)) return "'Tinos', 'Times New Roman', serif";
+        if (/courier|consola|monaco|menlo|monospace/.test(ref)) return "'Cousine', 'Courier New', monospace";
+        if (/condensed|narrow|barlow|din|oswald/.test(ref)) return "'Barlow Condensed', sans-serif";
+        if (/segoe|tahoma|verdana|frutiger|myriad|trebuchet|gill|open\s*sans/.test(ref)) return "'Open Sans', sans-serif";
+        if (/roboto/.test(ref)) return "'Roboto', sans-serif";
+        if (/montserrat/.test(ref)) return "'Montserrat', sans-serif";
+        if (/poppins/.test(ref)) return "'Poppins', sans-serif";
+        if (/lato/.test(ref)) return "'Lato', sans-serif";
+        // Notice: explicitly avoid matching "sans-serif" as "serif"!
+        if (/\bserif\b/.test(ref) && !/sans-serif/.test(ref)) return "'Tinos', 'Times New Roman', serif";
+        if (/georgia|garamond|palatino/.test(ref)) return "'Caladea', Georgia, serif";
+        return "'Open Sans', 'Arimo', sans-serif";
+      }
+
+      function registerDetectedFontOption(stackValue, label) {
+        if (registeredPdfFontOptions.has(stackValue)) return;
+        registeredPdfFontOptions.add(stackValue);
+        const opt = document.createElement("option");
+        opt.value = stackValue;
+        opt.textContent = label;
+        pdfFontsGroup.appendChild(opt);
+        pdfFontsGroup.hidden = false;
+      }
+
+      function resolveHitFont(hit) {
+        // Unicode scripts always take priority
+        if (/[\u0980-\u09FF]/.test(hit.str)) return "'Hind Siliguri', sans-serif";
+        if (/[\u0600-\u06FF]/.test(hit.str)) return "'Cairo', sans-serif";
+        if (/[\u0900-\u097F]/.test(hit.str)) return "'Noto Sans Devanagari', sans-serif";
+
+        const cleanName = cleanPdfFontBaseName(hit.realFontName);
+        if (cleanName) tryLoadDynamicGoogleFont(cleanName);
+
+        const metricFallback = getMetricFallbackStack(cleanName || hit.fontName, hit.styleFamily);
+        const dynPart = cleanName && !/^(sans|serif|mono)/i.test(cleanName) ? `'${cleanName}', ` : "";
+        // Put pdf.js's live loaded embedded font FIRST, then clean font name, then exact metric match!
+        const fullStack = hit.loadedFontId
+          ? `'${hit.loadedFontId}', ${dynPart}${metricFallback}`
+          : `${dynPart}${metricFallback}`;
+
+        const displayLabel = cleanName ? `PDF: ${cleanName}` : `PDF Font (${hit.loadedFontId || "Auto"})`;
+        registerDetectedFontOption(fullStack, displayLabel);
+        return fullStack;
       }
 
       async function initFromBytes(bytes, keepItems = false) {
         if (!window.pdfjsLib || !window.PDFLib) { showError("PDF engines failed to load. Check internet connection."); return; }
         try {
-          // ALWAYS keep an independent un-detached copy for pdf-lib!
           rawPdfBytes = new Uint8Array(bytes).slice();
           pdfJsDoc = await pdfjsLib.getDocument({ data: rawPdfBytes.slice() }).promise;
           totalPages = pdfJsDoc.numPages;
           currentPage = Math.min(currentPage, totalPages);
-          if (!keepItems) { itemsByPage = {}; undoStack = []; redoStack = []; }
-          selectedId = null;
-          pendingCrop = null; cropBox.hidden = true; cropConfirmBar.hidden = true;
+          if (!keepItems) {
+            itemsByPage = {}; undoStack = []; redoStack = [];
+            pdfFontsGroup.innerHTML = ""; pdfFontsGroup.hidden = true;
+            registeredPdfFontOptions.clear();
+          }
+          selectedId = null; pendingCrop = null; cropBox.hidden = true; cropConfirmBar.hidden = true;
           uploadPanel.hidden = true; editorApp.hidden = false;
           showError(""); updateUndoButtons();
           await renderPage();
           saveStatus.textContent = nativeTextHits.length
-            ? "Tip: Click directly on any text in the PDF to edit it (original colors & font auto-matched)!"
+            ? "Tip: Click any text to edit — PDF fonts & original colors are auto-matched!"
             : "Tip: Scanned/vector page — use 'Pick BG' + 'Whiteout' + 'Add Text' to edit cleanly.";
         } catch (e) {
           showError("Unable to open this PDF: " + (e?.message || "Invalid or encrypted file."));
         }
       }
 
-      pdfInput.addEventListener("change", async () => {
-        const f = pdfInput.files[0]; if (f) initFromBytes(await f.arrayBuffer());
-      });
+      pdfInput.addEventListener("change", async () => { const f = pdfInput.files[0]; if (f) initFromBytes(await f.arrayBuffer()); });
       ["dragenter", "dragover"].forEach((e) => dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.add("dragover"); }));
       ["dragleave", "drop"].forEach((e) => dropzone.addEventListener(e, (ev) => { e.preventDefault(); dropzone.classList.remove("dragover"); }));
-      dropzone.addEventListener("drop", async (e) => {
-        const f = e.dataTransfer.files[0]; if (f && f.type === "application/pdf") initFromBytes(await f.arrayBuffer());
-      });
+      dropzone.addEventListener("drop", async (e) => { const f = e.dataTransfer.files[0]; if (f && f.type === "application/pdf") initFromBytes(await f.arrayBuffer()); });
 
       document.getElementById("loadUrlBtn").addEventListener("click", async () => {
         const url = document.getElementById("pdfUrlInput").value.trim();
@@ -527,11 +601,29 @@
           const wNorm = Math.max(0.02, ((t.width || str.length * 6) * viewScale) / vp.width);
           const hNorm = Math.max(0.015, (fontPx * 1.25) / vp.height);
           const st = styles[t.fontName] || {};
+
+          // Layer 1: Extract real font metadata from pdf.js commonObjs
+          let realFontName = "", loadedFontId = t.fontName || "";
+          try {
+            if (currentPdfJsPage.commonObjs && currentPdfJsPage.commonObjs.has(t.fontName)) {
+              const fObj = currentPdfJsPage.commonObjs.get(t.fontName);
+              realFontName = fObj?.name || "";
+              if (fObj?.loadedName) loadedFontId = fObj.loadedName;
+            }
+          } catch (_) {}
+
+          // Pre-warm dynamic Google Fonts on page load
+          const cleanBase = cleanPdfFontBaseName(realFontName);
+          if (cleanBase) tryLoadDynamicGoogleFont(cleanBase);
+
           return {
             str,
             fontPt: Math.max(7, Math.round(fontPx / viewScale)),
             xNorm, yNorm, wNorm, hNorm,
-            fontName: (t.fontName || "") + " " + (st.fontFamily || "")
+            fontName: t.fontName || "",
+            styleFamily: st.fontFamily || "",
+            realFontName,
+            loadedFontId
           };
         }).filter(Boolean);
 
@@ -549,16 +641,12 @@
         return { hex: toHex(d[0], d[1], d[2]), rgb: [d[0], d[1], d[2]] };
       }
 
-      // Smart Background + Original Text Ink Color Detection!
       function detectHitColors(hit) {
         const ctx = pdfCanvas.getContext("2d", { willReadFrequently: true });
         const W = pdfCanvas.width, H = pdfCanvas.height;
-        const x0 = Math.max(0, Math.floor(hit.xNorm * W));
-        const y0 = Math.max(0, Math.floor(hit.yNorm * H));
-        const bw = Math.min(W - x0, Math.max(4, Math.ceil(hit.wNorm * W)));
-        const bh = Math.min(H - y0, Math.max(4, Math.ceil(hit.hNorm * H)));
+        const x0 = Math.max(0, Math.floor(hit.xNorm * W)), y0 = Math.max(0, Math.floor(hit.yNorm * H));
+        const bw = Math.min(W - x0, Math.max(4, Math.ceil(hit.wNorm * W))), bh = Math.min(H - y0, Math.max(4, Math.ceil(hit.hNorm * H)));
 
-        // Sample corner/just-above pixel as background
         const bgSample = samplePixelHex(Math.max(0, hit.xNorm - 0.003), Math.max(0, hit.yNorm));
         const [br, bg, bb] = bgSample.rgb;
 
@@ -585,17 +673,6 @@
         return { bgHex: bgSample.hex, fgHex };
       }
 
-      // Auto-match best font family for detected text
-      function matchBestFont(hit) {
-        if (/[\u0980-\u09FF]/.test(hit.str)) return "'Hind Siliguri', sans-serif";
-        if (/[\u0600-\u06FF]/.test(hit.str)) return "'Cairo', sans-serif";
-        if (/[\u0900-\u097F]/.test(hit.str)) return "'Noto Sans Devanagari', sans-serif";
-        if (/mono|courier|consola/i.test(hit.fontName)) return "'IBM Plex Mono', monospace";
-        if (/times|serif|georgia|garamond/i.test(hit.fontName)) return "'Times New Roman', serif";
-        if (/condensed|narrow|oswald/i.test(hit.fontName)) return "'Oswald', sans-serif";
-        return "'Open Sans', sans-serif";
-      }
-
       function renderOverlay() {
         overlayLayer.innerHTML = "";
         const W = pdfCanvas.width, H = pdfCanvas.height;
@@ -604,7 +681,7 @@
           nativeTextHits.forEach((hit, idx) => {
             const box = document.createElement("div");
             box.className = "pdf-native-hit";
-            box.title = "Click to edit text";
+            box.title = hit.realFontName ? `Edit (${cleanPdfFontBaseName(hit.realFontName) || hit.fontName})` : "Click to edit text";
             box.style.left = `${hit.xNorm * W}px`; box.style.top = `${hit.yNorm * H}px`;
             box.style.width = `${hit.wNorm * W}px`; box.style.height = `${hit.hNorm * H}px`;
             box.dataset.hitIdx = idx;
@@ -669,6 +746,9 @@
         selectedId = id;
         const it = getPageItems().find((x) => x.id === id);
         if (it && it.kind === "text") {
+          if (![...fFamily.options].some((o) => o.value === it.family)) {
+            registerDetectedFontOption(it.family, "PDF Font (Restored)");
+          }
           fFamily.value = it.family; fSize.value = it.size; fColor.value = it.color;
           fBgColor.value = it.bgColor || "#ffffff"; fUseBg.checked = !!it.useBg;
           bold = it.bold; italic = it.italic; under = it.under;
@@ -694,16 +774,14 @@
       document.querySelectorAll("[data-mode]").forEach((b) => b.addEventListener("click", () => setMode(b.dataset.mode)));
 
       document.getElementById("pickTextClrBtn").addEventListener("click", () => {
-        clearEyedrop();
-        eyedropMode = "text";
+        clearEyedrop(); eyedropMode = "text";
         document.getElementById("pickTextClrBtn").classList.add("active");
         overlayLayer.style.cursor = "crosshair";
         saveStatus.textContent = "Click any color on the PDF to apply it to your selected/new Text!";
       });
 
       document.getElementById("pickBgClrBtn").addEventListener("click", () => {
-        clearEyedrop();
-        eyedropMode = "bg";
+        clearEyedrop(); eyedropMode = "bg";
         document.getElementById("pickBgClrBtn").classList.add("active");
         overlayLayer.style.cursor = "crosshair";
         saveStatus.textContent = "Click anywhere on the PDF background to copy its exact Cover/Whiteout color!";
@@ -714,7 +792,6 @@
         const W = pdfCanvas.width, H = pdfCanvas.height;
         const nx = (e.clientX - rect.left) / W, ny = (e.clientY - rect.top) / H;
 
-        // 1. Smart Eyedropper (Text Color OR BG Color)
         if (eyedropMode) {
           const picked = samplePixelHex(nx, ny).hex;
           const activeItem = getPageItems().find((x) => x.id === selectedId);
@@ -725,19 +802,16 @@
           } else {
             fBgColor.value = picked; fUseBg.checked = true;
             if (activeItem) {
-              pushHistory();
-              activeItem.bgColor = picked;
+              pushHistory(); activeItem.bgColor = picked;
               if (activeItem.kind === "text") activeItem.useBg = true;
               renderOverlay();
             }
             saveStatus.textContent = `✓ Applied cover background color: ${picked}`;
           }
-          clearEyedrop();
-          overlayLayer.style.cursor = "default";
+          clearEyedrop(); overlayLayer.style.cursor = "default";
           return;
         }
 
-        // 2. Drag Crop Area
         if (mode === "crop") {
           const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
           cropBox.hidden = false; cropConfirmBar.hidden = true;
@@ -759,16 +833,13 @@
             if (cw > 18 && ch > 18) {
               pendingCrop = { x0: left / W, y0: top / H, x1: (left + cw) / W, y1: (top + ch) / H };
               cropConfirmBar.hidden = false;
-            } else {
-              cropBox.hidden = true;
-            }
+            } else cropBox.hidden = true;
           };
           window.addEventListener("pointermove", onMove);
           window.addEventListener("pointerup", onUp);
           return;
         }
 
-        // 3. Existing overlay item (move/resize/edit)
         const itemEl = e.target.closest(".pdf-item");
         if (itemEl) {
           const id = Number(itemEl.dataset.id);
@@ -780,8 +851,7 @@
           document.querySelectorAll(".pdf-item").forEach((el) => el.classList.toggle("selected", Number(el.dataset.id) === id));
           if (isEditing) return;
 
-          const startX = e.clientX, startY = e.clientY;
-          const origX = it.x, origY = it.y, origW = it.w, origH = it.h;
+          const startX = e.clientX, startY = e.clientY, origX = it.x, origY = it.y, origW = it.w, origH = it.h;
           let moved = false;
 
           const onMove = (ev) => {
@@ -802,20 +872,20 @@
           return;
         }
 
-        // 4. Direct Click on Existing PDF Text -> Preserves Original Color & Best-Match Font!
         const hitEl = e.target.closest(".pdf-native-hit");
         if (hitEl && mode === "select") {
           const hit = nativeTextHits[Number(hitEl.dataset.hitIdx)];
           pushHistory();
           const { bgHex, fgHex } = detectHitColors(hit);
-          const autoFont = matchBestFont(hit);
-          const isBold = /bold|black|heavy|600|700/i.test(hit.fontName);
-          const isItalic = /italic|oblique/i.test(hit.fontName);
+          const matchedFont = resolveHitFont(hit);
+          const fontInfoStr = `${hit.realFontName} ${hit.fontName}`;
+          const isBold = /bold|black|heavy|semibold|600|700/i.test(fontInfoStr);
+          const isItalic = /italic|oblique/i.test(fontInfoStr);
 
           const newId = idSeq++;
           getPageItems().push({
             id: newId, kind: "text", x: hit.xNorm, y: hit.yNorm, w: hit.wNorm, h: hit.hNorm,
-            text: hit.str, family: autoFont, size: hit.fontPt,
+            text: hit.str, family: matchedFont, size: hit.fontPt,
             bold: isBold, italic: isItalic, under: false,
             color: fgHex, bgColor: bgHex, useBg: true
           });
@@ -827,7 +897,6 @@
           return;
         }
 
-        // 5. Add New Element
         if (["text", "whiteout", "highlight", "rect", "line"].includes(mode)) {
           pushHistory();
           const newId = idSeq++;
@@ -851,7 +920,6 @@
         }
       });
 
-      // Apply Crop accurately using pdf.js Viewport -> PDF Coordinate conversion!
       async function applyCrop(allPages) {
         if (!pendingCrop || !currentPdfJsPage) return;
         try {
@@ -880,7 +948,6 @@
       document.getElementById("applyCropAllBtn").onclick = () => applyCrop(true);
       document.getElementById("cancelCropBtn").onclick = () => setMode("select");
 
-      // Formatting sync (works seamlessly with Text Color & Cover Color pickers)
       function syncFormat() {
         const it = getPageItems().find((x) => x.id === selectedId);
         if (!it) return;
@@ -942,7 +1009,6 @@
         r.readAsDataURL(f); e.target.value = "";
       });
 
-      // Signature Modal
       const sigModal = document.getElementById("sigModal"), sigPad = document.getElementById("sigPad"), sCtx = sigPad.getContext("2d");
       let drawing = false, sigMode = "draw";
       document.getElementById("openSigBtn").onclick = () => { sigModal.hidden = false; };
@@ -981,7 +1047,6 @@
         selectedId = id; sigModal.hidden = true; setMode("select");
       };
 
-      // Split / Merge Modal
       const pagesModal = document.getElementById("pagesModal");
       document.getElementById("openPagesBtn").onclick = () => { pagesModal.hidden = false; };
       document.getElementById("closePagesBtn").onclick = () => { pagesModal.hidden = true; };
@@ -1219,11 +1284,8 @@
       });
 
       document.getElementById("newPdfBtn").addEventListener("click", () => {
-        editorApp.hidden = true;
-        uploadPanel.hidden = false;
-        pdfInput.value = "";
-        saveStatus.textContent = "";
-        showError("");
+        editorApp.hidden = true; uploadPanel.hidden = false;
+        pdfInput.value = ""; saveStatus.textContent = ""; showError("");
       });
     })();
   </script>
