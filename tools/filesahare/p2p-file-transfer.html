@@ -1,0 +1,902 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>P2P File Transfer — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <link rel="stylesheet" href="../../assets/css/themes.css">
+  <link rel="stylesheet" href="../../assets/css/responsive.css">
+  <link rel="stylesheet" href="../../assets/css/tools-common.css">
+
+  <!-- PeerJS, QRCode & QR Scanner -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+    .p2p-badge-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .p2p-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--surface-alt);
+      border: 1px solid var(--line);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+    .dot-pulse {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      animation: ek-pulse 1.8s infinite;
+    }
+    .dot-pulse.warn { background: #f59e0b; }
+    .dot-pulse.off { background: #ef4444; animation: none; }
+    @keyframes ek-pulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+      70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .code-big {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      color: var(--ink);
+    }
+
+    .peer-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      background: var(--surface-alt);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      transition: border-color 0.25s, background 0.25s;
+    }
+    .peer-card.disconnected {
+      border-color: rgba(239, 68, 68, 0.4);
+      background: rgba(239, 68, 68, 0.06);
+    }
+    .peer-card.connected {
+      border-color: rgba(16, 185, 129, 0.5);
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    .connect-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .connect-row input {
+      flex: 1 1 150px;
+      min-height: 44px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink);
+      font-family: monospace;
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-align: center;
+    }
+
+    .btn-danger {
+      border: 0;
+      background: #dc2626;
+      color: #fff;
+      padding: 11px 18px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-success {
+      border: 0;
+      background: #059669;
+      color: #fff;
+      padding: 11px 18px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 12px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--brand), var(--cyan));
+      transition: width 0.15s ease;
+    }
+
+    .ek-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      background: rgba(6, 10, 20, 0.78);
+      backdrop-filter: blur(6px);
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+    .ek-modal[hidden] { display: none; }
+    .ek-modal-card {
+      width: min(360px, 100%);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 22px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      display: grid;
+      gap: 14px;
+    }
+    .qr-white-box {
+      background: #fff;
+      padding: 12px;
+      border-radius: 14px;
+      display: inline-grid;
+      place-items: center;
+      margin: auto;
+    }
+
+    .ek-toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 90;
+      background: var(--surface);
+      color: var(--ink);
+      border: 1px solid var(--brand);
+      padding: 12px 16px;
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      font-size: 0.86rem;
+      font-weight: 700;
+      transform: translateY(110px);
+      opacity: 0;
+      transition: transform 0.28s, opacity 0.28s;
+      max-width: min(340px, calc(100vw - 32px));
+    }
+    .ek-toast.show { transform: translateY(0); opacity: 1; }
+    .ek-toast.err { border-color: #ef4444; }
+  </style>
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation">
+        <a href="../../index.html">Home</a>
+        <a class="active" href="../../index.html#tools">Tools</a>
+        <a href="../../about.html">About</a>
+        <a href="../../contact.html">Contact</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false">
+          <span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span>
+        </button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden>
+      <div class="container drawer-inner">
+        <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+        <div class="drawer-col"><p class="drawer-title">Developer &amp; Media</p><div class="drawer-links"><a href="p2p-file-transfer.html">P2P File Transfer</a><a href="json-formatter.html">JSON Formatter</a><a href="qr-generator.html">QR Generator</a><a href="password-generator.html">Password Gen</a></div></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero">
+      <div class="container">
+        <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-developer">Developer &amp; Media</a> / <span>P2P File Transfer</span></nav>
+        <h1>P2P File <span class="gradient-text">Transfer</span></h1>
+        <p>Send and receive files directly between iPhone, Android, Tablet, and PC using WebRTC — no server storage.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="tool-workspace tool-layout">
+
+          <!-- Top Status & Quick Pair Buttons -->
+          <div class="p2p-badge-row">
+            <div class="p2p-status-pill">
+              <span id="connIndicator" class="dot-pulse"></span>
+              <span id="networkStatus">Connecting to P2P...</span>
+              <span class="notice">• <span id="myDeviceName">Device</span></span>
+            </div>
+            <div class="action-bar">
+              <span id="ipDisplayBadge" class="p2p-status-pill notice">IP: Detecting...</span>
+              <button type="button" class="secondary-btn ripple-target" onclick="showQRCodeModal()">📱 Connect Mobile QR</button>
+              <button type="button" class="secondary-btn ripple-target" onclick="openScannerModal()">📷 Scan QR</button>
+            </div>
+          </div>
+
+          <!-- Top Cards: Your Device Code & Connect to Peer -->
+          <div class="tool-grid-2">
+            <!-- Left Card -->
+            <div class="control-box tool-layout" style="justify-content:space-between">
+              <div>
+                <span class="eyebrow">YOUR DEVICE CODE</span>
+                <div style="display:flex;align-items:center;gap:12px;margin:10px 0">
+                  <span id="myPeerId" class="code-big">-----</span>
+                  <button type="button" class="secondary-btn ripple-target" onclick="copyMyCode()" title="Copy Code">📋 Copy</button>
+                </div>
+                <p class="notice" style="margin:0">Open this tool on another device and enter this 5-digit code or scan the QR code.</p>
+              </div>
+              <div class="notice" style="padding-top:10px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+                <span>Instant two-way transfer</span>
+                <span style="color:#10b981;font-weight:700">🔒 Direct P2P Encrypted</span>
+              </div>
+            </div>
+
+            <!-- Right Card -->
+            <div id="connectPeerCard" class="peer-card disconnected">
+              <div>
+                <span class="eyebrow">CONNECT TO PEER</span>
+                <h3 style="margin:10px 0 4px">Enter Remote Device Code</h3>
+                <p class="notice" style="margin:0 0 12px">Works over Wi-Fi or 4G/5G mobile data.</p>
+                <div class="connect-row">
+                  <input type="text" id="targetPeerIdInput" placeholder="E.G. 58392" maxlength="5" inputmode="numeric">
+                  <button id="connectToggleBtn" type="button" onclick="togglePeerConnection()" class="btn-danger ripple-target">
+                    <span id="btnText">🔗 Connect</span>
+                  </button>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:.82rem">
+                <span style="display:flex;align-items:center;gap:8px">
+                  <span id="activePeerDot" class="dot-pulse off"></span>
+                  <span id="activePeerText">No remote device connected</span>
+                </span>
+                <strong id="peerDeviceInfoBadge" style="color:#ef4444">Disconnected</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Transfer Area -->
+          <div class="tool-grid-2" style="align-items:start">
+            <!-- Left: Dropzone & Queue -->
+            <div class="tool-layout">
+              <label class="dropzone" id="dropzone"
+                ondragover="handleDragOver(event)"
+                ondragleave="handleDragLeave(event)"
+                ondrop="handleFileDrop(event)">
+                <input type="file" id="fileSelector" multiple onchange="handleFileSelect(event)">
+                <div class="dropzone-icon">📡</div>
+                <strong>Choose files or drag &amp; drop here</strong>
+                <span>Send Photos, Videos, Documents, ZIPs (Any size)</span>
+              </label>
+
+              <div class="control-box tool-layout">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <strong>Queued Files (<span id="queueCount">0</span>)</strong>
+                  <button type="button" class="secondary-btn" style="padding:5px 10px;font-size:.78rem" onclick="clearQueue()">Clear</button>
+                </div>
+                <div id="fileQueueContainer" class="batch-list" style="max-height:175px;overflow-y:auto">
+                  <p id="emptyQueueMsg" class="notice" style="text-align:center;margin:8px 0">No files selected</p>
+                </div>
+                <button id="sendActionBtn" type="button" onclick="startSendingFiles()" disabled class="primary-btn ripple-target" style="width:100%">
+                  🚀 Send Queued Files Now
+                </button>
+              </div>
+            </div>
+
+            <!-- Right: Stream Progress & Downloads -->
+            <div class="control-box tool-layout">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <strong>Active Transfer Stream</strong>
+                <span id="transferTypeBadge" class="chip-btn" style="cursor:default">Idle</span>
+              </div>
+
+              <div id="progressSection" class="tool-layout" style="padding:14px;border-radius:14px;background:var(--surface);border:1px solid var(--line)" hidden>
+                <div style="display:flex;justify-content:space-between;gap:10px">
+                  <strong id="currentFileName" style="font-size:.88rem;word-break:break-all">file.bin</strong>
+                  <strong id="progressPercent" style="color:var(--brand)">0%</strong>
+                </div>
+                <div class="progress-track"><div id="progressBar" class="progress-fill"></div></div>
+                <div style="display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)">
+                  <span id="transferredBytesText">0 MB / 0 MB</span>
+                  <span id="transferSpeedText">0 MB/s</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--line)">
+                  <span id="pauseStatusNotice" class="notice" style="color:#10b981;font-weight:700">Streaming Live P2P</span>
+                  <button id="pauseResumeBtn" type="button" onclick="togglePauseTransfer()" class="secondary-btn" style="padding:6px 12px;font-size:.8rem">⏸ Pause</button>
+                </div>
+              </div>
+
+              <div id="idleTransferPlaceholder" style="text-align:center;padding:24px 10px" class="notice">
+                Ready to stream data.<br>Connect to a remote device to begin transferring.
+              </div>
+
+              <div style="padding-top:12px;border-top:1px solid var(--line)">
+                <strong style="display:block;font-size:.88rem;margin-bottom:8px">Received Downloads</strong>
+                <div id="receivedFilesContainer" class="batch-list" style="max-height:175px;overflow-y:auto">
+                  <p id="noReceivedFilesText" class="notice" style="margin:4px 0">No incoming files yet</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0">
+        <span>© <span data-year></span> EasyKity. All rights reserved.</span>
+        <span><a href="../../index.html#tools">← Back to All Tools</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- QR Modal -->
+  <div id="qrModal" class="ek-modal" hidden>
+    <div class="ek-modal-card">
+      <h3 style="margin:0">Scan from Phone / Tablet</h3>
+      <p class="notice" style="margin:0">Scan this code with another device's camera to pair instantly.</p>
+      <div class="qr-white-box" id="qrcodeCanvas"></div>
+      <button type="button" onclick="closeQRCodeModal()" class="secondary-btn ripple-target">Close</button>
+    </div>
+  </div>
+
+  <!-- Scanner Modal -->
+  <div id="scannerModal" class="ek-modal" hidden>
+    <div class="ek-modal-card">
+      <h3 style="margin:0">Scan Remote QR Code</h3>
+      <div id="qr-reader" style="border-radius:12px;overflow:hidden;border:1px solid var(--line)"></div>
+      <p id="scannerFeedback" class="notice" style="margin:0">Point your camera at the EasyKity P2P QR code</p>
+      <button type="button" onclick="closeScannerModal()" class="secondary-btn ripple-target">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="ek-toast"><span id="toastMsg">Ready</span></div>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script src="../../assets/js/app.js"></script>
+  <script>
+    let myPeer = null;
+    let myCode = "";
+    let activeConnection = null;
+    let queuedFiles = [];
+    let isTransferring = false;
+    let isTransferPaused = false;
+    let html5QrScanner = null;
+    let connectionWatchdog = null;
+    let keepAliveTimer = null;
+
+    function detectDeviceName() {
+      const ua = navigator.userAgent;
+      let name = "Desktop PC";
+      if (/iPhone/i.test(ua)) name = "Apple iPhone";
+      else if (/iPad/i.test(ua)) name = "Apple iPad";
+      else if (/Android/i.test(ua)) name = "Android Phone";
+      else if (/Macintosh/i.test(ua)) name = "MacBook";
+      else if (/Windows/i.test(ua)) name = "Windows PC";
+      else if (/Linux/i.test(ua)) name = "Linux PC";
+      else if (/SmartTV|TV/i.test(ua)) name = "Smart TV";
+      document.getElementById("myDeviceName").innerText = name;
+      return name;
+    }
+
+    async function fetchNetworkIP() {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        document.getElementById("ipDisplayBadge").innerText = `IP: ${data.ip}`;
+      } catch (_) {
+        document.getElementById("ipDisplayBadge").innerText = "IP: Local P2P";
+      }
+    }
+
+    function initPeerNode() {
+      if (typeof Peer === "undefined") {
+        document.getElementById("connIndicator").className = "dot-pulse off";
+        document.getElementById("networkStatus").innerText = "PeerJS blocked/offline";
+        showToast("PeerJS library could not load. Check internet connection.", true);
+        return;
+      }
+
+      myCode = Math.floor(10000 + Math.random() * 90000).toString();
+      document.getElementById("myPeerId").innerText = myCode;
+
+      myPeer = new Peer("airwave-" + myCode, {
+        debug: 1,
+        config: {
+          iceCandidatePoolSize: 10,
+          iceServers: [
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:stun1.l.google.com:19302" },
+            { urls: "stun:stun2.l.google.com:19302" },
+            { urls: "stun:stun.cloudflare.com:3478" },
+            { urls: "stun:stun.services.mozilla.com" },
+            { urls: "stun:global.stun.twilio.com:3478" }
+          ]
+        }
+      });
+
+      myPeer.on("open", () => {
+        document.getElementById("connIndicator").className = "dot-pulse";
+        document.getElementById("networkStatus").innerText = "Ready & Discoverable";
+        showToast("Connected to P2P network. Code: " + myCode);
+
+        clearInterval(keepAliveTimer);
+        keepAliveTimer = setInterval(() => {
+          if (myPeer && !myPeer.destroyed && myPeer.socket && myPeer.socket.connected) {
+            myPeer.socket.send({ type: "PING" });
+          }
+        }, 3000);
+
+        const remote = new URLSearchParams(window.location.search).get("connect");
+        if (remote && remote !== myCode) {
+          document.getElementById("targetPeerIdInput").value = remote;
+          setTimeout(initiateConnection, 500);
+        }
+      });
+
+      myPeer.on("connection", (conn) => setupConnectionHandlers(conn));
+
+      myPeer.on("disconnected", () => {
+        document.getElementById("connIndicator").className = "dot-pulse warn";
+        document.getElementById("networkStatus").innerText = "Reconnecting P2P...";
+        myPeer.reconnect();
+      });
+
+      myPeer.on("error", (err) => {
+        clearTimeout(connectionWatchdog);
+        if (err.type === "peer-unavailable") {
+          showToast("Device " + document.getElementById("targetPeerIdInput").value + " not found or offline", true);
+        } else {
+          showToast("Connection error: " + err.type, true);
+        }
+        applyDisconnectedTheme();
+      });
+    }
+
+    function togglePeerConnection() {
+      if (activeConnection && activeConnection.open) {
+        disconnectActivePeer(true);
+      } else {
+        initiateConnection();
+      }
+    }
+
+    function initiateConnection() {
+      if (!myPeer) return;
+      const target = document.getElementById("targetPeerIdInput").value.trim();
+      if (!target || target.length !== 5) {
+        showToast("Enter a valid 5-digit Device Code", true);
+        return;
+      }
+      if (target === myCode) {
+        showToast("Cannot connect to your own device", true);
+        return;
+      }
+
+      document.getElementById("activePeerText").innerText = `1/3 Finding ${target}...`;
+      document.getElementById("btnText").innerText = "⏳ Connecting...";
+
+      setTimeout(() => {
+        if (activeConnection && !activeConnection.open) {
+          document.getElementById("activePeerText").innerText = "2/3 Punching Firewall...";
+        }
+      }, 3000);
+
+      setTimeout(() => {
+        if (activeConnection && !activeConnection.open) {
+          document.getElementById("activePeerText").innerText = "3/3 Creating P2P Tunnel...";
+        }
+      }, 7000);
+
+      clearTimeout(connectionWatchdog);
+      connectionWatchdog = setTimeout(() => {
+        if (!activeConnection || !activeConnection.open) {
+          showToast("Connection timed out. Try connecting from the other device!", true);
+          applyDisconnectedTheme();
+          if (activeConnection) {
+            try { activeConnection.close(); } catch (_) {}
+            activeConnection = null;
+          }
+        }
+      }, 18000);
+
+      const conn = myPeer.connect("airwave-" + target, {
+        reliable: true,
+        metadata: { deviceName: detectDeviceName() }
+      });
+      setupConnectionHandlers(conn);
+    }
+
+    function setupConnectionHandlers(conn) {
+      activeConnection = conn;
+      let isMarkedReady = false;
+
+      const triggerReady = () => {
+        if (isMarkedReady) return;
+        isMarkedReady = true;
+        clearTimeout(connectionWatchdog);
+
+        const remoteName = conn.metadata?.deviceName || "Remote Device";
+        applyConnectedTheme(remoteName);
+        showToast(`Connected with ${remoteName}!`);
+
+        if (queuedFiles.length > 0) {
+          document.getElementById("sendActionBtn").disabled = false;
+        }
+        if ("wakeLock" in navigator) {
+          try { navigator.wakeLock.request("screen"); } catch (_) {}
+        }
+      };
+
+      conn.on("open", triggerReady);
+
+      const checkDataChannel = setInterval(() => {
+        if (conn.dataChannel && conn.dataChannel.readyState === "open") {
+          clearInterval(checkDataChannel);
+          triggerReady();
+        }
+      }, 100);
+
+      if (conn.peerConnection) {
+        conn.peerConnection.addEventListener("iceconnectionstatechange", () => {
+          const st = conn.peerConnection.iceConnectionState;
+          if (st === "connected" || st === "completed") setTimeout(triggerReady, 300);
+        });
+      }
+
+      conn.on("data", handleIncomingData);
+      conn.on("close", () => { clearInterval(checkDataChannel); clearTimeout(connectionWatchdog); handlePeerDisconnectionNotice(); });
+      conn.on("error", () => { clearInterval(checkDataChannel); clearTimeout(connectionWatchdog); handlePeerDisconnectionNotice(); });
+    }
+
+    function applyConnectedTheme(remoteName) {
+      document.getElementById("connectPeerCard").className = "peer-card connected";
+      const btn = document.getElementById("connectToggleBtn");
+      btn.className = "btn-success ripple-target";
+      document.getElementById("btnText").innerText = "✓ Connected";
+      document.getElementById("activePeerDot").className = "dot-pulse";
+      document.getElementById("activePeerText").innerText = `Connected: ${remoteName}`;
+      const badge = document.getElementById("peerDeviceInfoBadge");
+      badge.innerText = "P2P Online";
+      badge.style.color = "#10b981";
+    }
+
+    function applyDisconnectedTheme() {
+      document.getElementById("connectPeerCard").className = "peer-card disconnected";
+      const btn = document.getElementById("connectToggleBtn");
+      btn.className = "btn-danger ripple-target";
+      document.getElementById("btnText").innerText = "🔗 Connect";
+      document.getElementById("activePeerDot").className = "dot-pulse off";
+      document.getElementById("activePeerText").innerText = "No remote device connected";
+      const badge = document.getElementById("peerDeviceInfoBadge");
+      badge.innerText = "Disconnected";
+      badge.style.color = "#ef4444";
+      document.getElementById("sendActionBtn").disabled = true;
+    }
+
+    function disconnectActivePeer(manual = false) {
+      if (activeConnection) {
+        try { activeConnection.send({ type: "PEER_DISCONNECT_EVENT" }); activeConnection.close(); } catch (_) {}
+      }
+      activeConnection = null;
+      applyDisconnectedTheme();
+      abortActiveTransfer();
+      showToast(manual ? "Device disconnected." : "Disconnected from peer.", true);
+    }
+
+    function handlePeerDisconnectionNotice() {
+      activeConnection = null;
+      applyDisconnectedTheme();
+      abortActiveTransfer();
+      showToast("Peer disconnected from network!", true);
+    }
+
+    const CHUNK_SIZE = 64 * 1024;
+    let currentFileSliceOffset = 0;
+    let continueTransferResolver = null;
+
+    async function startSendingFiles() {
+      if (!activeConnection || !activeConnection.open) { showToast("No active device connected!", true); return; }
+      if (!queuedFiles.length || isTransferring) return;
+
+      isTransferring = true;
+      isTransferPaused = false;
+      document.getElementById("sendActionBtn").disabled = true;
+      document.getElementById("idleTransferPlaceholder").hidden = true;
+      document.getElementById("progressSection").hidden = false;
+      document.getElementById("pauseResumeBtn").hidden = false;
+      document.getElementById("transferTypeBadge").innerText = "Sending";
+      updatePauseButtonUI();
+
+      for (let i = 0; i < queuedFiles.length; i++) {
+        if (!activeConnection) break;
+        await streamSingleFile(queuedFiles[i], i + 1, queuedFiles.length);
+      }
+
+      isTransferring = false;
+      queuedFiles = [];
+      renderQueue();
+      showToast("All queued files sent!");
+      setTimeout(() => {
+        document.getElementById("progressSection").hidden = true;
+        document.getElementById("idleTransferPlaceholder").hidden = false;
+        document.getElementById("transferTypeBadge").innerText = "Idle";
+      }, 2500);
+    }
+
+    function streamSingleFile(file, index, total) {
+      return new Promise((resolve) => {
+        currentFileSliceOffset = 0;
+        document.getElementById("currentFileName").innerText = `(${index}/${total}) ${file.name}`;
+        activeConnection.send({ type: "FILE_HEADER", fileName: file.name, fileSize: file.size, fileType: file.type });
+        const startTime = Date.now();
+
+        function sendNextChunk() {
+          if (!activeConnection || !activeConnection.open) { resolve(); return; }
+          if (isTransferPaused) { continueTransferResolver = sendNextChunk; return; }
+          if (currentFileSliceOffset >= file.size) { activeConnection.send({ type: "FILE_END", fileName: file.name }); resolve(); return; }
+
+          const slice = file.slice(currentFileSliceOffset, currentFileSliceOffset + CHUNK_SIZE);
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            activeConnection.send({ type: "FILE_CHUNK", chunk: e.target.result });
+            currentFileSliceOffset += e.target.result.byteLength;
+            const pct = Math.min(100, Math.round((currentFileSliceOffset / file.size) * 100));
+            const elapsed = (Date.now() - startTime) / 1000;
+            const speed = elapsed > 0 ? (currentFileSliceOffset / (1024 * 1024) / elapsed).toFixed(1) : "0";
+
+            document.getElementById("progressBar").style.width = `${pct}%`;
+            document.getElementById("progressPercent").innerText = `${pct}%`;
+            document.getElementById("transferredBytesText").innerText = `${formatBytes(currentFileSliceOffset)} / ${formatBytes(file.size)}`;
+            document.getElementById("transferSpeedText").innerText = `${speed} MB/s`;
+
+            if (activeConnection.dataChannel && activeConnection.dataChannel.bufferedAmount > 3 * 1024 * 1024) {
+              setTimeout(sendNextChunk, 35);
+            } else {
+              sendNextChunk();
+            }
+          };
+          reader.readAsArrayBuffer(slice);
+        }
+        sendNextChunk();
+      });
+    }
+
+    function togglePauseTransfer() {
+      if (!isTransferring) return;
+      isTransferPaused = !isTransferPaused;
+      updatePauseButtonUI();
+      if (activeConnection && activeConnection.open) {
+        activeConnection.send({ type: isTransferPaused ? "TRANSFER_PAUSED" : "TRANSFER_RESUMED" });
+      }
+      if (!isTransferPaused && continueTransferResolver) {
+        continueTransferResolver();
+        continueTransferResolver = null;
+      }
+    }
+
+    function updatePauseButtonUI() {
+      const btn = document.getElementById("pauseResumeBtn");
+      const notice = document.getElementById("pauseStatusNotice");
+      if (isTransferPaused) {
+        btn.innerText = "▶ Resume";
+        notice.innerText = "Paused by you";
+        notice.style.color = "#f59e0b";
+      } else {
+        btn.innerText = "⏸ Pause";
+        notice.innerText = "Streaming Live P2P";
+        notice.style.color = "#10b981";
+      }
+    }
+
+    function abortActiveTransfer() {
+      isTransferring = false;
+      isTransferPaused = false;
+      document.getElementById("progressSection").hidden = true;
+      document.getElementById("idleTransferPlaceholder").hidden = false;
+      document.getElementById("transferTypeBadge").innerText = "Idle";
+    }
+
+    let incomingMetadata = null, incomingChunks = [], incomingReceivedBytes = 0, incomingStartTime = 0;
+
+    function handleIncomingData(data) {
+      if (data.type === "PEER_DISCONNECT_EVENT") { handlePeerDisconnectionNotice(); return; }
+      if (data.type === "TRANSFER_PAUSED") {
+        const n = document.getElementById("pauseStatusNotice");
+        n.innerText = "Transfer paused by sender"; n.style.color = "#f59e0b";
+        return;
+      }
+      if (data.type === "TRANSFER_RESUMED") {
+        const n = document.getElementById("pauseStatusNotice");
+        n.innerText = "Streaming resumed..."; n.style.color = "#10b981";
+        return;
+      }
+      if (data.type === "FILE_HEADER") {
+        incomingMetadata = data; incomingChunks = []; incomingReceivedBytes = 0; incomingStartTime = Date.now();
+        document.getElementById("idleTransferPlaceholder").hidden = true;
+        document.getElementById("progressSection").hidden = false;
+        document.getElementById("pauseResumeBtn").hidden = true;
+        document.getElementById("currentFileName").innerText = `Receiving: ${data.fileName}`;
+        document.getElementById("transferTypeBadge").innerText = "Receiving";
+      } else if (data.type === "FILE_CHUNK") {
+        incomingChunks.push(data.chunk);
+        incomingReceivedBytes += data.chunk.byteLength;
+        if (incomingMetadata) {
+          const pct = Math.min(100, Math.round((incomingReceivedBytes / incomingMetadata.fileSize) * 100));
+          const elapsed = (Date.now() - incomingStartTime) / 1000;
+          const speed = elapsed > 0 ? (incomingReceivedBytes / (1024 * 1024) / elapsed).toFixed(1) : "0";
+          document.getElementById("progressBar").style.width = `${pct}%`;
+          document.getElementById("progressPercent").innerText = `${pct}%`;
+          document.getElementById("transferredBytesText").innerText = `${formatBytes(incomingReceivedBytes)} / ${formatBytes(incomingMetadata.fileSize)}`;
+          document.getElementById("transferSpeedText").innerText = `${speed} MB/s`;
+        }
+      } else if (data.type === "FILE_END") {
+        const blob = new Blob(incomingChunks, { type: incomingMetadata.fileType || "application/octet-stream" });
+        saveReceivedFile(blob, incomingMetadata.fileName, incomingMetadata.fileSize);
+        incomingMetadata = null; incomingChunks = [];
+        setTimeout(() => {
+          document.getElementById("progressSection").hidden = true;
+          document.getElementById("idleTransferPlaceholder").hidden = false;
+          document.getElementById("transferTypeBadge").innerText = "Idle";
+        }, 2000);
+      }
+    }
+
+    function saveReceivedFile(blob, fileName, size) {
+      const url = URL.createObjectURL(blob);
+      const container = document.getElementById("receivedFilesContainer");
+      const noText = document.getElementById("noReceivedFilesText");
+      if (noText) noText.remove();
+
+      const item = document.createElement("div");
+      item.className = "batch-item";
+      item.innerHTML = `<div style="min-width:0"><strong style="display:block;font-size:.85rem;word-break:break-all">${fileName}</strong><span class="notice">${formatBytes(size)}</span></div>
+        <a href="${url}" download="${fileName}" class="primary-btn ripple-target" style="padding:7px 12px;font-size:.8rem">Save ⬇</a>`;
+      container.prepend(item);
+
+      const a = document.createElement("a");
+      a.href = url; a.download = fileName;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      showToast(`Received: ${fileName}`);
+    }
+
+    function showQRCodeModal() {
+      if (typeof QRCode === "undefined") { showToast("QR library not loaded.", true); return; }
+      document.getElementById("qrModal").hidden = false;
+      const box = document.getElementById("qrcodeCanvas");
+      box.innerHTML = "";
+      new QRCode(box, {
+        text: window.location.origin + window.location.pathname + `?connect=${myCode}`,
+        width: 170, height: 170, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H
+      });
+    }
+    function closeQRCodeModal() { document.getElementById("qrModal").hidden = true; }
+
+    function openScannerModal() {
+      if (typeof Html5Qrcode === "undefined") { showToast("QR Scanner library not loaded.", true); return; }
+      document.getElementById("scannerModal").hidden = false;
+      html5QrScanner = new Html5Qrcode("qr-reader");
+      html5QrScanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 200, height: 200 } },
+        (decodedText) => {
+          let code = decodedText.includes("connect=") ? decodedText.split("connect=")[1].substring(0, 5) : decodedText;
+          if (code && code.length >= 5) {
+            document.getElementById("targetPeerIdInput").value = code.substring(0, 5);
+            closeScannerModal();
+            showToast(`QR Code scanned: ${code.substring(0, 5)}`);
+            initiateConnection();
+          }
+        },
+        () => {}
+      ).catch(() => {
+        document.getElementById("scannerFeedback").innerText = "Camera permission denied or camera not found.";
+      });
+    }
+
+    function closeScannerModal() {
+      if (html5QrScanner) {
+        html5QrScanner.stop().then(() => { html5QrScanner.clear(); document.getElementById("scannerModal").hidden = true; })
+          .catch(() => { document.getElementById("scannerModal").hidden = true; });
+      } else {
+        document.getElementById("scannerModal").hidden = true;
+      }
+    }
+
+    function handleDragOver(e) { e.preventDefault(); e.currentTarget.classList.add("dragover"); }
+    function handleDragLeave(e) { e.preventDefault(); e.currentTarget.classList.remove("dragover"); }
+    function handleFileDrop(e) { e.preventDefault(); e.currentTarget.classList.remove("dragover"); if (e.dataTransfer.files) addFiles(e.dataTransfer.files); }
+    function handleFileSelect(e) { if (e.target.files) addFiles(e.target.files); }
+
+    function addFiles(files) {
+      for (const f of files) queuedFiles.push(f);
+      renderQueue();
+      if (activeConnection && activeConnection.open) document.getElementById("sendActionBtn").disabled = false;
+      showToast(`${files.length} file(s) added to queue`);
+    }
+
+    function renderQueue() {
+      const container = document.getElementById("fileQueueContainer");
+      document.getElementById("queueCount").innerText = queuedFiles.length;
+      if (!queuedFiles.length) {
+        container.innerHTML = `<p id="emptyQueueMsg" class="notice" style="text-align:center;margin:8px 0">No files selected</p>`;
+        document.getElementById("sendActionBtn").disabled = true;
+        return;
+      }
+      container.innerHTML = "";
+      queuedFiles.forEach((f, idx) => {
+        const row = document.createElement("div");
+        row.className = "batch-item";
+        row.innerHTML = `<span style="font-size:.84rem;font-weight:600;word-break:break-all">${f.name}</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="notice">${formatBytes(f.size)}</span>
+            <button type="button" class="secondary-btn" style="padding:4px 9px" onclick="removeQueuedFile(${idx})">✕</button>
+          </div>`;
+        container.appendChild(row);
+      });
+    }
+
+    function removeQueuedFile(idx) { queuedFiles.splice(idx, 1); renderQueue(); }
+    function clearQueue() { queuedFiles = []; renderQueue(); }
+
+    function copyMyCode() {
+      if (!myCode) return;
+      navigator.clipboard.writeText(myCode);
+      showToast("Device code copied!");
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes) return "0 B";
+      const k = 1024, sizes = ["B", "KB", "MB", "GB"];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+    }
+
+    let toastTimer = null;
+    function showToast(msg, isError = false) {
+      const t = document.getElementById("toast");
+      document.getElementById("toastMsg").innerText = (isError ? "⚠️ " : "✓ ") + msg;
+      t.className = "ek-toast show" + (isError ? " err" : "");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { t.classList.remove("show"); }, 3200);
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      detectDeviceName();
+      fetchNetworkIP();
+      initPeerNode();
+    });
+  </script>
+</body>
+</html>
