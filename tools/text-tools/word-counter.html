@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Word Counter — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">Text Tools</p><div class="drawer-links"><a href="text-to-speech.html">Text to Speech</a><a href="word-counter.html">Word Counter</a><a href="text-formatter.html">Text Formatter</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-text">Text &amp; Voice</a> / <span>Word Counter</span></nav>
+      <h1>Word <span class="gradient-text">Counter</span></h1>
+      <p>Instantly count words, characters, sentences, paragraphs, and reading time.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <div class="stat-row">
+          <div class="stat-card"><small>Words</small><strong id="sWords">0</strong></div>
+          <div class="stat-card"><small>Characters</small><strong id="sChars">0</strong></div>
+          <div class="stat-card"><small>No Spaces</small><strong id="sNoSpace">0</strong></div>
+          <div class="stat-card"><small>Sentences</small><strong id="sSent">0</strong></div>
+          <div class="stat-card"><small>Paragraphs</small><strong id="sPara">0</strong></div>
+          <div class="stat-card"><small>Read Time</small><strong id="sRead">0 min</strong></div>
+        </div>
+        <div class="field"><label for="txt">Your Text</label><textarea id="txt" style="min-height:220px" placeholder="Start typing or paste your article here..."></textarea></div>
+        <div class="action-bar">
+          <button id="copyBtn" class="primary-btn ripple-target" type="button">Copy Text</button>
+          <button id="clearBtn" class="secondary-btn ripple-target" type="button">Clear</button>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const txt = document.getElementById("txt");
+      function analyze() {
+        const val = txt.value;
+        const words = val.trim() ? val.trim().split(/\s+/).length : 0;
+        const chars = val.length;
+        const noSpace = val.replace(/\s/g, "").length;
+        const sentences = val.trim() ? (val.match(/[.!?।]+(?=\s|$)/g) || []).length || 1 : 0;
+        const paras = val.trim() ? val.trim().split(/\n\s*\n/).length : 0;
+        const mins = Math.ceil(words / 200);
+        document.getElementById("sWords").textContent = words.toLocaleString();
+        document.getElementById("sChars").textContent = chars.toLocaleString();
+        document.getElementById("sNoSpace").textContent = noSpace.toLocaleString();
+        document.getElementById("sSent").textContent = sentences.toLocaleString();
+        document.getElementById("sPara").textContent = paras.toLocaleString();
+        document.getElementById("sRead").textContent = words ? `~${mins} min` : "0 min";
+      }
+      txt.addEventListener("input", analyze);
+      document.getElementById("copyBtn").addEventListener("click", async () => { await navigator.clipboard.writeText(txt.value); });
+      document.getElementById("clearBtn").addEventListener("click", () => { txt.value = ""; analyze(); });
+    })();
+  </script>
+</body>
+</html>
