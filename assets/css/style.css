@@ -495,3 +495,32 @@ button, input, select, textarea { font: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .tool-card, .tool-thumb svg, .ek-ripple-wave { transition: none; animation: none; }
 }
+
+
+
+
+
+
+
+
+
+/* Global UI Copy & Image Drag Protection */
+body {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+img, svg {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+/* Whitelist: Allow selecting & copying inside Tool Inputs, Outputs & .allow-copy */
+input, textarea, select, code, pre, [contenteditable="true"], .allow-copy, [data-allow-copy] {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  user-select: text !important;
+}
+
