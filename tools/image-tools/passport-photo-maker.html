@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Passport Size Photo Maker — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+  <style>
+    .crop-stage {
+      position: relative;
+      margin: auto;
+      overflow: hidden;
+      border-radius: 12px;
+      border: 2px solid var(--brand);
+      background: #ffffff;
+      cursor: grab;
+      touch-action: none;
+      max-width: 100%;
+    }
+    .crop-stage:active { cursor: grabbing; }
+    .crop-stage canvas { display: block; width: 100%; height: 100%; }
+    #printSheet { display: none; }
+    @media print {
+      @page { size: A4 portrait; margin: 0; }
+      body { background: #fff !important; margin: 0 !important; }
+      body > *:not(#printSheet) { display: none !important; }
+      #printSheet { display: block !important; width: 100%; }
+      #printSheet img { width: 100%; height: auto; display: block; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">Image Tools</p><div class="drawer-links"><a href="passport-photo-maker.html">Passport Photo</a><a href="image-watermark.html">Watermark</a><a href="image-color-picker.html">Color Picker</a><a href="exif-remover.html">EXIF Remover</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-image">Image Tools</a> / <span>Passport Size Photo Maker</span></nav>
+      <h1>Passport Size <span class="gradient-text">Photo Maker</span></h1>
+      <p>Crop photos for Bangladesh Passport, NID, Govt Jobs (300×300), Visa &amp; generate ready-to-print A4 sheets.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <label class="dropzone" id="dropzone">
+          <input id="fileInput" type="file" accept="image/*">
+          <div class="dropzone-icon">🪪</div>
+          <strong>Select or drop a portrait photo</strong>
+          <span>Drag &amp; zoom to fit face perfectly inside the frame</span>
+        </label>
+
+        <div id="errBox" class="alert-box alert-error" hidden></div>
+
+        <div id="workspace" class="tool-layout" hidden>
+          <div class="control-box tool-layout">
+            <div class="tool-grid-3">
+              <div class="field">
+                <label for="presetSel">Photo Size Preset</label>
+                <select id="presetSel">
+                  <option value="413x531">BD Passport / NID (35×45 mm)</option>
+                  <option value="300x300">BD Govt Job / Teletalk (300×300 px)</option>
+                  <option value="300x80">BD Govt Job Signature (300×80 px)</option>
+                  <option value="236x295">Stamp Size (20×25 mm)</option>
+                  <option value="600x600">US Visa / 2×2 inch (600×600 px)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="copiesSel">A4 Sheet Copies</label>
+                <select id="copiesSel">
+                  <option value="4">4 Copies on A4</option>
+                  <option value="6">6 Copies on A4</option>
+                  <option value="8" selected>8 Copies on A4</option>
+                  <option value="12">12 Copies on A4</option>
+                  <option value="15">15 Copies on A4</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="bgClr">Fill Background</label>
+                <select id="bgClr">
+                  <option value="#ffffff">Pure White (#FFFFFF)</option>
+                  <option value="#e0f2fe">Sky Blue (#E0F2FE)</option>
+                  <option value="#dbeafe">Studio Blue (#DBEAFE)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="tool-grid-3">
+              <div class="field"><label for="zoomRange">Zoom <span id="zoomVal">100%</span></label><input id="zoomRange" type="range" min="40" max="260" value="100"></div>
+              <div class="field"><label for="brightRange">Brightness <span id="brightVal">100%</span></label><input id="brightRange" type="range" min="60" max="150" value="100"></div>
+              <div class="field"><label for="borderCheck">Sheet Cut Border</label><label class="check-row" style="min-height:44px"><input id="borderCheck" type="checkbox" checked> Add thin cutting border</label></div>
+            </div>
+          </div>
+
+          <div class="tool-grid-2" style="align-items:start">
+            <div class="control-box tool-layout" style="text-align:center">
+              <strong>Single Photo (Drag to adjust position)</strong>
+              <div class="crop-stage" id="cropStage"><canvas id="singleCanvas"></canvas></div>
+              <div class="action-bar" style="justify-content:center">
+                <button id="dlSingleJpg" type="button" class="primary-btn ripple-target">Download Single JPG ⬇</button>
+                <button id="dlSinglePng" type="button" class="secondary-btn ripple-target">PNG ⬇</button>
+              </div>
+            </div>
+
+            <div class="control-box tool-layout" style="text-align:center">
+              <strong>A4 Print Sheet Preview (300 DPI)</strong>
+              <div class="preview-stage" style="background:#fff;padding:10px"><canvas id="a4Canvas" style="box-shadow:0 4px 16px rgba(0,0,0,.15)"></canvas></div>
+              <div class="action-bar" style="justify-content:center">
+                <button id="dlSheetBtn" type="button" class="primary-btn ripple-target">Download A4 Sheet JPG ⬇</button>
+                <button id="printSheetBtn" type="button" class="secondary-btn ripple-target">🖨️ Print A4 Sheet</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+  <div id="printSheet"></div>
+
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const fileInput = document.getElementById("fileInput"), dropzone = document.getElementById("dropzone");
+      const workspace = document.getElementById("workspace"), errBox = document.getElementById("errBox");
+      const singleCanvas = document.getElementById("singleCanvas"), a4Canvas = document.getElementById("a4Canvas");
+      const cropStage = document.getElementById("cropStage");
+      const presetSel = document.getElementById("presetSel"), copiesSel = document.getElementById("copiesSel"), bgClr = document.getElementById("bgClr");
+      const zoomRange = document.getElementById("zoomRange"), brightRange = document.getElementById("brightRange"), borderCheck = document.getElementById("borderCheck");
+
+      let img = new Image(), url = "", offX = 0, offY = 0, pw = 413, ph = 531;
+
+      function updateStageBox() {
+        const [w, h] = presetSel.value.split("x").map(Number);
+        pw = w; ph = h;
+        const maxDisplayW = 280;
+        const dispW = Math.min(maxDisplayW, w);
+        const dispH = Math.round((dispW * h) / w);
+        cropStage.style.width = `${dispW}px`;
+        cropStage.style.height = `${dispH}px`;
+        singleCanvas.width = pw; singleCanvas.height = ph;
+        renderAll();
+      }
+
+      function renderAll() {
+        if (!img.width) return;
+        const ctx = singleCanvas.getContext("2d");
+        ctx.fillStyle = bgClr.value;
+        ctx.fillRect(0, 0, pw, ph);
+
+        const baseScale = Math.max(pw / img.width, ph / img.height);
+        const scale = baseScale * (Number(zoomRange.value) / 100);
+        const dw = img.width * scale, dh = img.height * scale;
+        ctx.filter = `brightness(${brightRange.value}%)`;
+        ctx.drawImage(img, (pw - dw) / 2 + offX, (ph - dh) / 2 + offY, dw, dh);
+        ctx.filter = "none";
+
+        // Build A4 Sheet (2480 x 3508 px @ 300 DPI)
+        const A4W = 2480, A4H = 3508;
+        a4Canvas.width = A4W; a4Canvas.height = A4H;
+        const actx = a4Canvas.getContext("2d");
+        actx.fillStyle = "#ffffff"; actx.fillRect(0, 0, A4W, A4H);
+
+        const total = Number(copiesSel.value);
+        const cols = pw > ph * 2 ? 2 : (total <= 6 ? 3 : 4);
+        const gap = 46, marginTop = 120;
+        const drawW = Math.min(pw, Math.floor((A4W - 180 - gap * (cols - 1)) / cols));
+        const drawH = Math.round((drawW * ph) / pw);
+        const gridW = cols * drawW + (cols - 1) * gap;
+        const startX = Math.round((A4W - gridW) / 2);
+
+        for (let i = 0; i < total; i++) {
+          const r = Math.floor(i / cols), c = i % cols;
+          const x = startX + c * (drawW + gap);
+          const y = marginTop + r * (drawH + gap);
+          if (y + drawH > A4H - 60) break;
+          actx.drawImage(singleCanvas, x, y, drawW, drawH);
+          if (borderCheck.checked) {
+            actx.strokeStyle = "#cbd5e1"; actx.lineWidth = 3;
+            actx.strokeRect(x, y, drawW, drawH);
+          }
+        }
+      }
+
+      function loadFile(f) {
+        if (!f) return;
+        if (!f.type.startsWith("image/")) { errBox.textContent = "Please select a valid image."; errBox.hidden = false; return; }
+        errBox.hidden = true;
+        if (url) URL.revokeObjectURL(url);
+        url = URL.createObjectURL(f);
+        img = new Image();
+        img.onload = () => { offX = 0; offY = 0; zoomRange.value = 100; brightRange.value = 100; workspace.hidden = false; updateStageBox(); };
+        img.src = url;
+      }
+
+      fileInput.addEventListener("change", () => loadFile(fileInput.files[0]));
+      ["dragenter", "dragover"].forEach((e) => dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.add("dragover"); }));
+      ["dragleave", "drop"].forEach((e) => dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.remove("dragover"); }));
+      dropzone.addEventListener("drop", (e) => loadFile(e.dataTransfer.files[0]));
+
+      // Drag to pan photo inside crop frame
+      let dragging = false, sx = 0, sy = 0, ox = 0, oy = 0;
+      cropStage.addEventListener("pointerdown", (e) => { dragging = true; sx = e.clientX; sy = e.clientY; ox = offX; oy = offY; });
+      window.addEventListener("pointermove", (e) => {
+        if (!dragging) return;
+        const factor = pw / cropStage.clientWidth;
+        offX = ox + (e.clientX - sx) * factor;
+        offY = oy + (e.clientY - sy) * factor;
+        renderAll();
+      });
+      window.addEventListener("pointerup", () => { dragging = false; });
+
+      presetSel.addEventListener("change", () => { offX = 0; offY = 0; updateStageBox(); });
+      [copiesSel, bgClr, borderCheck].forEach((el) => el.addEventListener("change", renderAll));
+      zoomRange.addEventListener("input", () => { document.getElementById("zoomVal").textContent = `${zoomRange.value}%`; renderAll(); });
+      brightRange.addEventListener("input", () => { document.getElementById("brightVal").textContent = `${brightRange.value}%`; renderAll(); });
+
+      function dlCanvas(canvas, mime, name) {
+        const a = document.createElement("a");
+        a.href = canvas.toDataURL(mime, 0.96); a.download = name; a.click();
+      }
+      document.getElementById("dlSingleJpg").onclick = () => dlCanvas(singleCanvas, "image/jpeg", `easykity-passport-${pw}x${ph}.jpg`);
+      document.getElementById("dlSinglePng").onclick = () => dlCanvas(singleCanvas, "image/png", `easykity-passport-${pw}x${ph}.png`);
+      document.getElementById("dlSheetBtn").onclick = () => dlCanvas(a4Canvas, "image/jpeg", `easykity-a4-sheet-${copiesSel.value}copies.jpg`);
+      document.getElementById("printSheetBtn").onclick = () => {
+        const box = document.getElementById("printSheet");
+        box.innerHTML = `<img src="${a4Canvas.toDataURL("image/png")}">`;
+        setTimeout(() => window.print(), 200);
+      };
+    })();
+  </script>
+</body>
+</html>
