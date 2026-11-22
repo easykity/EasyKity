@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Image Resize — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <link rel="stylesheet" href="../../assets/css/themes.css">
+  <link rel="stylesheet" href="../../assets/css/responsive.css">
+  <link rel="stylesheet" href="../../assets/css/tools-common.css">
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation">
+        <a href="../../index.html">Home</a>
+        <a class="active" href="../../index.html#tools">Tools</a>
+        <a href="../../about.html">About</a>
+        <a href="../../contact.html">Contact</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false">
+          <span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span>
+        </button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden>
+      <div class="container drawer-inner">
+        <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+        <div class="drawer-col"><p class="drawer-title">Image Tools</p><div class="drawer-links"><a href="image-resizer.html">Image Resize</a><a href="image-editor.html">Image Edit</a><a href="image-converter.html">Format Converter</a><a href="image-compressor.html">Compressor</a></div></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero">
+      <div class="container">
+        <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-image">Image Tools</a> / <span>Image Resize</span></nav>
+        <h1>Image <span class="gradient-text">Resize</span></h1>
+        <p>Resize any image to exact pixel dimensions right inside your browser — 100% private.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="tool-workspace tool-layout">
+          <label class="dropzone" id="dropzone">
+            <input id="fileInput" type="file" accept="image/*">
+            <div class="dropzone-icon">🖼️</div>
+            <strong>Drop an image here or click to browse</strong>
+            <span>Supports PNG, JPG, WebP, GIF</span>
+          </label>
+
+          <div id="errBox" class="alert-box alert-error" hidden></div>
+
+          <div id="workspace" class="tool-layout" hidden>
+            <div class="stat-row">
+              <div class="stat-card"><small>Original Size</small><strong id="origDim">-</strong></div>
+              <div class="stat-card"><small>Original File</small><strong id="origBytes">-</strong></div>
+              <div class="stat-card"><small>New Dimensions</small><strong id="newDim">-</strong></div>
+            </div>
+
+            <div class="control-box tool-layout">
+              <div>
+                <div style="font-size:0.84rem;font-weight:700;color:var(--muted);margin-bottom:8px">Quick Social Presets</div>
+                <div class="chip-group">
+                  <button type="button" class="chip-btn ripple-target" data-preset="1080x1080">Instagram (1080×1080)</button>
+                  <button type="button" class="chip-btn ripple-target" data-preset="1280x720">YouTube Thumb (1280×720)</button>
+                  <button type="button" class="chip-btn ripple-target" data-preset="1920x1080">Full HD (1920×1080)</button>
+                  <button type="button" class="chip-btn ripple-target" data-preset="800x600">Web Standard (800×600)</button>
+                </div>
+              </div>
+
+              <div class="tool-grid-3">
+                <div class="field"><label for="wInput">Width (px)</label><input id="wInput" type="number" min="1" max="12000"></div>
+                <div class="field"><label for="hInput">Height (px)</label><input id="hInput" type="number" min="1" max="12000"></div>
+                <div class="field">
+                  <label for="fmtSelect">Output Format</label>
+                  <select id="fmtSelect">
+                    <option value="image/png">PNG</option>
+                    <option value="image/jpeg">JPG</option>
+                    <option value="image/webp">WebP</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="tool-grid-2" style="align-items:center">
+                <label class="check-row"><input id="lockRatio" type="checkbox" checked> Lock aspect ratio</label>
+                <div class="field" id="qualityWrap" hidden>
+                  <label for="qRange">Quality <span id="qVal">92%</span></label>
+                  <input id="qRange" type="range" min="10" max="100" value="92">
+                </div>
+              </div>
+            </div>
+
+            <div class="preview-stage"><img id="previewImg" alt="Resized preview"></div>
+
+            <div class="action-bar">
+              <button id="downloadBtn" class="primary-btn ripple-target" type="button">Download Resized Image ⬇</button>
+              <button id="resetBtn" class="secondary-btn ripple-target" type="button">Choose Another Image</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0">
+        <span>© <span data-year></span> EasyKity. All rights reserved.</span>
+        <span><a href="../../index.html#tools">← Back to All Tools</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const fileInput = document.getElementById("fileInput");
+      const dropzone = document.getElementById("dropzone");
+      const workspace = document.getElementById("workspace");
+      const errBox = document.getElementById("errBox");
+      const previewImg = document.getElementById("previewImg");
+      const wInput = document.getElementById("wInput");
+      const hInput = document.getElementById("hInput");
+      const lockRatio = document.getElementById("lockRatio");
+      const fmtSelect = document.getElementById("fmtSelect");
+      const qRange = document.getElementById("qRange");
+      const qVal = document.getElementById("qVal");
+      const qualityWrap = document.getElementById("qualityWrap");
+      const origDim = document.getElementById("origDim");
+      const origBytes = document.getElementById("origBytes");
+      const newDim = document.getElementById("newDim");
+
+      let currentImg = new Image();
+      let ratio = 1;
+      let currentUrl = "";
+
+      const formatBytes = (b) => b < 1024 * 1024 ? `${(b / 1024).toFixed(1)} KB` : `${(b / (1024 * 1024)).toFixed(2)} MB`;
+
+      function showError(msg) {
+        errBox.textContent = msg;
+        errBox.hidden = !msg;
+      }
+
+      function updateDimText() {
+        newDim.textContent = `${wInput.value || 0} × ${hInput.value || 0} px`;
+      }
+
+      function handleFile(file) {
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+          showError("Please choose a valid image file (PNG, JPG, WebP, GIF).");
+          return;
+        }
+        showError("");
+        if (currentUrl) URL.revokeObjectURL(currentUrl);
+        currentUrl = URL.createObjectURL(file);
+        currentImg = new Image();
+        currentImg.onload = () => {
+          ratio = currentImg.width / currentImg.height;
+          wInput.value = currentImg.width;
+          hInput.value = currentImg.height;
+          origDim.textContent = `${currentImg.width} × ${currentImg.height} px`;
+          origBytes.textContent = formatBytes(file.size);
+          updateDimText();
+          previewImg.src = currentUrl;
+          workspace.hidden = false;
+        };
+        currentImg.src = currentUrl;
+      }
+
+      fileInput.addEventListener("change", () => handleFile(fileInput.files[0]));
+      ["dragenter", "dragover"].forEach((ev) => dropzone.addEventListener(ev, (e) => { e.preventDefault(); dropzone.classList.add("dragover"); }));
+      ["dragleave", "drop"].forEach((ev) => dropzone.addEventListener(ev, (e) => { e.preventDefault(); dropzone.classList.remove("dragover"); }));
+      dropzone.addEventListener("drop", (e) => handleFile(e.dataTransfer.files[0]));
+
+      wInput.addEventListener("input", () => {
+        if (lockRatio.checked && Number(wInput.value) > 0) {
+          hInput.value = Math.max(1, Math.round(Number(wInput.value) / ratio));
+        }
+        updateDimText();
+      });
+      hInput.addEventListener("input", () => {
+        if (lockRatio.checked && Number(hInput.value) > 0) {
+          wInput.value = Math.max(1, Math.round(Number(hInput.value) * ratio));
+        }
+        updateDimText();
+      });
+
+      document.querySelectorAll("[data-preset]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const [pw, ph] = btn.dataset.preset.split("x").map(Number);
+          lockRatio.checked = false;
+          wInput.value = pw;
+          hInput.value = ph;
+          updateDimText();
+        });
+      });
+
+      fmtSelect.addEventListener("change", () => {
+        qualityWrap.hidden = fmtSelect.value === "image/png";
+      });
+      qRange.addEventListener("input", () => { qVal.textContent = `${qRange.value}%`; });
+
+      document.getElementById("downloadBtn").addEventListener("click", () => {
+        const w = Number(wInput.value), h = Number(hInput.value);
+        if (!w || !h || w < 1 || h < 1 || w > 12000 || h > 12000) {
+          showError("Please enter valid dimensions between 1 and 12000 px.");
+          return;
+        }
+        showError("");
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (fmtSelect.value === "image/jpeg") {
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, w, h);
+        }
+        ctx.drawImage(currentImg, 0, 0, w, h);
+        const ext = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" }[fmtSelect.value];
+        canvas.toBlob((blob) => {
+          if (!blob) return;
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = `easykity-resized-${w}x${h}.${ext}`;
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+        }, fmtSelect.value, Number(qRange.value) / 100);
+      });
+
+      document.getElementById("resetBtn").addEventListener("click", () => {
+        fileInput.value = "";
+        workspace.hidden = true;
+        showError("");
+      });
+    })();
+  </script>
+</body>
+</html>
