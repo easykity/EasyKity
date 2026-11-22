@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Local Audio / Video Player &amp; Trimmer — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+  <style>
+    [hidden]{display:none!important}
+    .viz-canvas { width: 100%; height: 120px; border-radius: 14px; background: #070c18; border: 1px solid var(--line); display: block; }
+  </style>
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">Creator &amp; Media</p><div class="drawer-links"><a href="screen-recorder.html">Screen Recorder</a><a href="youtube-thumbnail.html">YT Thumbnail</a><a href="media-player.html">Media Player</a><a href="../developer-tools/wifi-qr-generator.html">Wi-Fi QR</a><a href="../developer-tools/focus-timer.html">Focus Timer</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-developer">Developer &amp; Media</a> / <span>Media Player &amp; Trimmer</span></nav>
+      <h1>Audio / Video <span class="gradient-text">Player &amp; Trimmer</span></h1>
+      <p>Play local songs or videos with a live audio spectrum visualizer and trim audio clips into downloadable WAV.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <label class="dropzone" id="dropzone">
+          <input id="mediaInput" type="file" accept="audio/*,video/*">
+          <div class="dropzone-icon">🎵</div>
+          <strong>Select or drop any local Audio / Video file</strong>
+          <span>MP3, WAV, OGG, M4A, MP4, WebM — plays 100% offline</span>
+        </label>
+
+        <div id="workspace" class="tool-layout" hidden>
+          <strong id="trackName" style="font-size:1.05rem">-</strong>
+
+          <video id="videoEl" controls playsinline hidden style="width:100%;max-height:380px;border-radius:14px;background:#000"></video>
+          <audio id="audioEl" controls hidden style="width:100%"></audio>
+
+          <canvas id="vizCanvas" class="viz-canvas"></canvas>
+
+          <div class="control-box tool-grid-3" style="align-items:end">
+            <div class="field">
+              <label for="speedSel">Playback Speed</label>
+              <select id="speedSel">
+                <option value="0.5">0.5x (Slow)</option>
+                <option value="0.75">0.75x</option>
+                <option value="1" selected>1.0x (Normal)</option>
+                <option value="1.25">1.25x</option>
+                <option value="1.5">1.5x</option>
+                <option value="2">2.0x (Fast)</option>
+              </select>
+            </div>
+            <div class="field"><label for="trimStart">Trim Start (sec)</label><input id="trimStart" type="number" min="0" step="0.5" value="0"></div>
+            <div class="field"><label for="trimEnd">Trim End (sec)</label><input id="trimEnd" type="number" min="0" step="0.5" value="10"></div>
+          </div>
+
+          <div class="action-bar">
+            <button id="playRangeBtn" type="button" class="secondary-btn ripple-target">▶ Preview Trimmed Range</button>
+            <button id="exportTrimBtn" type="button" class="primary-btn ripple-target">✂️ Export Trimmed Audio (.wav) ⬇</button>
+            <span id="trimStatus" class="notice"></span>
+          </div>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const mediaInput = document.getElementById("mediaInput"), dropzone = document.getElementById("dropzone");
+      const workspace = document.getElementById("workspace"), videoEl = document.getElementById("videoEl"), audioEl = document.getElementById("audioEl");
+      const vizCanvas = document.getElementById("vizCanvas"), vCtx = vizCanvas.getContext("2d");
+      const trimStart = document.getElementById("trimStart"), trimEnd = document.getElementById("trimEnd");
+
+      let activeEl = null, currentFile = null, mediaUrl = "", audioCtx = null, analyser = null, srcMap = new WeakMap(), raf = null, stopAtEnd = false;
+
+      function setupVisualizer(el) {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        if (!srcMap.has(el)) {
+          const src = audioCtx.createMediaElementSource(el);
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 128;
+          src.connect(analyser); analyser.connect(audioCtx.destination);
+          srcMap.set(el, analyser);
+        } else {
+          analyser = srcMap.get(el);
+        }
+
+        cancelAnimationFrame(raf);
+        const data = new Uint8Array(analyser.frequencyBinCount);
+        const draw = () => {
+          vizCanvas.width = vizCanvas.clientWidth; vizCanvas.height = 120;
+          vCtx.clearRect(0, 0, vizCanvas.width, 120);
+          analyser.getByteFrequencyData(data);
+          const barW = (vizCanvas.width / data.length) * 1.4;
+          for (let i = 0; i < data.length; i++) {
+            const h = (data[i] / 255) * 110;
+            const grad = vCtx.createLinearGradient(0, 120, 0, 120 - h);
+            grad.addColorStop(0, "#315eeb"); grad.addColorStop(0.5, "#8b5cf6"); grad.addColorStop(1, "#18c8ef");
+            vCtx.fillStyle = grad;
+            vCtx.fillRect(i * (barW + 2), 120 - h, barW, h);
+          }
+          raf = requestAnimationFrame(draw);
+        };
+        draw();
+      }
+
+      function loadFile(f) {
+        if (!f) return;
+        currentFile = f;
+        document.getElementById("trackName").textContent = f.name;
+        if (mediaUrl) URL.revokeObjectURL(mediaUrl);
+        mediaUrl = URL.createObjectURL(f);
+        const isVid = f.type.startsWith("video/");
+        videoEl.hidden = !isVid; audioEl.hidden = isVid;
+        videoEl.pause(); audioEl.pause();
+        activeEl = isVid ? videoEl : audioEl;
+        activeEl.src = mediaUrl;
+        activeEl.playbackRate = Number(document.getElementById("speedSel").value);
+        workspace.hidden = false;
+
+        activeEl.onloadedmetadata = () => {
+          trimStart.value = 0;
+          trimEnd.value = activeEl.duration.toFixed(1);
+        };
+        activeEl.onplay = () => setupVisualizer(activeEl);
+        activeEl.ontimeupdate = () => {
+          if (stopAtEnd && activeEl.currentTime >= Number(trimEnd.value)) {
+            activeEl.pause(); stopAtEnd = false;
+          }
+        };
+      }
+
+      document.getElementById("speedSel").onchange = (e) => { if (activeEl) activeEl.playbackRate = Number(e.target.value); };
+      document.getElementById("playRangeBtn").onclick = () => {
+        if (!activeEl) return;
+        stopAtEnd = true;
+        activeEl.currentTime = Number(trimStart.value) || 0;
+        activeEl.play();
+      };
+
+      // Instant Audio Trim -> Lossless WAV export
+      function encodeWav(audioBuf) {
+        const ch = audioBuf.numberOfChannels, sr = audioBuf.sampleRate, len = audioBuf.length;
+        const buf = new ArrayBuffer(44 + len * ch * 2), view = new DataView(buf);
+        const ws = (off, s) => { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+        ws(0, "RIFF"); view.setUint32(4, 36 + len * ch * 2, true); ws(8, "WAVE");
+        ws(12, "fmt "); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, ch, true);
+        view.setUint32(24, sr, true); view.setUint32(28, sr * ch * 2, true); view.setUint16(32, ch * 2, true); view.setUint16(34, 16, true);
+        ws(36, "data"); view.setUint32(40, len * ch * 2, true);
+        let pos = 44;
+        for (let i = 0; i < len; i++) {
+          for (let c = 0; c < ch; c++) {
+            const s = Math.max(-1, Math.min(1, audioBuf.getChannelData(c)[i]));
+            view.setInt16(pos, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+            pos += 2;
+          }
+        }
+        return new Blob([buf], { type: "audio/wav" });
+      }
+
+      document.getElementById("exportTrimBtn").onclick = async () => {
+        if (!currentFile) return;
+        const st = document.getElementById("trimStatus");
+        const sSec = Math.max(0, Number(trimStart.value) || 0), eSec = Number(trimEnd.value) || 0;
+        if (eSec <= sSec) { st.textContent = "End time must be greater than Start time."; return; }
+        st.textContent = "Trimming audio...";
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const decoded = await ctx.decodeAudioData(await currentFile.arrayBuffer());
+          const startSample = Math.floor(sSec * decoded.sampleRate);
+          const endSample = Math.min(decoded.length, Math.floor(eSec * decoded.sampleRate));
+          const sliceLen = Math.max(1, endSample - startSample);
+          const outBuf = ctx.createBuffer(decoded.numberOfChannels, sliceLen, decoded.sampleRate);
+          for (let c = 0; c < decoded.numberOfChannels; c++) {
+            outBuf.getChannelData(c).set(decoded.getChannelData(c).subarray(startSample, endSample));
+          }
+          const wavBlob = encodeWav(outBuf);
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(wavBlob);
+          a.download = `${currentFile.name.replace(/\.[^.]+$/, "")}-trimmed.wav`;
+          a.click();
+          st.textContent = "✓ Trimmed WAV downloaded!";
+        } catch (_) {
+          st.textContent = "Could not decode audio track for WAV export.";
+        }
+      };
+
+      mediaInput.addEventListener("change", () => loadFile(mediaInput.files[0]));
+      ["dragenter", "dragover"].forEach((e) => dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.add("dragover"); }));
+      ["dragleave", "drop"].forEach((e) => dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.remove("dragover"); }));
+      dropzone.addEventListener("drop", (e) => loadFile(e.dataTransfer.files[0]));
+    })();
+  </script>
+</body>
+</html>
