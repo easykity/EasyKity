@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Voice to Text (Bangla &amp; English) — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+  <style>
+    [hidden]{display:none!important}
+    .mic-pulse {
+      display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+      background: #ef4444; box-shadow: 0 0 0 0 rgba(239,68,68,.7);
+      animation: mic-p 1.4s infinite;
+    }
+    @keyframes mic-p { 0%{box-shadow:0 0 0 0 rgba(239,68,68,.7)} 70%{box-shadow:0 0 0 10px rgba(239,68,68,0)} 100%{box-shadow:0 0 0 0 rgba(239,68,68,0)} }
+  </style>
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">Text &amp; Voice</p><div class="drawer-links"><a href="voice-to-text.html">Voice to Text</a><a href="bijoy-unicode.html">Bijoy ⇄ Unicode</a><a href="text-compare.html">Text Compare</a><a href="fancy-text-generator.html">Fancy Text</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-text">Text &amp; Voice</a> / <span>Voice to Text</span></nav>
+      <h1>Voice to <span class="gradient-text">Text</span></h1>
+      <p>Speak in বাংলা or English using your microphone and get instant live typing — copy or save as a text file.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <div id="unsupportedBox" class="alert-box alert-error" hidden>
+          Your browser does not support Speech Recognition. Please open this page in Google Chrome or Microsoft Edge.
+        </div>
+
+        <div class="control-box tool-grid-2" style="align-items:end">
+          <div class="field">
+            <label for="langSel">Speech Language</label>
+            <select id="langSel">
+              <option value="bn-BD" selected>বাংলা (Bangladesh)</option>
+              <option value="bn-IN">বাংলা (India)</option>
+              <option value="en-US">English (US)</option>
+              <option value="en-GB">English (UK)</option>
+              <option value="hi-IN">हिन्दी (Hindi)</option>
+              <option value="ar-SA">العربية (Arabic)</option>
+            </select>
+          </div>
+          <div class="action-bar">
+            <button id="startBtn" type="button" class="primary-btn ripple-target">🎙️ Start Listening</button>
+            <button id="stopBtn" type="button" class="secondary-btn ripple-target" hidden>⏹ Stop</button>
+            <span id="liveBadge" class="notice" hidden style="display:inline-flex;align-items:center;gap:6px;font-weight:700"><span class="mic-pulse"></span> Listening...</span>
+          </div>
+        </div>
+
+        <div id="interimBox" class="notice" style="min-height:20px;font-style:italic"></div>
+
+        <div class="field">
+          <label for="voiceOut">Transcribed Text <span id="statLabel">0 words</span></label>
+          <textarea id="voiceOut" class="allow-copy" style="min-height:230px" placeholder="Click 'Start Listening' and speak into your microphone..."></textarea>
+        </div>
+
+        <div class="chip-group">
+          <button type="button" class="chip-btn" data-ins="। ">+ । (দাঁড়ি)</button>
+          <button type="button" class="chip-btn" data-ins=", ">+ , (কমা)</button>
+          <button type="button" class="chip-btn" data-ins="? ">+ ? (প্রশ্ন)</button>
+          <button type="button" class="chip-btn" data-ins="\n">+ নতুন লাইন</button>
+        </div>
+
+        <div class="action-bar">
+          <button id="copyBtn" type="button" class="primary-btn ripple-target">📋 Copy Text</button>
+          <button id="dlBtn" type="button" class="secondary-btn ripple-target">⬇ Download .txt</button>
+          <button id="clearBtn" type="button" class="secondary-btn ripple-target">Clear</button>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const startBtn = document.getElementById("startBtn"), stopBtn = document.getElementById("stopBtn");
+      const liveBadge = document.getElementById("liveBadge"), voiceOut = document.getElementById("voiceOut");
+      const interimBox = document.getElementById("interimBox"), langSel = document.getElementById("langSel");
+
+      if (!SR) {
+        document.getElementById("unsupportedBox").hidden = false;
+        startBtn.disabled = true;
+        return;
+      }
+
+      let rec = null, listening = false;
+
+      function updateStats() {
+        const t = voiceOut.value.trim();
+        const words = t ? t.split(/\s+/).length : 0;
+        document.getElementById("statLabel").textContent = `${words} words • ${voiceOut.value.length} chars`;
+      }
+      voiceOut.addEventListener("input", updateStats);
+
+      function startListening() {
+        rec = new SR();
+        rec.lang = langSel.value;
+        rec.continuous = true;
+        rec.interimResults = true;
+
+        rec.onstart = () => {
+          listening = true;
+          startBtn.hidden = true; stopBtn.hidden = false; liveBadge.hidden = false;
+        };
+        rec.onresult = (e) => {
+          let interim = "", finalTxt = "";
+          for (let i = e.resultIndex; i < e.results.length; i++) {
+            const tr = e.results[i][0].transcript;
+            if (e.results[i].isFinal) finalTxt += tr + " ";
+            else interim += tr;
+          }
+          if (finalTxt) {
+            const sep = voiceOut.value && !/\s$/.test(voiceOut.value) ? " " : "";
+            voiceOut.value += sep + finalTxt;
+            updateStats();
+          }
+          interimBox.textContent = interim ? `Hearing: ${interim}` : "";
+        };
+        rec.onerror = (e) => {
+          interimBox.textContent = e.error === "not-allowed" ? "⚠️ Microphone permission denied. Please allow mic access." : `Notice: ${e.error}`;
+          stopListening();
+        };
+        rec.onend = () => {
+          if (listening) { try { rec.start(); } catch (_) { stopListening(); } }
+        };
+        rec.start();
+      }
+
+      function stopListening() {
+        listening = false;
+        if (rec) { try { rec.stop(); } catch (_) {} }
+        startBtn.hidden = false; stopBtn.hidden = true; liveBadge.hidden = true;
+        interimBox.textContent = "";
+      }
+
+      startBtn.onclick = startListening;
+      stopBtn.onclick = stopListening;
+      langSel.onchange = () => { if (listening) { stopListening(); startListening(); } };
+
+      document.querySelectorAll("[data-ins]").forEach((b) => b.onclick = () => {
+        voiceOut.value += b.dataset.ins.replace("\\n", "\n");
+        updateStats(); voiceOut.focus();
+      });
+
+      document.getElementById("copyBtn").onclick = async () => {
+        await navigator.clipboard.writeText(voiceOut.value);
+        document.getElementById("copyBtn").textContent = "Copied! ✓";
+        setTimeout(() => document.getElementById("copyBtn").textContent = "📋 Copy Text", 1300);
+      };
+      document.getElementById("dlBtn").onclick = () => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([voiceOut.value], { type: "text/plain;charset=utf-8" }));
+        a.download = "easykity-voice-text.txt"; a.click();
+      };
+      document.getElementById("clearBtn").onclick = () => { voiceOut.value = ""; updateStats(); };
+    })();
+  </script>
+</body>
+</html>
