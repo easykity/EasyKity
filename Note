@@ -1,0 +1,41 @@
+EasyKity/
+├── index.html
+├── about.html
+├── contact.html
+├── assets/
+│   ├── logo/
+│   │   └── favicon.png
+│   ├── css/
+│   │   ├── style.css
+│   │   ├── themes.css
+│   │   ├── responsive.css
+│   │   └── tools-common.css
+│   └── js/
+│       ├── theme.js
+│       ├── search.js
+│       └── app.js
+└── tools/
+    ├── image-tools/
+    │   ├── image-resizer.html
+    │   ├── image-editor.html
+    │   ├── image-converter.html
+    │   └── image-compressor.html
+    ├── pdf-tools/
+    │   ├── pdf-to-image.html
+    │   ├── pdf-merger.html
+    │   ├── image-to-pdf.html
+    │   └── invoice-maker.html
+    ├── text-tools/
+    │   ├── text-to-speech.html
+    │   ├── word-counter.html
+    │   └── text-formatter.html
+    ├── calculator-tools/
+    │   ├── age-calculator.html
+    │   ├── percentage-calculator.html
+    │   └── bmi-calculator.html
+    ├── developer-tools/
+    │   ├── json-formatter.html
+    │   ├── qr-generator.html
+    │   └── password-generator.html
+    └── entertainment-tools/
+        └── m3u-creator.html
