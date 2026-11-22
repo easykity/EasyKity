@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PDF Page Organizer (Rotate &amp; Reorder) — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+  <style>
+    [hidden]{display:none!important}
+    .org-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
+    .page-tile {
+      background: var(--surface-alt); border: 1px solid var(--line); border-radius: 16px;
+      padding: 10px; display: grid; gap: 8px; text-align: center; cursor: grab; transition: transform .18s, border-color .18s;
+    }
+    .page-tile:hover { border-color: var(--brand); }
+    .page-tile.dragging { opacity: 0.45; transform: scale(0.97); }
+    .page-thumb-wrap {
+      height: 210px; background: #1e293b; border-radius: 10px; display: grid; place-items: center; overflow: hidden; padding: 6px;
+    }
+    .page-thumb-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.2s ease; border-radius: 4px; background: #fff; }
+    .tile-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+    .tile-btns button {
+      border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+      padding: 5px 8px; border-radius: 8px; font-size: .78rem; font-weight: 700; cursor: pointer;
+    }
+    .tile-btns button:hover { border-color: var(--brand); color: var(--brand); }
+  </style>
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">PDF Tools</p><div class="drawer-links"><a href="pdf-editor.html">PDF Editor</a><a href="pdf-compressor.html">PDF Compressor</a><a href="pdf-organizer.html">Page Organizer</a><a href="cv-maker.html">CV Maker</a><a href="markdown-to-pdf.html">Note to PDF</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-pdf">PDF &amp; Docs</a> / <span>PDF Page Organizer</span></nav>
+      <h1>PDF Page <span class="gradient-text">Organizer</span></h1>
+      <p>Rotate crooked pages (90°/180°), drag or move pages to reorder, duplicate, or delete pages easily.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <label class="dropzone" id="dropzone">
+          <input id="pdfInput" type="file" accept="application/pdf">
+          <div class="dropzone-icon">🗂️</div>
+          <strong>Select or drop a PDF file to organize</strong>
+          <span>Rotate, reorder &amp; delete pages locally in your browser</span>
+        </label>
+
+        <div id="errBox" class="alert-box alert-error" hidden></div>
+
+        <div id="workspace" class="tool-layout" hidden>
+          <div class="control-box action-bar">
+            <button id="rotAllBtn" type="button" class="secondary-btn ripple-target">↻ Rotate All +90°</button>
+            <button id="reverseBtn" type="button" class="secondary-btn ripple-target">⇄ Reverse Order</button>
+            <button id="resetOrgBtn" type="button" class="secondary-btn ripple-target">Reset Pages</button>
+            <button id="saveBtn" type="button" class="primary-btn ripple-target" style="margin-left:auto">Save Organized PDF ⬇</button>
+          </div>
+
+          <div id="orgGrid" class="org-grid"></div>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      const pdfInput = document.getElementById("pdfInput"), dropzone = document.getElementById("dropzone");
+      const workspace = document.getElementById("workspace"), orgGrid = document.getElementById("orgGrid"), errBox = document.getElementById("errBox");
+
+      let rawBytes = null, pageModels = [], baseThumbs = [], dragSrcIdx = null;
+
+      async function loadFile(f) {
+        if (!f) return;
+        if (f.type !== "application/pdf" && !f.name.toLowerCase().endsWith(".pdf")) { errBox.textContent = "Please choose a valid PDF."; errBox.hidden = false; return; }
+        errBox.hidden = true;
+        try {
+          rawBytes = new Uint8Array(await f.arrayBuffer()).slice();
+          const pdf = await pdfjsLib.getDocument({ data: rawBytes.slice() }).promise;
+          baseThumbs = []; pageModels = [];
+          workspace.hidden = false;
+          orgGrid.innerHTML = `<div class="notice">Loading ${pdf.numPages} page thumbnails...</div>`;
+
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const vp = page.getViewport({ scale: 0.45 });
+            const c = document.createElement("canvas"); c.width = vp.width; c.height = vp.height;
+            const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+            await page.render({ canvasContext: ctx, viewport: vp }).promise;
+            baseThumbs.push(c.toDataURL("image/jpeg", 0.8));
+            pageModels.push({ srcIndex: i - 1, rot: 0 });
+          }
+          renderGrid();
+        } catch (_) {
+          errBox.textContent = "Failed to load PDF (it may be encrypted)."; errBox.hidden = false;
+        }
+      }
+
+      function renderGrid() {
+        orgGrid.innerHTML = "";
+        pageModels.forEach((pm, idx) => {
+          const card = document.createElement("div");
+          card.className = "page-tile";
+          card.draggable = true;
+          card.dataset.idx = idx;
+          card.innerHTML = `
+            <div style="display:flex;justify-content:space-between;font-size:.8rem;font-weight:700">
+              <span>Pos #${idx + 1}</span>
+              <span class="notice">Orig p.${pm.srcIndex + 1} (${pm.rot}°)</span>
+            </div>
+            <div class="page-thumb-wrap">
+              <img src="${baseThumbs[pm.srcIndex]}" alt="Page ${idx + 1}" style="transform:rotate(${pm.rot}deg)">
+            </div>
+            <div class="tile-btns">
+              <button type="button" data-act="left" data-i="${idx}" title="Move Left">←</button>
+              <button type="button" data-act="rotL" data-i="${idx}" title="Rotate -90°">↺</button>
+              <button type="button" data-act="rotR" data-i="${idx}" title="Rotate +90°">↻</button>
+              <button type="button" data-act="dup" data-i="${idx}" title="Duplicate">⧉</button>
+              <button type="button" data-act="del" data-i="${idx}" title="Delete" style="color:#ef4444">✕</button>
+              <button type="button" data-act="right" data-i="${idx}" title="Move Right">→</button>
+            </div>`;
+          orgGrid.appendChild(card);
+        });
+      }
+
+      orgGrid.addEventListener("click", (e) => {
+        const btn = e.target.closest("button[data-act]");
+        if (!btn) return;
+        const i = Number(btn.dataset.i), act = btn.dataset.act;
+        if (act === "left" && i > 0) [pageModels[i - 1], pageModels[i]] = [pageModels[i], pageModels[i - 1]];
+        if (act === "right" && i < pageModels.length - 1) [pageModels[i + 1], pageModels[i]] = [pageModels[i], pageModels[i + 1]];
+        if (act === "rotL") pageModels[i].rot = (pageModels[i].rot + 270) % 360;
+        if (act === "rotR") pageModels[i].rot = (pageModels[i].rot + 90) % 360;
+        if (act === "dup") pageModels.splice(i + 1, 0, { ...pageModels[i] });
+        if (act === "del" && pageModels.length > 1) pageModels.splice(i, 1);
+        renderGrid();
+      });
+
+      orgGrid.addEventListener("dragstart", (e) => {
+        const tile = e.target.closest(".page-tile");
+        if (!tile) return;
+        dragSrcIdx = Number(tile.dataset.idx);
+        tile.classList.add("dragging");
+      });
+      orgGrid.addEventListener("dragover", (e) => e.preventDefault());
+      orgGrid.addEventListener("drop", (e) => {
+        e.preventDefault();
+        const tile = e.target.closest(".page-tile");
+        if (!tile || dragSrcIdx === null) return;
+        const targetIdx = Number(tile.dataset.idx);
+        if (targetIdx !== dragSrcIdx) {
+          const [moved] = pageModels.splice(dragSrcIdx, 1);
+          pageModels.splice(targetIdx, 0, moved);
+          renderGrid();
+        }
+      });
+      orgGrid.addEventListener("dragend", () => {
+        dragSrcIdx = null;
+        document.querySelectorAll(".page-tile").forEach((t) => t.classList.remove("dragging"));
+      });
+
+      document.getElementById("rotAllBtn").onclick = () => { pageModels.forEach((p) => p.rot = (p.rot + 90) % 360); renderGrid(); };
+      document.getElementById("reverseBtn").onclick = () => { pageModels.reverse(); renderGrid(); };
+      document.getElementById("resetOrgBtn").onclick = () => { pageModels = baseThumbs.map((_, idx) => ({ srcIndex: idx, rot: 0 })); renderGrid(); };
+
+      document.getElementById("saveBtn").addEventListener("click", async () => {
+        const srcDoc = await PDFLib.PDFDocument.load(rawBytes.slice());
+        const outDoc = await PDFLib.PDFDocument.create();
+        for (const pm of pageModels) {
+          const [copied] = await outDoc.copyPages(srcDoc, [pm.srcIndex]);
+          const existingRot = copied.getRotation().angle || 0;
+          copied.setRotation(PDFLib.degrees((existingRot + pm.rot) % 360));
+          outDoc.addPage(copied);
+        }
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([await outDoc.save()], { type: "application/pdf" }));
+        a.download = "easykity-organized.pdf"; document.body.appendChild(a); a.click(); a.remove();
+      });
+
+      pdfInput.addEventListener("change", () => loadFile(pdfInput.files[0]));
+      ["dragenter", "dragover"].forEach((e) => dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.add("dragover"); }));
+      ["dragleave", "drop"].forEach((e) => dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.remove("dragover"); }));
+      dropzone.addEventListener("drop", (e) => loadFile(e.dataTransfer.files[0]));
+    })();
+  </script>
+</body>
+</html>
