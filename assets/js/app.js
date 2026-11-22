@@ -225,4 +225,52 @@
   if (reducedMotion) {
     window.addEventListener("ek-theme-change", drawNetwork);
   }
+
+
+// 6. Global Content, Drag, Right-Click, Shortcut & DevTools Blocker (With Smart Whitelist)
+  const isCopyAllowed = (target) => {
+    if (!target || !(target instanceof Element)) return false;
+    return Boolean(
+      target.closest('input, textarea, select, code, pre, [contenteditable="true"], .allow-copy, [data-allow-copy]')
+    );
+  };
+
+  document.addEventListener("contextmenu", (e) => {
+    if (!isCopyAllowed(e.target)) e.preventDefault();
+  });
+
+  document.addEventListener("dragstart", (e) => {
+    e.preventDefault();
+  });
+
+  ["copy", "cut"].forEach((evt) => {
+    document.addEventListener(evt, (e) => {
+      if (!isCopyAllowed(e.target)) e.preventDefault();
+    });
+  });
+
+  document.addEventListener("keydown", (e) => {
+    const key = (e.key || "").toLowerCase();
+    const ctrlOrMeta = e.ctrlKey || e.metaKey;
+
+    // Block F12 & DevTools shortcuts
+    if (
+      e.key === "F12" ||
+      (ctrlOrMeta && e.shiftKey && ["i", "j", "c", "k"].includes(key)) ||
+      (ctrlOrMeta && ["u", "s"].includes(key))
+    ) {
+      e.preventDefault();
+      return false;
+    }
+
+    // Block Ctrl+C / Ctrl+X / Ctrl+A outside whitelisted areas
+    if (ctrlOrMeta && ["c", "x", "a"].includes(key) && !isCopyAllowed(e.target)) {
+      e.preventDefault();
+      return false;
+    }
+  });
+
+
+
+
 })();
