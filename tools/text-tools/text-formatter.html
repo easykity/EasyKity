@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Text Case &amp; Cleaner — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">Text Tools</p><div class="drawer-links"><a href="text-to-speech.html">Text to Speech</a><a href="word-counter.html">Word Counter</a><a href="text-formatter.html">Text Formatter</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-text">Text &amp; Voice</a> / <span>Text Case &amp; Cleaner</span></nav>
+      <h1>Text Case &amp; <span class="gradient-text">Cleaner</span></h1>
+      <p>Convert text cases, remove extra spaces, strip duplicate lines, and clean formatting in one click.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <div class="chip-group">
+          <button type="button" class="chip-btn ripple-target" data-act="upper">UPPERCASE</button>
+          <button type="button" class="chip-btn ripple-target" data-act="lower">lowercase</button>
+          <button type="button" class="chip-btn ripple-target" data-act="title">Title Case</button>
+          <button type="button" class="chip-btn ripple-target" data-act="sentence">Sentence case</button>
+          <button type="button" class="chip-btn ripple-target" data-act="spaces">Trim Extra Spaces</button>
+          <button type="button" class="chip-btn ripple-target" data-act="blank">Remove Blank Lines</button>
+          <button type="button" class="chip-btn ripple-target" data-act="dedup">Remove Duplicate Lines</button>
+          <button type="button" class="chip-btn ripple-target" data-act="sort">Sort Lines A–Z</button>
+        </div>
+        <div class="field"><label for="txt">Text Area</label><textarea id="txt" style="min-height:220px" placeholder="Paste your text here and pick a formatting button above..."></textarea></div>
+        <div class="action-bar">
+          <button id="copyBtn" class="primary-btn ripple-target" type="button">Copy Result</button>
+          <button id="clearBtn" class="secondary-btn ripple-target" type="button">Clear</button>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const txt = document.getElementById("txt");
+      const ops = {
+        upper: (s) => s.toUpperCase(),
+        lower: (s) => s.toLowerCase(),
+        title: (s) => s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()),
+        sentence: (s) => s.toLowerCase().replace(/(^\s*\w|[.!?]\s+\w)/g, (c) => c.toUpperCase()),
+        spaces: (s) => s.replace(/[ \t]+/g, " ").replace(/^ +| +$/gm, ""),
+        blank: (s) => s.split(/\r?\n/).filter((l) => l.trim() !== "").join("\n"),
+        dedup: (s) => [...new Set(s.split(/\r?\n/))].join("\n"),
+        sort: (s) => s.split(/\r?\n/).sort((a, b) => a.localeCompare(b)).join("\n")
+      };
+      document.querySelectorAll("[data-act]").forEach((b) => {
+        b.addEventListener("click", () => { txt.value = ops[b.dataset.act](txt.value); });
+      });
+      document.getElementById("copyBtn").addEventListener("click", async () => {
+        await navigator.clipboard.writeText(txt.value);
+        document.getElementById("copyBtn").textContent = "Copied! ✓";
+        setTimeout(() => document.getElementById("copyBtn").textContent = "Copy Result", 1400);
+      });
+      document.getElementById("clearBtn").addEventListener("click", () => { txt.value = ""; });
+    })();
+  </script>
+</body>
+</html>
