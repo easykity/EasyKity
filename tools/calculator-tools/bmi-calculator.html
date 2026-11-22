@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>BMI Calculator — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">Calculators</p><div class="drawer-links"><a href="age-calculator.html">Age Calculator</a><a href="percentage-calculator.html">Percentage Calculator</a><a href="bmi-calculator.html">BMI Calculator</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-calculator">Calculators</a> / <span>BMI Calculator</span></nav>
+      <h1>BMI <span class="gradient-text">Calculator</span></h1>
+      <p>Check your Body Mass Index using Metric (kg / cm) or Imperial (lbs / ft + in).</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <div class="chip-group">
+          <button type="button" class="chip-btn active ripple-target" data-unit="metric">Metric (kg / cm)</button>
+          <button type="button" class="chip-btn ripple-target" data-unit="imperial">Imperial (lbs / ft-in)</button>
+        </div>
+
+        <div id="metricBox" class="control-box tool-grid-2">
+          <div class="field"><label for="kg">Weight (kg)</label><input id="kg" type="number" min="1" value="68"></div>
+          <div class="field"><label for="cm">Height (cm)</label><input id="cm" type="number" min="30" value="170"></div>
+        </div>
+
+        <div id="imperialBox" class="control-box tool-grid-3" hidden>
+          <div class="field"><label for="lbs">Weight (lbs)</label><input id="lbs" type="number" min="1" value="150"></div>
+          <div class="field"><label for="ft">Height (Feet)</label><input id="ft" type="number" min="1" value="5"></div>
+          <div class="field"><label for="inc">Height (Inches)</label><input id="inc" type="number" min="0" max="11" value="7"></div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-card"><small>Your BMI</small><strong id="bmiVal">23.5</strong></div>
+          <div class="stat-card"><small>Category</small><strong id="bmiCat">Normal weight</strong></div>
+          <div class="stat-card"><small>Healthy Weight Range</small><strong id="bmiRange">53.5 – 72.0 kg</strong></div>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      let unit = "metric";
+      const mBox = document.getElementById("metricBox"), iBox = document.getElementById("imperialBox");
+      function calc() {
+        let weightKg = 0, heightM = 0;
+        if (unit === "metric") {
+          weightKg = Number(document.getElementById("kg").value) || 0;
+          heightM = (Number(document.getElementById("cm").value) || 0) / 100;
+        } else {
+          weightKg = (Number(document.getElementById("lbs").value) || 0) * 0.453592;
+          const totalIn = (Number(document.getElementById("ft").value) || 0) * 12 + (Number(document.getElementById("inc").value) || 0);
+          heightM = totalIn * 0.0254;
+        }
+        if (weightKg <= 0 || heightM <= 0) return;
+        const bmi = weightKg / (heightM * heightM);
+        let cat = "Normal weight", color = "#10b981";
+        if (bmi < 18.5) { cat = "Underweight"; color = "#38bdf8"; }
+        else if (bmi >= 25 && bmi < 30) { cat = "Overweight"; color = "#f59e0b"; }
+        else if (bmi >= 30) { cat = "Obese"; color = "#ef4444"; }
+
+        const minKg = (18.5 * heightM * heightM).toFixed(1), maxKg = (24.9 * heightM * heightM).toFixed(1);
+        document.getElementById("bmiVal").textContent = bmi.toFixed(1);
+        const catEl = document.getElementById("bmiCat");
+        catEl.textContent = cat; catEl.style.color = color;
+        document.getElementById("bmiRange").textContent = `${minKg} – ${maxKg} kg`;
+      }
+
+      document.querySelectorAll("[data-unit]").forEach((b) => b.addEventListener("click", () => {
+        unit = b.dataset.unit;
+        document.querySelectorAll("[data-unit]").forEach((x) => x.classList.toggle("active", x === b));
+        mBox.hidden = unit !== "metric"; iBox.hidden = unit !== "imperial";
+        calc();
+      }));
+      document.querySelectorAll("input[type='number']").forEach((el) => el.addEventListener("input", calc));
+      calc();
+    })();
+  </script>
+</body>
+</html>
