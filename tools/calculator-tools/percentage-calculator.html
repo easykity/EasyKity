@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Percentage Calculator — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">Calculators</p><div class="drawer-links"><a href="age-calculator.html">Age Calculator</a><a href="percentage-calculator.html">Percentage Calculator</a><a href="bmi-calculator.html">BMI Calculator</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-calculator">Calculators</a> / <span>Percentage Calculator</span></nav>
+      <h1>Percentage <span class="gradient-text">Calculator</span></h1>
+      <p>Solve percentages, discounts, and percentage change instantly as you type.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-grid-2">
+        <div class="control-box tool-layout">
+          <strong>1. What is X% of Y?</strong>
+          <div class="tool-grid-2">
+            <div class="field"><label for="p1x">Percentage (%)</label><input id="p1x" type="number" value="15"></div>
+            <div class="field"><label for="p1y">Of Number</label><input id="p1y" type="number" value="200"></div>
+          </div>
+          <div class="stat-card"><small>Result</small><strong id="r1">30</strong></div>
+        </div>
+
+        <div class="control-box tool-layout">
+          <strong>2. X is what % of Y?</strong>
+          <div class="tool-grid-2">
+            <div class="field"><label for="p2x">Value (X)</label><input id="p2x" type="number" value="45"></div>
+            <div class="field"><label for="p2y">Total (Y)</label><input id="p2y" type="number" value="180"></div>
+          </div>
+          <div class="stat-card"><small>Percentage</small><strong id="r2">25%</strong></div>
+        </div>
+
+        <div class="control-box tool-layout">
+          <strong>3. Percentage Change (From X to Y)</strong>
+          <div class="tool-grid-2">
+            <div class="field"><label for="p3x">Old Value</label><input id="p3x" type="number" value="100"></div>
+            <div class="field"><label for="p3y">New Value</label><input id="p3y" type="number" value="125"></div>
+          </div>
+          <div class="stat-card"><small>Change</small><strong id="r3">+25%</strong></div>
+        </div>
+
+        <div class="control-box tool-layout">
+          <strong>4. Discount Price Calculator</strong>
+          <div class="tool-grid-2">
+            <div class="field"><label for="p4x">Original Price</label><input id="p4x" type="number" value="500"></div>
+            <div class="field"><label for="p4y">Discount (%)</label><input id="p4y" type="number" value="20"></div>
+          </div>
+          <div class="stat-card"><small>Final Price (Saved)</small><strong id="r4">400 (Saved 100)</strong></div>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const n = (id) => Number(document.getElementById(id).value) || 0;
+      const f = (v) => Number.isInteger(v) ? v : Number(v.toFixed(2));
+      function calc() {
+        document.getElementById("r1").textContent = f((n("p1x") / 100) * n("p1y"));
+        const y2 = n("p2y");
+        document.getElementById("r2").textContent = y2 ? `${f((n("p2x") / y2) * 100)}%` : "0%";
+        const x3 = n("p3x"), y3 = n("p3y");
+        const ch = x3 ? ((y3 - x3) / Math.abs(x3)) * 100 : 0;
+        document.getElementById("r3").textContent = `${ch > 0 ? "+" : ""}${f(ch)}%`;
+        const p4 = n("p4x"), d4 = n("p4y"), saved = (p4 * d4) / 100;
+        document.getElementById("r4").textContent = `${f(p4 - saved)} (Saved ${f(saved)})`;
+      }
+      document.querySelectorAll("input[type='number']").forEach((el) => el.addEventListener("input", calc));
+      calc();
+    })();
+  </script>
+</body>
+</html>
