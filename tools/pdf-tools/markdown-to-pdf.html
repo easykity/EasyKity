@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Markdown / Note to PDF — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    [hidden]{display:none!important}
+    .md-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+    @media(max-width: 900px) { .md-grid { grid-template-columns: 1fr; } }
+    .note-paper {
+      background: #fff; color: #1e293b; border-radius: 14px; padding: 36px 40px;
+      min-height: 520px; border: 1px solid #cbd5e1; line-height: 1.7;
+    }
+    .note-paper h1,.note-paper h2,.note-paper h3 { color: #0f172a; margin-top: 1.1em; margin-bottom: .4em; }
+    .note-paper h1 { border-bottom: 2px solid #315eeb; padding-bottom: 6px; margin-top: 0; }
+    .note-paper code { background: #f1f5f9; padding: 2px 6px; border-radius: 5px; font-family: 'IBM Plex Mono', monospace; font-size: .9em; }
+    .note-paper pre { background: #0f172a; color: #e2e8f0; padding: 14px; border-radius: 10px; overflow-x: auto; }
+    .note-paper pre code { background: transparent; color: inherit; padding: 0; }
+    .note-paper blockquote { border-left: 4px solid #315eeb; margin: 12px 0; padding: 6px 14px; background: #f8fafc; color: #475569; }
+    .note-paper hr { border: 0; border-top: 1px solid #cbd5e1; margin: 18px 0; }
+
+    #printNote { display: none; }
+    @media print {
+      @page { size: A4; margin: 14mm; }
+      body { background: #fff !important; }
+      body > *:not(#printNote) { display: none !important; }
+      #printNote { display: block !important; width: 100%; }
+      #printNote .note-paper { border: 0; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">PDF Tools</p><div class="drawer-links"><a href="pdf-editor.html">PDF Editor</a><a href="pdf-compressor.html">PDF Compressor</a><a href="pdf-organizer.html">Page Organizer</a><a href="cv-maker.html">CV Maker</a><a href="markdown-to-pdf.html">Note to PDF</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-pdf">PDF &amp; Docs</a> / <span>Markdown / Note to PDF</span></nav>
+      <h1>Markdown &amp; Note <span class="gradient-text">to PDF</span></h1>
+      <p>Write formatted notes or Markdown in English or বাংলা and export instantly as a clean PDF.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <div class="control-box tool-grid-3">
+          <div class="field">
+            <label for="docFont">Document Font</label>
+            <select id="docFont">
+              <option value="'Inter', 'Hind Siliguri', sans-serif">Inter + বাংলা (Clean)</option>
+              <option value="'Hind Siliguri', sans-serif">Hind Siliguri (বাংলা ফোকাসড)</option>
+              <option value="'Merriweather', Georgia, serif">Merriweather (Classic Book)</option>
+              <option value="'IBM Plex Mono', monospace">IBM Plex Mono (Code/Tech)</option>
+            </select>
+          </div>
+          <div class="field"><label for="docSize">Font Size <span id="szVal">15px</span></label><input id="docSize" type="range" min="12" max="20" value="15"></div>
+          <div class="field"><label>Import .md / .txt</label><label class="secondary-btn" style="text-align:center;cursor:pointer;min-height:44px;display:grid;place-items:center">Open File <input id="mdFile" type="file" accept=".md,.txt" hidden></label></div>
+        </div>
+
+        <div class="md-grid">
+          <div class="field">
+            <label for="mdInput">Write Markdown or Plain Notes</label>
+            <textarea id="mdInput" style="min-height:520px;font-family:monospace"># EasyKity Study & Office Notes
+
+Welcome! Write your **important notes**, study summaries, or **বাংলা নোট** right here.
+
+## Key Features
+- Clean **Bold**, *Italic*, and `Inline Code`
+- Supports Bangla & English seamlessly
+- Instant PDF download or Vector Print
+
+> Tip: Use `#` for main headings, `##` for subheadings, and `-` for bullet points!
+
+1. First point
+2. Second point
+3. Third point
+
+---
+*Created with EasyKity — Everything Made Easy.*</textarea>
+          </div>
+          <div class="field">
+            <label>Live Document Preview</label>
+            <div id="notePreview" class="note-paper"></div>
+          </div>
+        </div>
+
+        <div class="action-bar">
+          <button id="dlPdfBtn" type="button" class="primary-btn ripple-target">⬇ Download PDF</button>
+          <button id="printBtn" type="button" class="secondary-btn ripple-target">🖨️ Print / Vector PDF</button>
+          <span id="noteStatus" class="notice"></span>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+  <div id="printNote"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const mdInput = document.getElementById("mdInput"), preview = document.getElementById("notePreview");
+      const docFont = document.getElementById("docFont"), docSize = document.getElementById("docSize");
+      const esc = (s) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+
+      function parseMarkdown(src) {
+        const blocks = [];
+        const lines = esc(src).split(/\r?\n/);
+        let inCode = false, codeBuf = [], inUl = false, inOl = false;
+        const closeLists = () => {
+          if (inUl) { blocks.push("</ul>"); inUl = false; }
+          if (inOl) { blocks.push("</ol>"); inOl = false; }
+        };
+        const inline = (t) => t
+          .replace(/`([^`]+)`/g, "<code>$1</code>")
+          .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+          .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+
+        for (const line of lines) {
+          if (line.startsWith("```")) {
+            closeLists();
+            if (!inCode) { inCode = true; codeBuf = []; }
+            else { blocks.push(`<pre><code>${codeBuf.join("\n")}</code></pre>`); inCode = false; }
+            continue;
+          }
+          if (inCode) { codeBuf.push(line); continue; }
+          if (/^---+$/.test(line.trim())) { closeLists(); blocks.push("<hr>"); continue; }
+          if (/^###\s+/.test(line)) { closeLists(); blocks.push(`<h3>${inline(line.replace(/^###\s+/, ""))}</h3>`); continue; }
+          if (/^##\s+/.test(line)) { closeLists(); blocks.push(`<h2>${inline(line.replace(/^##\s+/, ""))}</h2>`); continue; }
+          if (/^#\s+/.test(line)) { closeLists(); blocks.push(`<h1>${inline(line.replace(/^#\s+/, ""))}</h1>`); continue; }
+          if (/^&gt;\s+/.test(line)) { closeLists(); blocks.push(`<blockquote>${inline(line.replace(/^&gt;\s+/, ""))}</blockquote>`); continue; }
+          if (/^[-*]\s+/.test(line)) {
+            if (inOl) { blocks.push("</ol>"); inOl = false; }
+            if (!inUl) { blocks.push("<ul>"); inUl = true; }
+            blocks.push(`<li>${inline(line.replace(/^[-*]\s+/, ""))}</li>`);
+            continue;
+          }
+          if (/^\d+\.\s+/.test(line)) {
+            if (inUl) { blocks.push("</ul>"); inUl = false; }
+            if (!inOl) { blocks.push("<ol>"); inOl = true; }
+            blocks.push(`<li>${inline(line.replace(/^\d+\.\s+/, ""))}</li>`);
+            continue;
+          }
+          closeLists();
+          if (line.trim()) blocks.push(`<p>${inline(line)}</p>`);
+        }
+        closeLists();
+        return blocks.join("");
+      }
+
+      function render() {
+        preview.style.fontFamily = docFont.value;
+        preview.style.fontSize = `${docSize.value}px`;
+        document.getElementById("szVal").textContent = `${docSize.value}px`;
+        preview.innerHTML = parseMarkdown(mdInput.value);
+      }
+
+      [mdInput, docFont, docSize].forEach((el) => el.addEventListener("input", render));
+      document.getElementById("mdFile").onchange = async (e) => {
+        const f = e.target.files[0]; if (!f) return;
+        mdInput.value = await f.text(); render();
+      };
+
+      document.getElementById("printBtn").onclick = () => {
+        const p = document.getElementById("printNote");
+        p.innerHTML = "";
+        p.appendChild(preview.cloneNode(true));
+        setTimeout(() => window.print(), 200);
+      };
+
+      document.getElementById("dlPdfBtn").onclick = async () => {
+        const st = document.getElementById("noteStatus");
+        if (!window.html2canvas || !window.PDFLib) { st.textContent = "Use 'Print / Vector PDF' button above."; return; }
+        st.textContent = "Building PDF...";
+        const canvas = await html2canvas(preview, { scale: 2, backgroundColor: "#ffffff" });
+        const doc = await PDFLib.PDFDocument.create();
+        const pageW = 595.28, pageH = 841.89, margin = 28;
+        const drawW = pageW - margin * 2;
+        const totalScaledH = (canvas.height * drawW) / canvas.width;
+        const slicePxH = Math.floor(((pageH - margin * 2) * canvas.height) / totalScaledH);
+
+        for (let y = 0; y < canvas.height; y += slicePxH) {
+          const h = Math.min(slicePxH, canvas.height - y);
+          const slice = document.createElement("canvas");
+          slice.width = canvas.width; slice.height = h;
+          slice.getContext("2d").drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
+          const emb = await doc.embedPng(await (await fetch(slice.toDataURL("image/png"))).arrayBuffer());
+          const pg = doc.addPage([pageW, pageH]);
+          const drawH = (h * drawW) / canvas.width;
+          pg.drawImage(emb, { x: margin, y: pageH - margin - drawH, width: drawW, height: drawH });
+        }
+
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([await doc.save()], { type: "application/pdf" }));
+        a.download = "easykity-notes.pdf"; document.body.appendChild(a); a.click(); a.remove();
+        st.textContent = "✓ PDF downloaded!";
+      };
+
+      render();
+    })();
+  </script>
+</body>
+</html>
