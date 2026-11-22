@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>All-in-One PDF Converter — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+  <style>[hidden]{display:none!important}</style>
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">PDF Tools</p><div class="drawer-links"><a href="pdf-converter.html">PDF Converter</a><a href="pdf-editor.html">PDF Editor</a><a href="pdf-compressor.html">PDF Compressor</a><a href="pdf-organizer.html">Page Organizer</a><a href="cv-maker.html">CV Maker</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-pdf">PDF &amp; Docs</a> / <span>PDF Converter</span></nav>
+      <h1>All-in-One <span class="gradient-text">PDF Converter</span></h1>
+      <p>Convert PDF to Word (.docx/.doc), Excel (.xlsx/.csv), Text (.txt), HTML, or PNG/JPG/WebP with quality controls &amp; OCR.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <!-- Upload / URL -->
+        <label class="dropzone" id="dropzone">
+          <input id="pdfInput" type="file" accept="application/pdf">
+          <div class="dropzone-icon">🔁</div>
+          <strong>Drop a PDF file here or click to browse</strong>
+          <span>100% browser-based — your PDF never leaves your device</span>
+        </label>
+
+        <div class="control-box" style="display:flex;gap:8px;flex-wrap:wrap">
+          <input id="urlInput" type="text" placeholder="Or paste direct PDF URL (https://...)" style="flex:1 1 220px;min-height:44px;padding:10px 13px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink)">
+          <button id="loadUrlBtn" type="button" class="secondary-btn ripple-target">Load PDF URL ↗</button>
+        </div>
+
+        <div id="errBox" class="alert-box alert-error" hidden></div>
+
+        <div id="workspace" class="tool-layout" hidden>
+          <div class="stat-row">
+            <div class="stat-card"><small>File Name</small><strong id="fName" style="font-size:.95rem;word-break:break-all">-</strong></div>
+            <div class="stat-card"><small>Total Pages</small><strong id="fPages">-</strong></div>
+            <div class="stat-card"><small>Detected Text</small><strong id="fTextStat">-</strong></div>
+          </div>
+
+          <!-- Format & Options -->
+          <div class="control-box tool-layout">
+            <div>
+              <div class="notice" style="font-weight:700;margin-bottom:8px">Choose Output Format</div>
+              <div class="chip-group">
+                <button type="button" class="chip-btn active ripple-target" data-fmt="docx">📘 Word (.docx)</button>
+                <button type="button" class="chip-btn ripple-target" data-fmt="doc">📄 Word (.doc)</button>
+                <button type="button" class="chip-btn ripple-target" data-fmt="xlsx">📗 Excel (.xlsx)</button>
+                <button type="button" class="chip-btn ripple-target" data-fmt="csv">📊 CSV (.csv)</button>
+                <button type="button" class="chip-btn ripple-target" data-fmt="txt">📝 Text (.txt)</button>
+                <button type="button" class="chip-btn ripple-target" data-fmt="html">🌐 Web (.html)</button>
+                <button type="button" class="chip-btn ripple-target" data-fmt="image">🖼️ Images (PNG/JPG/WebP)</button>
+              </div>
+            </div>
+
+            <div class="tool-grid-3">
+              <div class="field">
+                <label for="pageRange">Page Range (Blank = All)</label>
+                <input id="pageRange" type="text" placeholder="e.g. 1-3 or 1,4">
+              </div>
+
+              <!-- Word Mode -->
+              <div class="field" id="wordModeWrap">
+                <label for="wordMode">Word Layout Mode</label>
+                <select id="wordMode">
+                  <option value="text" selected>Editable Text (Recommended)</option>
+                  <option value="image">Embed Pages as Images (For Scanned PDF)</option>
+                </select>
+              </div>
+
+              <!-- Image Options -->
+              <div class="field" id="imgFmtWrap" hidden>
+                <label for="imgFmt">Image Format</label>
+                <select id="imgFmt">
+                  <option value="image/png">PNG (.png)</option>
+                  <option value="image/jpeg">JPG (.jpg)</option>
+                  <option value="image/webp">WebP (.webp)</option>
+                </select>
+              </div>
+
+              <div class="field" id="imgScaleWrap" hidden>
+                <label for="imgRes">Image Quality Preset</label>
+                <select id="imgRes">
+                  <option value="3">High (3x Ultra Sharp)</option>
+                  <option value="2" selected>Medium (2x HD)</option>
+                  <option value="1.15">Low (Small Size)</option>
+                </select>
+              </div>
+
+              <div class="field" id="imgQualWrap" hidden>
+                <label for="imgQ">Compression <span id="iqVal">92%</span></label>
+                <input id="imgQ" type="range" min="40" max="100" value="92">
+              </div>
+            </div>
+
+            <!-- Scanned PDF OCR Helper -->
+            <div class="action-bar" style="padding-top:8px;border-top:1px solid var(--line)">
+              <select id="ocrLang" style="height:40px;padding:0 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:.82rem">
+                <option value="eng">OCR Language: English</option>
+                <option value="ben">OCR Language: বাংলা (Bangla)</option>
+                <option value="eng+ben">OCR Language: English + বাংলা</option>
+                <option value="ara">OCR Language: العربية (Arabic)</option>
+              </select>
+              <button id="ocrBtn" type="button" class="secondary-btn ripple-target">🔍 Run OCR (For Scanned PDF)</button>
+              <span id="ocrStatus" class="notice"></span>
+            </div>
+          </div>
+
+          <div class="action-bar">
+            <button id="convertBtn" type="button" class="primary-btn ripple-target">⚡ Convert &amp; Download Now</button>
+            <button id="dlZipBtn" type="button" class="primary-btn ripple-target" hidden style="background:linear-gradient(110deg,#059669,#10b981)">📦 Download All Images (.zip)</button>
+            <span id="convStatus" class="notice" style="font-weight:700"></span>
+          </div>
+
+          <!-- Extracted Text Preview & Copy -->
+          <div id="textPreviewBox" class="field">
+            <label for="extractedPreview">Extracted Text Preview (Editable before saving Word/TXT)
+              <button type="button" id="copyTextBtn" class="secondary-btn" style="padding:3px 10px;font-size:.76rem">Copy All Text</button>
+            </label>
+            <textarea id="extractedPreview" class="allow-copy" style="min-height:200px" placeholder="Extracted text from your PDF will appear here..."></textarea>
+          </div>
+
+          <!-- Rendered Images Output Grid -->
+          <div id="imgResultsGrid" class="tool-grid-2" hidden></div>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+      const pdfInput = document.getElementById("pdfInput"), dropzone = document.getElementById("dropzone");
+      const workspace = document.getElementById("workspace"), errBox = document.getElementById("errBox");
+      const extractedPreview = document.getElementById("extractedPreview"), convStatus = document.getElementById("convStatus");
+      const imgResultsGrid = document.getElementById("imgResultsGrid"), dlZipBtn = document.getElementById("dlZipBtn");
+      const imgQ = document.getElementById("imgQ"), imgFmt = document.getElementById("imgFmt");
+
+      let rawBytes = null, pdfDoc = null, totalPages = 0, baseName = "document", targetFmt = "docx";
+      let pageData = []; // [{ pageNum, lines: [{ y, cells: [{x, str}] }], text }]
+      let renderedImages = []; // [{ name, blob, url }]
+
+      const showError = (m) => { errBox.textContent = m; errBox.hidden = !m; };
+      const escXml = (s) => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      function dlBlob(blob, name) {
+        const u = URL.createObjectURL(blob);
+        const a = document.createElement("a"); a.href = u; a.download = name;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(u), 2000);
+      }
+
+      function parseRange(str, max) {
+        if (!str.trim()) return Array.from({ length: max }, (_, i) => i + 1);
+        const set = new Set();
+        str.split(",").forEach((p) => {
+          const m = p.trim().match(/^(\d+)-(\d+)$/);
+          if (m) { for (let i = Number(m[1]); i <= Number(m[2]); i++) if (i >= 1 && i <= max) set.add(i); }
+          else { const n = Number(p.trim()); if (n >= 1 && n <= max) set.add(n); }
+        });
+        return [...set].sort((a, b) => a - b);
+      }
+
+      // Extract structured lines & columns from pdf.js text items
+      async function extractAllPages() {
+        pageData = [];
+        let totalChars = 0;
+        for (let p = 1; p <= totalPages; p++) {
+          const page = await pdfDoc.getPage(p);
+          const content = await page.getTextContent();
+          const rowBuckets = [];
+
+          content.items.forEach((it) => {
+            const s = (it.str || "").trim();
+            if (!s) return;
+            const x = Math.round(it.transform[4]), y = Math.round(it.transform[5]);
+            let row = rowBuckets.find((r) => Math.abs(r.y - y) <= 5);
+            if (!row) { row = { y, cells: [] }; rowBuckets.push(row); }
+            row.cells.push({ x, str: s });
+          });
+
+          rowBuckets.sort((a, b) => b.y - a.y);
+          rowBuckets.forEach((r) => r.cells.sort((a, b) => a.x - b.x));
+          const text = rowBuckets.map((r) => r.cells.map((c) => c.str).join("  ")).join("\n");
+          totalChars += text.length;
+          pageData.push({ pageNum: p, lines: rowBuckets, text });
+        }
+
+        extractedPreview.value = pageData.map((p) => `--- Page ${p.pageNum} ---\n${p.text}`).join("\n\n");
+        const statEl = document.getElementById("fTextStat");
+        if (totalChars > 10) {
+          statEl.textContent = `${totalChars.toLocaleString()} chars ✓`; statEl.style.color = "#10b981";
+        } else {
+          statEl.textContent = "Scanned / Image PDF ⚠️"; statEl.style.color = "#f59e0b";
+        }
+      }
+
+      async function loadPdfBytes(buf, name) {
+        if (!window.pdfjsLib) { showError("PDF engine failed to load."); return; }
+        showError(""); convStatus.textContent = ""; dlZipBtn.hidden = true; imgResultsGrid.hidden = true;
+        try {
+          rawBytes = new Uint8Array(buf).slice();
+          pdfDoc = await pdfjsLib.getDocument({ data: rawBytes.slice() }).promise;
+          totalPages = pdfDoc.numPages;
+          baseName = (name || "document").replace(/\.pdf$/i, "");
+          document.getElementById("fName").textContent = name || "document.pdf";
+          document.getElementById("fPages").textContent = totalPages;
+          workspace.hidden = false;
+          await extractAllPages();
+        } catch (_) {
+          showError("Could not read this PDF (it may be password-protected or invalid).");
+        }
+      }
+
+      pdfInput.addEventListener("change", async () => { const f = pdfInput.files[0]; if (f) loadPdfBytes(await f.arrayBuffer(), f.name); });
+      ["dragenter", "dragover"].forEach((e) => dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.add("dragover"); }));
+      ["dragleave", "drop"].forEach((e) => dropzone.addEventListener(e, (ev) => { e.preventDefault(); dropzone.classList.remove("dragover"); }));
+      dropzone.addEventListener("drop", async (e) => { const f = e.dataTransfer.files[0]; if (f && f.type === "application/pdf") loadPdfBytes(await f.arrayBuffer(), f.name); });
+
+      document.getElementById("loadUrlBtn").onclick = async () => {
+        const u = document.getElementById("urlInput").value.trim();
+        if (!u) { showError("Enter a valid PDF URL."); return; }
+        try {
+          const r = await fetch(u); if (!r.ok) throw new Error();
+          loadPdfBytes(await r.arrayBuffer(), u.split("/").pop().split("?")[0] || "remote.pdf");
+        } catch (_) {
+          showError("Could not load URL (remote server may block CORS). Download the PDF and upload it above.");
+        }
+      };
+
+      // Format Switching
+      document.querySelectorAll("[data-fmt]").forEach((b) => b.onclick = () => {
+        targetFmt = b.dataset.fmt;
+        document.querySelectorAll("[data-fmt]").forEach((x) => x.classList.toggle("active", x === b));
+        const isImg = targetFmt === "image";
+        const isWord = targetFmt === "docx" || targetFmt === "doc";
+        document.getElementById("wordModeWrap").hidden = !isWord;
+        document.getElementById("imgFmtWrap").hidden = !isImg;
+        document.getElementById("imgScaleWrap").hidden = !isImg;
+        document.getElementById("imgQualWrap").hidden = !isImg || imgFmt.value === "image/png";
+      });
+      imgFmt.onchange = () => { document.getElementById("imgQualWrap").hidden = targetFmt !== "image" || imgFmt.value === "image/png"; };
+      imgQ.oninput = () => { document.getElementById("iqVal").textContent = `${imgQ.value}%`; };
+
+      // OCR for Scanned PDFs
+      document.getElementById("ocrBtn").onclick = async () => {
+        if (!pdfDoc) return;
+        if (!window.Tesseract) { showError("OCR library failed to load."); return; }
+        const st = document.getElementById("ocrStatus"), btn = document.getElementById("ocrBtn");
+        const pages = parseRange(document.getElementById("pageRange").value, totalPages);
+        const lang = document.getElementById("ocrLang").value;
+        btn.disabled = true; pageData = [];
+        try {
+          for (const p of pages) {
+            st.textContent = `Running OCR on page ${p}...`;
+            const page = await pdfDoc.getPage(p);
+            const vp = page.getViewport({ scale: 2 });
+            const c = document.createElement("canvas"); c.width = vp.width; c.height = vp.height;
+            const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+            await page.render({ canvasContext: ctx, viewport: vp }).promise;
+            const res = await Tesseract.recognize(c, lang);
+            const txt = res.data.text || "";
+            const lines = txt.split(/\r?\n/).filter((l) => l.trim()).map((l, idx) => ({ y: 1000 - idx * 20, cells: l.split(/\s{2,}|\t/).map((s, ci) => ({ x: ci * 100, str: s })) }));
+            pageData.push({ pageNum: p, lines, text: txt });
+          }
+          extractedPreview.value = pageData.map((p) => `--- Page ${p.pageNum} ---\n${p.text}`).join("\n\n");
+          document.getElementById("fTextStat").textContent = "OCR Complete ✓";
+          st.textContent = "✓ OCR text extracted! You can now download Word / Excel / TXT.";
+        } catch (err) {
+          showError("OCR failed: " + (err?.message || ""));
+        } finally { btn.disabled = false; }
+      };
+
+      // Build Real .DOCX OOXML using JSZip
+      async function buildDocx(paragraphs) {
+        const zip = new JSZip();
+        zip.file("[Content_Types].xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`);
+        zip.folder("_rels").file(".rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`);
+        const bodyXml = paragraphs.map((p) => `<w:p><w:r><w:t xml:space="preserve">${escXml(p)}</w:t></w:r></w:p>`).join("");
+        zip.folder("word").file("document.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${bodyXml}<w:sectPr/></w:body></w:document>`);
+        return zip.generateAsync({ type: "blob", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+      }
+
+      document.getElementById("convertBtn").onclick = async () => {
+        if (!pdfDoc) return;
+        showError(""); imgResultsGrid.hidden = true; dlZipBtn.hidden = true;
+        const selectedPages = parseRange(document.getElementById("pageRange").value, totalPages);
+        if (!selectedPages.length) { showError("Invalid page range."); return; }
+
+        try {
+          convStatus.textContent = "Converting...";
+
+          if (targetFmt === "txt") {
+            dlBlob(new Blob([extractedPreview.value], { type: "text/plain;charset=utf-8" }), `${baseName}.txt`);
+            convStatus.textContent = "✓ TXT downloaded!";
+          } else if (targetFmt === "html") {
+            const body = extractedPreview.value.split(/\r?\n/).map((l) => `<p>${escXml(l) || "&nbsp;"}</p>`).join("");
+            const html = `<!doctype html><html><head><meta charset="utf-8"><title>${escXml(baseName)}</title><style>body{font-family:Arial,sans-serif;max-width:820px;margin:40px auto;line-height:1.6;padding:0 16px}</style></head><body>${body}</body></html>`;
+            dlBlob(new Blob([html], { type: "text/html;charset=utf-8" }), `${baseName}.html`);
+            convStatus.textContent = "✓ HTML downloaded!";
+          } else if (targetFmt === "docx" || targetFmt === "doc") {
+            const wMode = document.getElementById("wordMode").value;
+            if (wMode === "image" && targetFmt === "doc") {
+              let imgsHtml = "";
+              for (const p of selectedPages) {
+                const page = await pdfDoc.getPage(p);
+                const vp = page.getViewport({ scale: 1.8 });
+                const c = document.createElement("canvas"); c.width = vp.width; c.height = vp.height;
+                const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+                await page.render({ canvasContext: ctx, viewport: vp }).promise;
+                imgsHtml += `<p><img src="${c.toDataURL("image/jpeg", 0.9)}" style="width:100%"></p><br clear="all" style="page-break-before:always">`;
+              }
+              const docHtml = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'><head><meta charset='utf-8'></head><body>${imgsHtml}</body></html>`;
+              dlBlob(new Blob(["\ufeff", docHtml], { type: "application/msword" }), `${baseName}.doc`);
+            } else if (targetFmt === "doc") {
+              const paras = extractedPreview.value.split(/\r?\n/).map((l) => `<p style="margin:4px 0;font-family:Calibri,Arial,sans-serif">${escXml(l) || "&nbsp;"}</p>`).join("");
+              const docHtml = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'><head><meta charset='utf-8'></head><body>${paras}</body></html>`;
+              dlBlob(new Blob(["\ufeff", docHtml], { type: "application/msword" }), `${baseName}.doc`);
+            } else {
+              if (!window.JSZip) throw new Error("JSZip library failed to load.");
+              const paras = extractedPreview.value.split(/\r?\n/);
+              const blob = await buildDocx(paras);
+              dlBlob(blob, `${baseName}.docx`);
+            }
+            convStatus.textContent = `✓ Word (.${targetFmt}) downloaded!`;
+          } else if (targetFmt === "xlsx" || targetFmt === "csv") {
+            const pagesFiltered = pageData.filter((p) => selectedPages.includes(p.pageNum));
+            if (targetFmt === "csv") {
+              const rows = [];
+              pagesFiltered.forEach((p) => {
+                rows.push([`Page ${p.pageNum}`]);
+                p.lines.forEach((ln) => rows.push(ln.cells.map((c) => `"${c.str.replace(/"/g, '""')}"`)));
+              });
+              const csv = "\uFEFF" + rows.map((r) => r.join(",")).join("\r\n");
+              dlBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), `${baseName}.csv`);
+            } else {
+              if (!window.XLSX) throw new Error("Excel library failed to load.");
+              const wb = XLSX.utils.book_new();
+              pagesFiltered.forEach((p) => {
+                const aoa = p.lines.map((ln) => ln.cells.map((c) => c.str));
+                const ws = XLSX.utils.aoa_to_sheet(aoa.length ? aoa : [[p.text || "No text"]]);
+                XLSX.utils.book_append_sheet(wb, ws, `Page_${p.pageNum}`);
+              });
+              XLSX.writeFile(wb, `${baseName}.xlsx`);
+            }
+            convStatus.textContent = `✓ ${targetFmt.toUpperCase()} downloaded!`;
+          } else if (targetFmt === "image") {
+            renderedImages.forEach((r) => URL.revokeObjectURL(r.url));
+            renderedImages = []; imgResultsGrid.innerHTML = "";
+            const mime = imgFmt.value, ext = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" }[mime];
+            const scale = Number(document.getElementById("imgRes").value), quality = Number(imgQ.value) / 100;
+
+            for (const p of selectedPages) {
+              convStatus.textContent = `Rendering page ${p}...`;
+              const page = await pdfDoc.getPage(p);
+              const vp = page.getViewport({ scale });
+              const c = document.createElement("canvas"); c.width = vp.width; c.height = vp.height;
+              const ctx = c.getContext("2d");
+              if (mime === "image/jpeg") { ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height); }
+              await page.render({ canvasContext: ctx, viewport: vp }).promise;
+              const blob = await new Promise((res) => c.toBlob(res, mime, quality));
+              const url = URL.createObjectURL(blob), name = `${baseName}-page-${p}.${ext}`;
+              renderedImages.push({ name, blob, url });
+
+              const card = document.createElement("div");
+              card.className = "control-box tool-layout";
+              card.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><strong>Page ${p}</strong><a class="primary-btn ripple-target" href="${url}" download="${name}" style="padding:6px 12px;font-size:.8rem">Save ${ext.toUpperCase()} ⬇</a></div>
+                <div class="preview-stage" style="min-height:140px"><img src="${url}" alt="Page ${p}"></div>`;
+              imgResultsGrid.appendChild(card);
+            }
+            imgResultsGrid.hidden = false;
+            dlZipBtn.hidden = renderedImages.length < 2;
+            convStatus.textContent = `✓ Converted ${renderedImages.length} page(s) to ${ext.toUpperCase()}!`;
+          }
+        } catch (err) {
+          convStatus.textContent = "";
+          showError("Conversion error: " + (err?.message || "Unknown error"));
+        }
+      };
+
+      dlZipBtn.onclick = async () => {
+        if (!window.JSZip || !renderedImages.length) return;
+        const zip = new JSZip();
+        renderedImages.forEach((im) => zip.file(im.name, im.blob));
+        dlBlob(await zip.generateAsync({ type: "blob" }), `${baseName}-images.zip`);
+      };
+
+      document.getElementById("copyTextBtn").onclick = async () => {
+        await navigator.clipboard.writeText(extractedPreview.value);
+        document.getElementById("copyTextBtn").textContent = "Copied! ✓";
+        setTimeout(() => document.getElementById("copyTextBtn").textContent = "Copy All Text", 1200);
+      };
+    })();
+  </script>
+</body>
+</html>
