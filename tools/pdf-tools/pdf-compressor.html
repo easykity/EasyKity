@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PDF Compressor — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+  <style>[hidden]{display:none!important}</style>
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">PDF Tools</p><div class="drawer-links"><a href="pdf-editor.html">PDF Editor</a><a href="pdf-compressor.html">PDF Compressor</a><a href="pdf-organizer.html">Page Organizer</a><a href="cv-maker.html">CV Maker</a><a href="markdown-to-pdf.html">Note to PDF</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-pdf">PDF &amp; Docs</a> / <span>PDF Compressor</span></nav>
+      <h1>PDF <span class="gradient-text">Compressor</span></h1>
+      <p>Reduce large PDF file sizes into smaller KB/MB right inside your browser for job applications &amp; emails.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <label class="dropzone" id="dropzone">
+          <input id="pdfInput" type="file" accept="application/pdf">
+          <div class="dropzone-icon">🗜️</div>
+          <strong>Drop a PDF file here or click to upload</strong>
+          <span>100% private — compressed locally on your device</span>
+        </label>
+
+        <div id="errBox" class="alert-box alert-error" hidden></div>
+
+        <div id="workspace" class="tool-layout" hidden>
+          <div class="stat-row">
+            <div class="stat-card"><small>File Name</small><strong id="fName" style="font-size:.92rem;word-break:break-all">-</strong></div>
+            <div class="stat-card"><small>Pages</small><strong id="fPages">-</strong></div>
+            <div class="stat-card"><small>Original Size</small><strong id="origSize">-</strong></div>
+            <div class="stat-card"><small>Compressed Size</small><strong id="compSize" style="color:#10b981">Ready</strong></div>
+          </div>
+
+          <div class="control-box tool-layout">
+            <div>
+              <div class="notice" style="font-weight:700;margin-bottom:8px">Compression Level</div>
+              <div class="chip-group">
+                <button type="button" class="chip-btn ripple-target" data-preset="extreme">Extreme (Smallest KB)</button>
+                <button type="button" class="chip-btn active ripple-target" data-preset="balanced">Recommended (Balanced)</button>
+                <button type="button" class="chip-btn ripple-target" data-preset="high">Light (High Clarity)</button>
+              </div>
+            </div>
+
+            <div class="tool-grid-2">
+              <div class="field"><label for="qRange">Image Quality <span id="qVal">65%</span></label><input id="qRange" type="range" min="20" max="95" value="65"></div>
+              <div class="field"><label for="dpiRange">Resolution Scale <span id="dpiVal">1.3x</span></label><input id="dpiRange" type="range" min="0.7" max="2.2" step="0.1" value="1.3"></div>
+            </div>
+          </div>
+
+          <div id="progressText" class="notice" style="font-weight:700"></div>
+
+          <div class="action-bar">
+            <button id="compressBtn" type="button" class="primary-btn ripple-target">⚡ Compress PDF Now</button>
+            <a id="downloadLink" class="primary-btn ripple-target" hidden download="easykity-compressed.pdf" style="background:linear-gradient(110deg,#059669,#10b981)">Download Compressed PDF ⬇</a>
+            <button id="resetBtn" type="button" class="secondary-btn ripple-target">Choose Another PDF</button>
+          </div>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      const pdfInput = document.getElementById("pdfInput"), dropzone = document.getElementById("dropzone");
+      const workspace = document.getElementById("workspace"), errBox = document.getElementById("errBox");
+      const qRange = document.getElementById("qRange"), dpiRange = document.getElementById("dpiRange");
+      const downloadLink = document.getElementById("downloadLink"), progressText = document.getElementById("progressText");
+
+      let rawBytes = null, origBytesCount = 0, outUrl = "", baseName = "document";
+      const fmtBytes = (b) => b < 1024 * 1024 ? `${(b / 1024).toFixed(1)} KB` : `${(b / (1024 * 1024)).toFixed(2)} MB`;
+
+      async function loadFile(f) {
+        if (!f) return;
+        if (f.type !== "application/pdf" && !f.name.toLowerCase().endsWith(".pdf")) {
+          errBox.textContent = "Please choose a valid .pdf file."; errBox.hidden = false; return;
+        }
+        if (!window.pdfjsLib || !window.PDFLib) {
+          errBox.textContent = "PDF libraries failed to load. Check internet connection."; errBox.hidden = false; return;
+        }
+        errBox.hidden = true; downloadLink.hidden = true; progressText.textContent = "";
+        try {
+          rawBytes = new Uint8Array(await f.arrayBuffer()).slice();
+          origBytesCount = f.size;
+          baseName = f.name.replace(/\.pdf$/i, "");
+          const doc = await pdfjsLib.getDocument({ data: rawBytes.slice() }).promise;
+          document.getElementById("fName").textContent = f.name;
+          document.getElementById("fPages").textContent = doc.numPages;
+          document.getElementById("origSize").textContent = fmtBytes(origBytesCount);
+          document.getElementById("compSize").textContent = "Click Compress";
+          workspace.hidden = false;
+        } catch (_) {
+          errBox.textContent = "Unable to read this PDF (it may be password-protected)."; errBox.hidden = false;
+        }
+      }
+
+      document.querySelectorAll("[data-preset]").forEach((b) => b.onclick = () => {
+        document.querySelectorAll("[data-preset]").forEach((x) => x.classList.toggle("active", x === b));
+        const map = { extreme: [42, 0.95], balanced: [65, 1.3], high: [84, 1.75] }[b.dataset.preset];
+        qRange.value = map[0]; dpiRange.value = map[1];
+        document.getElementById("qVal").textContent = `${map[0]}%`;
+        document.getElementById("dpiVal").textContent = `${map[1]}x`;
+      });
+      qRange.oninput = () => { document.getElementById("qVal").textContent = `${qRange.value}%`; };
+      dpiRange.oninput = () => { document.getElementById("dpiVal").textContent = `${dpiRange.value}x`; };
+
+      document.getElementById("compressBtn").addEventListener("click", async () => {
+        if (!rawBytes) return;
+        const btn = document.getElementById("compressBtn");
+        btn.disabled = true; downloadLink.hidden = true; errBox.hidden = true;
+        try {
+          const pdf = await pdfjsLib.getDocument({ data: rawBytes.slice() }).promise;
+          const outDoc = await PDFLib.PDFDocument.create();
+          const scale = Number(dpiRange.value), quality = Number(qRange.value) / 100;
+
+          for (let p = 1; p <= pdf.numPages; p++) {
+            progressText.textContent = `Compressing page ${p} of ${pdf.numPages}...`;
+            const page = await pdf.getPage(p);
+            const vp = page.getViewport({ scale });
+            const c = document.createElement("canvas");
+            c.width = vp.width; c.height = vp.height;
+            const ctx = c.getContext("2d");
+            ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, c.width, c.height);
+            await page.render({ canvasContext: ctx, viewport: vp }).promise;
+
+            const jpgBytes = await (await fetch(c.toDataURL("image/jpeg", quality))).arrayBuffer();
+            const emb = await outDoc.embedJpg(jpgBytes);
+            const outPage = outDoc.addPage([vp.width / scale, vp.height / scale]);
+            outPage.drawImage(emb, { x: 0, y: 0, width: outPage.getWidth(), height: outPage.getHeight() });
+          }
+
+          const outBytes = await outDoc.save({ useObjectStreams: true });
+          const blob = new Blob([outBytes], { type: "application/pdf" });
+          if (outUrl) URL.revokeObjectURL(outUrl);
+          outUrl = URL.createObjectURL(blob);
+          downloadLink.href = outUrl;
+          downloadLink.download = `${baseName}-compressed.pdf`;
+          downloadLink.hidden = false;
+
+          const saved = Math.round(((origBytesCount - blob.size) / origBytesCount) * 100);
+          document.getElementById("compSize").textContent = `${fmtBytes(blob.size)} (${saved >= 0 ? saved + "% smaller" : "Already minimal"})`;
+          progressText.textContent = "✓ Compression complete! Click Download Compressed PDF.";
+        } catch (err) {
+          errBox.textContent = "Compression failed: " + (err?.message || "Unknown error"); errBox.hidden = false;
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      document.getElementById("resetBtn").onclick = () => { pdfInput.value = ""; workspace.hidden = true; errBox.hidden = true; };
+      pdfInput.addEventListener("change", () => loadFile(pdfInput.files[0]));
+      ["dragenter", "dragover"].forEach((e) => dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.add("dragover"); }));
+      ["dragleave", "drop"].forEach((e) => dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.remove("dragover"); }));
+      dropzone.addEventListener("drop", (e) => loadFile(e.dataTransfer.files[0]));
+    })();
+  </script>
+</body>
+</html>
