@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Image Metadata (EXIF) Remover — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+  <script src="https://cdn.jsdelivr.net/npm/exifr/dist/lite.umd.js"></script>
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">Image Tools</p><div class="drawer-links"><a href="passport-photo-maker.html">Passport Photo</a><a href="image-watermark.html">Watermark</a><a href="image-color-picker.html">Color Picker</a><a href="exif-remover.html">EXIF Remover</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-image">Image Tools</a> / <span>EXIF Metadata Remover</span></nav>
+      <h1>Image Metadata <span class="gradient-text">(EXIF) Remover</span></h1>
+      <p>Inspect hidden camera, date &amp; GPS location metadata inside photos and strip it cleanly before sharing.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <label class="dropzone" id="dropzone">
+          <input id="fileInput" type="file" accept="image/*">
+          <div class="dropzone-icon">🛡️</div>
+          <strong>Select or drop a photo to inspect &amp; clean</strong>
+          <span>100% local privacy — never uploaded anywhere</span>
+        </label>
+
+        <div id="workspace" class="tool-layout" hidden>
+          <div class="stat-row">
+            <div class="stat-card"><small>File Name</small><strong id="fName" style="font-size:.95rem;word-break:break-all">-</strong></div>
+            <div class="stat-card"><small>Dimensions</small><strong id="fDim">-</strong></div>
+            <div class="stat-card"><small>Metadata Status</small><strong id="fStat">-</strong></div>
+          </div>
+
+          <div class="control-box tool-layout">
+            <strong>Detected Hidden EXIF / GPS Data</strong>
+            <div id="exifTable" class="batch-list"></div>
+          </div>
+
+          <div class="control-box tool-grid-2">
+            <div class="field">
+              <label for="outFmt">Clean Output Format</label>
+              <select id="outFmt">
+                <option value="image/jpeg">JPG (Clean Photo)</option>
+                <option value="image/png">PNG (Lossless Clean)</option>
+                <option value="image/webp">WebP (Clean Modern)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="qRange">Quality <span id="qVal">95%</span></label>
+              <input id="qRange" type="range" min="60" max="100" value="95">
+            </div>
+          </div>
+
+          <div class="action-bar">
+            <button id="cleanBtn" type="button" class="primary-btn ripple-target">Strip Metadata &amp; Download Clean Image ⬇</button>
+            <span id="cleanDone" class="alert-box alert-success" hidden>✓ All EXIF, GPS &amp; Camera metadata removed!</span>
+          </div>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const fileInput = document.getElementById("fileInput"), dropzone = document.getElementById("dropzone");
+      const workspace = document.getElementById("workspace"), exifTable = document.getElementById("exifTable");
+      const cleanDone = document.getElementById("cleanDone"), qRange = document.getElementById("qRange");
+      let img = new Image(), currentName = "photo", srcUrl = "";
+
+      qRange.addEventListener("input", () => { document.getElementById("qVal").textContent = `${qRange.value}%`; });
+
+      async function handleFile(f) {
+        if (!f || !f.type.startsWith("image/")) return;
+        currentName = f.name.replace(/\.[^.]+$/, "");
+        document.getElementById("fName").textContent = f.name;
+        cleanDone.hidden = true;
+        if (srcUrl) URL.revokeObjectURL(srcUrl);
+        srcUrl = URL.createObjectURL(f);
+
+        img = new Image();
+        img.onload = async () => {
+          document.getElementById("fDim").textContent = `${img.width} × ${img.height} px`;
+          workspace.hidden = false;
+          exifTable.innerHTML = "";
+          let tags = null;
+          if (window.exifr) {
+            try { tags = await exifr.parse(f, { gps: true }); } catch (_) {}
+          }
+          if (tags && Object.keys(tags).length) {
+            document.getElementById("fStat").textContent = `${Object.keys(tags).length} tags found ⚠️`;
+            document.getElementById("fStat").style.color = "#f59e0b";
+            Object.entries(tags).slice(0, 18).forEach(([k, v]) => {
+              const row = document.createElement("div");
+              row.className = "batch-item";
+              row.innerHTML = `<strong>${k}</strong><span class="notice allow-copy" style="word-break:break-all">${String(v)}</span>`;
+              exifTable.appendChild(row);
+            });
+          } else {
+            document.getElementById("fStat").textContent = "Clean / No EXIF found ✓";
+            document.getElementById("fStat").style.color = "#10b981";
+            exifTable.innerHTML = `<div class="notice">No readable EXIF/GPS tags found in this image. You can still re-export to guarantee 0 metadata.</div>`;
+          }
+        };
+        img.src = srcUrl;
+      }
+
+      document.getElementById("cleanBtn").addEventListener("click", () => {
+        if (!img.width) return;
+        const mime = document.getElementById("outFmt").value;
+        const ext = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }[mime];
+        const c = document.createElement("canvas");
+        c.width = img.width; c.height = img.height;
+        const ctx = c.getContext("2d");
+        if (mime === "image/jpeg") { ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height); }
+        ctx.drawImage(img, 0, 0);
+        c.toBlob((blob) => {
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = `${currentName}-clean.${ext}`;
+          a.click();
+          cleanDone.hidden = false;
+          setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+        }, mime, Number(qRange.value) / 100);
+      });
+
+      fileInput.addEventListener("change", () => handleFile(fileInput.files[0]));
+      ["dragenter", "dragover"].forEach((e) => dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.add("dragover"); }));
+      ["dragleave", "drop"].forEach((e) => dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.remove("dragover"); }));
+      dropzone.addEventListener("drop", (e) => handleFile(e.dataTransfer.files[0]));
+    })();
+  </script>
+</body>
+</html>
