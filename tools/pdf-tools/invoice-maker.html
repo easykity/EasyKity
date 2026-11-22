@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Invoice Maker — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+  <style>
+    .inv-paper{background:#fff;color:#111827;border-radius:16px;padding:28px;border:1px solid #e2e8f0}
+    .inv-table{width:100%;border-collapse:collapse;margin:18px 0}
+    .inv-table th,.inv-table td{padding:10px 8px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:.9rem}
+    .inv-table th{background:#f8fafc;font-weight:700;color:#475569}
+    .inv-row-grid{display:grid;grid-template-columns:2fr .7fr .9fr auto;gap:8px;align-items:center}
+    @media(max-width:650px){.inv-row-grid{grid-template-columns:1fr 1fr;}}
+    @media print{
+      body{background:#fff!important}
+      #ek-network-bg,.site-header,.page-hero,.site-footer,.no-print{display:none!important}
+      .section,.container,.tool-workspace{padding:0!important;margin:0!important;width:100%!important;border:0!important;box-shadow:none!important;background:#fff!important}
+      .inv-paper{border:0;padding:0}
+    }
+  </style>
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">PDF Tools</p><div class="drawer-links"><a href="pdf-to-image.html">PDF to Image</a><a href="pdf-merger.html">PDF Merger</a><a href="image-to-pdf.html">Image to PDF</a><a href="invoice-maker.html">Invoice Maker</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-pdf">PDF &amp; Docs</a> / <span>Invoice Maker</span></nav>
+      <h1>Invoice <span class="gradient-text">Maker</span></h1>
+      <p>Fill in your billing details, add items, and print or save a clean PDF invoice.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <div class="control-box tool-layout no-print">
+          <div class="tool-grid-3">
+            <div class="field"><label for="bizName">Your Business Name</label><input id="bizName" type="text" value="EasyKity Studio"></div>
+            <div class="field"><label for="clientName">Bill To (Client)</label><input id="clientName" type="text" value="Client Company Ltd."></div>
+            <div class="field"><label for="invNo">Invoice #</label><input id="invNo" type="text" value="INV-1001"></div>
+            <div class="field"><label for="invDate">Date</label><input id="invDate" type="date"></div>
+            <div class="field"><label for="currency">Currency</label><select id="currency"><option value="$">$ USD</option><option value="৳">৳ BDT</option><option value="€">€ EUR</option><option value="£">£ GBP</option><option value="₹">₹ INR</option></select></div>
+            <div class="field"><label for="taxRate">Tax (%)</label><input id="taxRate" type="number" min="0" max="100" value="0"></div>
+          </div>
+
+          <div style="font-weight:700;font-size:.9rem">Invoice Items</div>
+          <div id="itemsEditor" class="tool-layout" style="gap:10px"></div>
+          <div class="action-bar">
+            <button id="addItemBtn" class="secondary-btn ripple-target" type="button">+ Add Item</button>
+            <button id="printBtn" class="primary-btn ripple-target" type="button">Print / Save as PDF 🖨️</button>
+          </div>
+        </div>
+
+        <!-- Live Printable Invoice Preview -->
+        <div class="inv-paper" id="invoicePaper">
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;border-bottom:2px solid #315eeb;padding-bottom:14px">
+            <div><h2 id="pBiz" style="margin:0;color:#1e293b">EasyKity Studio</h2><div style="color:#64748b;font-size:.88rem">Official Invoice</div></div>
+            <div style="text-align:right"><strong id="pNo" style="font-size:1.1rem;color:#315eeb">INV-1001</strong><div id="pDate" style="color:#64748b;font-size:.86rem"></div></div>
+          </div>
+          <div style="margin-top:14px"><small style="color:#64748b;font-weight:700">BILL TO:</small><div id="pClient" style="font-weight:700;font-size:1.05rem">Client Company Ltd.</div></div>
+          <table class="inv-table">
+            <thead><tr><th>Description</th><th>Qty</th><th>Unit Price</th><th style="text-align:right">Total</th></tr></thead>
+            <tbody id="pRows"></tbody>
+          </table>
+          <div style="max-width:260px;margin-left:auto;display:grid;gap:6px;font-size:.92rem">
+            <div style="display:flex;justify-content:space-between"><span>Subtotal:</span><strong id="pSub">$0.00</strong></div>
+            <div style="display:flex;justify-content:space-between"><span>Tax:</span><strong id="pTax">$0.00</strong></div>
+            <div style="display:flex;justify-content:space-between;border-top:2px solid #e2e8f0;padding-top:8px;font-size:1.1rem;color:#315eeb"><span>Grand Total:</span><strong id="pTotal">$0.00</strong></div>
+          </div>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      document.getElementById("invDate").value = new Date().toISOString().split("T")[0];
+      const editor = document.getElementById("itemsEditor");
+      let rows = [{ desc: "Website Design & Setup", qty: 1, price: 150 }, { desc: "Custom Tool Integration", qty: 2, price: 45 }];
+
+      function updatePreview() {
+        const cur = document.getElementById("currency").value;
+        const taxPct = Math.max(0, Number(document.getElementById("taxRate").value) || 0);
+        document.getElementById("pBiz").textContent = document.getElementById("bizName").value || "Your Business";
+        document.getElementById("pClient").textContent = document.getElementById("clientName").value || "Client Name";
+        document.getElementById("pNo").textContent = document.getElementById("invNo").value || "INV-001";
+        document.getElementById("pDate").textContent = document.getElementById("invDate").value;
+
+        let sub = 0;
+        const tbody = document.getElementById("pRows");
+        tbody.innerHTML = "";
+        rows.forEach((r) => {
+          const line = (Number(r.qty) || 0) * (Number(r.price) || 0);
+          sub += line;
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${r.desc || "Item"}</td><td>${r.qty}</td><td>${cur}${Number(r.price).toFixed(2)}</td><td style="text-align:right">${cur}${line.toFixed(2)}</td>`;
+          tbody.appendChild(tr);
+        });
+        const tax = sub * (taxPct / 100);
+        document.getElementById("pSub").textContent = `${cur}${sub.toFixed(2)}`;
+        document.getElementById("pTax").textContent = `${cur}${tax.toFixed(2)} (${taxPct}%)`;
+        document.getElementById("pTotal").textContent = `${cur}${(sub + tax).toFixed(2)}`;
+      }
+
+      function renderEditor() {
+        editor.innerHTML = "";
+        rows.forEach((r, i) => {
+          const div = document.createElement("div");
+          div.className = "inv-row-grid";
+          div.innerHTML = `
+            <div class="field"><input type="text" value="${r.desc}" data-f="desc" data-i="${i}" placeholder="Item description"></div>
+            <div class="field"><input type="number" min="1" value="${r.qty}" data-f="qty" data-i="${i}" placeholder="Qty"></div>
+            <div class="field"><input type="number" min="0" step="0.01" value="${r.price}" data-f="price" data-i="${i}" placeholder="Price"></div>
+            <button type="button" class="secondary-btn" data-del="${i}">✕</button>`;
+          editor.appendChild(div);
+        });
+        updatePreview();
+      }
+
+      editor.addEventListener("input", (e) => {
+        const i = e.target.dataset.i, f = e.target.dataset.f;
+        if (i !== undefined && f) { rows[Number(i)][f] = f === "desc" ? e.target.value : Number(e.target.value); updatePreview(); }
+      });
+      editor.addEventListener("click", (e) => {
+        if (e.target.dataset.del !== undefined && rows.length > 1) { rows.splice(Number(e.target.dataset.del), 1); renderEditor(); }
+      });
+
+      ["bizName", "clientName", "invNo", "invDate", "currency", "taxRate"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", updatePreview);
+      });
+      document.getElementById("addItemBtn").addEventListener("click", () => { rows.push({ desc: "New Item", qty: 1, price: 0 }); renderEditor(); });
+      document.getElementById("printBtn").addEventListener("click", () => window.print());
+      renderEditor();
+    })();
+  </script>
+</body>
+</html>
