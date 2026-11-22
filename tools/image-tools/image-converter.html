@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Image Format Converter — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <link rel="stylesheet" href="../../assets/css/themes.css">
+  <link rel="stylesheet" href="../../assets/css/responsive.css">
+  <link rel="stylesheet" href="../../assets/css/tools-common.css">
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation">
+        <a href="../../index.html">Home</a>
+        <a class="active" href="../../index.html#tools">Tools</a>
+        <a href="../../about.html">About</a>
+        <a href="../../contact.html">Contact</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false">
+          <span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span>
+        </button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden>
+      <div class="container drawer-inner">
+        <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+        <div class="drawer-col"><p class="drawer-title">Image Tools</p><div class="drawer-links"><a href="image-resizer.html">Image Resize</a><a href="image-editor.html">Image Edit</a><a href="image-converter.html">Format Converter</a><a href="image-compressor.html">Compressor</a></div></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero">
+      <div class="container">
+        <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-image">Image Tools</a> / <span>Image Format Converter</span></nav>
+        <h1>Image Format <span class="gradient-text">Converter</span></h1>
+        <p>Convert single or multiple images between PNG, JPG, and WebP instantly in your browser.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="tool-workspace tool-layout">
+          <div class="control-box tool-grid-2">
+            <div class="field">
+              <label for="targetFmt">Convert To Format</label>
+              <select id="targetFmt">
+                <option value="image/png">PNG (.png)</option>
+                <option value="image/jpeg">JPG (.jpg)</option>
+                <option value="image/webp" selected>WebP (.webp)</option>
+              </select>
+            </div>
+            <div class="field" id="qWrap">
+              <label for="qSlider">Quality (for JPG/WebP) <span id="qText">90%</span></label>
+              <input id="qSlider" type="range" min="15" max="100" value="90">
+            </div>
+          </div>
+
+          <label class="dropzone" id="dropzone">
+            <input id="fileInput" type="file" accept="image/*" multiple>
+            <div class="dropzone-icon">🔄</div>
+            <strong>Select one or multiple images</strong>
+            <span>Click or drop JPG, PNG, WebP, BMP, or GIF files</span>
+          </label>
+
+          <div id="errBox" class="alert-box alert-error" hidden></div>
+          <div id="resultsList" class="batch-list"></div>
+
+          <div id="batchActions" class="action-bar" hidden>
+            <button id="downloadAllBtn" class="primary-btn ripple-target" type="button">Download All Converted ⬇</button>
+            <button id="clearBtn" class="secondary-btn ripple-target" type="button">Clear List</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0">
+        <span>© <span data-year></span> EasyKity. All rights reserved.</span>
+        <span><a href="../../index.html#tools">← Back to All Tools</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const fileInput = document.getElementById("fileInput");
+      const dropzone = document.getElementById("dropzone");
+      const targetFmt = document.getElementById("targetFmt");
+      const qSlider = document.getElementById("qSlider");
+      const qText = document.getElementById("qText");
+      const qWrap = document.getElementById("qWrap");
+      const resultsList = document.getElementById("resultsList");
+      const batchActions = document.getElementById("batchActions");
+      const errBox = document.getElementById("errBox");
+
+      let convertedItems = [];
+      let sourceFiles = [];
+
+      const fmtSize = (b) => b < 1024 * 1024 ? `${(b / 1024).toFixed(1)} KB` : `${(b / (1024 * 1024)).toFixed(2)} MB`;
+      const extMap = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
+
+      function convertOne(file, mime, quality) {
+        return new Promise((resolve, reject) => {
+          const readerUrl = URL.createObjectURL(file);
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+            if (mime === "image/jpeg") {
+              ctx.fillStyle = "#ffffff";
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            ctx.drawImage(img, 0, 0);
+            URL.revokeObjectURL(readerUrl);
+            canvas.toBlob((blob) => {
+              if (!blob) return reject(new Error("Conversion failed"));
+              const baseName = file.name.replace(/\.[^.]+$/, "");
+              resolve({
+                name: `${baseName}.${extMap[mime]}`,
+                origSize: file.size,
+                newSize: blob.size,
+                url: URL.createObjectURL(blob)
+              });
+            }, mime, quality);
+          };
+          img.onerror = () => reject(new Error("Invalid image"));
+          img.src = readerUrl;
+        });
+      }
+
+      async function processFiles() {
+        convertedItems.forEach((it) => URL.revokeObjectURL(it.url));
+        convertedItems = [];
+        resultsList.innerHTML = "";
+        errBox.hidden = true;
+
+        const valid = sourceFiles.filter((f) => f.type.startsWith("image/"));
+        if (!valid.length) {
+          batchActions.hidden = true;
+          if (sourceFiles.length) {
+            errBox.textContent = "No valid image files found.";
+            errBox.hidden = false;
+          }
+          return;
+        }
+
+        const mime = targetFmt.value;
+        const quality = Number(qSlider.value) / 100;
+
+        for (const f of valid) {
+          try {
+            const res = await convertOne(f, mime, quality);
+            convertedItems.push(res);
+            const row = document.createElement("div");
+            row.className = "batch-item";
+            row.innerHTML = `
+              <div class="batch-info">
+                <img src="${res.url}" alt="">
+                <div>
+                  <strong style="display:block;word-break:break-all">${res.name}</strong>
+                  <span class="notice">${fmtSize(res.origSize)} → ${fmtSize(res.newSize)}</span>
+                </div>
+              </div>
+              <a class="primary-btn ripple-target" href="${res.url}" download="${res.name}">Download ⬇</a>
+            `;
+            resultsList.appendChild(row);
+          } catch (_) {}
+        }
+        batchActions.hidden = convertedItems.length === 0;
+      }
+
+      fileInput.addEventListener("change", () => {
+        sourceFiles = [...fileInput.files];
+        processFiles();
+      });
+      ["dragenter", "dragover"].forEach((ev) => dropzone.addEventListener(ev, (e) => { e.preventDefault(); dropzone.classList.add("dragover"); }));
+      ["dragleave", "drop"].forEach((ev) => dropzone.addEventListener(ev, (e) => { e.preventDefault(); dropzone.classList.remove("dragover"); }));
+      dropzone.addEventListener("drop", (e) => {
+        sourceFiles = [...e.dataTransfer.files];
+        processFiles();
+      });
+
+      targetFmt.addEventListener("change", () => {
+        qWrap.hidden = targetFmt.value === "image/png";
+        if (sourceFiles.length) processFiles();
+      });
+      qSlider.addEventListener("input", () => { qText.textContent = `${qSlider.value}%`; });
+      qSlider.addEventListener("change", () => { if (sourceFiles.length) processFiles(); });
+
+      document.getElementById("downloadAllBtn").addEventListener("click", () => {
+        convertedItems.forEach((item, idx) => {
+          setTimeout(() => {
+            const a = document.createElement("a");
+            a.href = item.url;
+            a.download = item.name;
+            a.click();
+          }, idx * 180);
+        });
+      });
+
+      document.getElementById("clearBtn").addEventListener("click", () => {
+        sourceFiles = [];
+        fileInput.value = "";
+        processFiles();
+      });
+    })();
+  </script>
+</body>
+</html>
