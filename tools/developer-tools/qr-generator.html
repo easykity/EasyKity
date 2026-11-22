@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>QR Code Generator — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">Developer &amp; Media</p><div class="drawer-links"><a href="../entertainment-tools/m3u-creator.html">EXTM3U Creator</a><a href="json-formatter.html">JSON Formatter</a><a href="qr-generator.html">QR Generator</a><a href="password-generator.html">Password Gen</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-developer">Developer &amp; Media</a> / <span>QR Code Generator</span></nav>
+      <h1>QR Code <span class="gradient-text">Generator</span></h1>
+      <p>Create custom downloadable QR codes for links, text, phone numbers, or Wi-Fi.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-grid-2" style="align-items:start">
+        <div class="tool-layout">
+          <div class="field"><label for="qrText">Website URL or Text</label><textarea id="qrText" style="min-height:110px">https://github.com/easykity/EasyKity</textarea></div>
+          <div class="control-box tool-grid-2">
+            <div class="field"><label for="qrSize">Size <span id="szVal">280px</span></label><input id="qrSize" type="range" min="160" max="500" step="20" value="280"></div>
+            <div class="field"><label for="qrColor">QR Color</label><input id="qrColor" type="color" value="#111827" style="height:44px;width:100%;border-radius:10px;border:1px solid var(--line);background:var(--surface)"></div>
+          </div>
+          <div id="errBox" class="alert-box alert-error" hidden></div>
+          <button id="dlBtn" class="primary-btn ripple-target" type="button">Download QR PNG ⬇</button>
+        </div>
+
+        <div class="preview-stage" style="background:#fff">
+          <canvas id="qrCanvas"></canvas>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const txt = document.getElementById("qrText"), sz = document.getElementById("qrSize"), clr = document.getElementById("qrColor");
+      const canvas = document.getElementById("qrCanvas"), errBox = document.getElementById("errBox");
+      function draw() {
+        if (!window.QRious) { errBox.textContent = "QR library failed to load."; errBox.hidden = false; return; }
+        errBox.hidden = true;
+        document.getElementById("szVal").textContent = `${sz.value}px`;
+        new QRious({ element: canvas, value: txt.value || "EasyKity", size: Number(sz.value), foreground: clr.value, background: "#ffffff", level: "M" });
+      }
+      [txt, sz, clr].forEach((el) => el.addEventListener("input", draw));
+      document.getElementById("dlBtn").addEventListener("click", () => {
+        const a = document.createElement("a");
+        a.href = canvas.toDataURL("image/png"); a.download = "easykity-qr.png"; a.click();
+      });
+      draw();
+    })();
+  </script>
+</body>
+</html>
