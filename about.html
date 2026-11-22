@@ -1,17 +1,119 @@
-<!doctype html><html lang="en"><head><script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Learn about EasyKity."><title>About — EasyKity</title><link rel="icon" href="assets/logo/favicon.png"><link rel="stylesheet" href="assets/css/style.css"><link rel="stylesheet" href="assets/css/responsive.css"><link rel="stylesheet" href="assets/css/themes.css"></head><body>
-<header class="site-header"><div class="container nav-wrap">
- <a class="brand" href="index.html"><img src="assets/logo/favicon.png" width="42" height="42" alt="EasyKity logo"><span>EasyKity</span></a>
- <nav class="nav-links" data-nav-links aria-label="Main navigation">
-  <a class="" href="index.html">Home</a>
-  <a href="index.html#tools">Tools</a><a class="active" href="about.html">About</a><a class="" href="contact.html">Contact</a>
- </nav>
- <div class="nav-actions"><button class="icon-btn" data-theme-toggle aria-label="Toggle theme">🌙</button><a class="primary-btn" href="index.html#tools">Explore Tools <span>↗</span></a><button class="menu-btn" data-menu-toggle aria-label="Open menu" aria-expanded="false">☰</button></div>
-</div></header>
-<main><section class="page-hero"><div class="container"><span class="eyebrow">ABOUT EASYKITY</span><h1>Digital tasks, <span class="gradient-text">made simple.</span></h1><p>EasyKity is being built around one simple idea: useful online tools should be easy to find, easy to use and accessible on every device.</p></div></section>
-<section class="section"><div class="container content-layout"><article class="prose-card"><h2>Our mission</h2><p>We want to bring everyday digital utilities together in one clean, friendly experience. Whether you need to resize an image, work with a PDF, format text or solve a quick calculation, EasyKity aims to make the process feel effortless.</p><h2>Everything Made Easy.</h2><p>That is more than a tagline. It is the design principle behind our tools: clear interfaces, helpful guidance and a consistent experience across desktop, tablet and mobile.</p></article><aside class="prose-card"><h2>What to expect</h2><div class="feature-list"><div class="feature-item">📱 Responsive design</div><div class="feature-item">⚡ Simple workflows</div><div class="feature-item">🧰 Useful toolkits</div><div class="feature-item">🌙 Comfortable themes</div></div></aside></div></section></main>
-<footer class="site-footer"><div class="container"><div class="footer-grid">
- <div><a class="brand footer-brand" href="index.html"><img src="assets/logo/favicon.png" width="42" height="42" alt=""><span>EasyKity</span></a><p class="footer-copy">Simple, useful digital tools — all in one place. Everything Made Easy.</p></div>
- <div><div class="footer-title">Explore</div><div class="footer-links"><a href="index.html#tools">All Tools</a><a href="about.html">About EasyKity</a><a href="contact.html">Contact</a></div></div>
- <div><div class="footer-title">Tool Categories</div><div class="footer-links"><a href="tools/image-tools/index.html">Image Tools</a><a href="tools/pdf-tools/index.html">PDF Tools</a><a href="tools/developer-tools/index.html">Developer Tools</a></div></div>
- </div><div class="footer-bottom"><span>© <span data-year></span> EasyKity. All rights reserved.</span><span>Everything Made Easy.</span></div></div></footer>
-<script src="assets/js/theme.js"></script><script src="assets/js/app.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Learn about EasyKity — clean, fast browser-based digital tools.">
+  <title>About — EasyKity</title>
+  <link rel="icon" href="assets/logo/favicon.png">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/themes.css">
+  <link rel="stylesheet" href="assets/css/responsive.css">
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="index.html">
+        <img src="assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo">
+        <span>EasyKity</span>
+      </a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation">
+        <a href="index.html">Home</a>
+        <a href="index.html#tools">Tools</a>
+        <a class="active" href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open options menu" aria-expanded="false">
+          <span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span>
+        </button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden>
+      <div class="container drawer-inner">
+        <div class="drawer-col">
+          <p class="drawer-title">Navigation</p>
+          <div class="drawer-links">
+            <a href="index.html">🏠 Home</a>
+            <a href="index.html#tools">🧰 All Tools</a>
+            <a href="about.html">ℹ️ About</a>
+            <a href="contact.html">✉️ Contact</a>
+          </div>
+        </div>
+        <div class="drawer-col">
+          <p class="drawer-title">Categories</p>
+          <div class="drawer-links">
+            <a href="index.html#cat-image">🖼️ Image Tools</a>
+            <a href="index.html#cat-pdf">📄 PDF &amp; Docs</a>
+            <a href="index.html#cat-text">✍️ Text &amp; Voice</a>
+            <a href="index.html#cat-calculator">🧮 Calculators</a>
+            <a href="index.html#cat-developer">⌘ Developer &amp; Media</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero">
+      <div class="container">
+        <span class="eyebrow">ABOUT EASYKITY</span>
+        <h1>Digital tasks, <span class="gradient-text">made simple.</span></h1>
+        <p>EasyKity brings essential everyday utilities into one fast, privacy-first web toolkit that runs right in your browser.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container content-layout">
+        <article class="prose-card">
+          <h2 style="margin-top:0">Our Mission</h2>
+          <p style="color:var(--muted)">We believe helpful online tools should never feel cluttered, slow, or confusing. Whether you want to resize an image, convert a PDF, generate an invoice, or calculate exact age, EasyKity keeps everything clean and effortless.</p>
+          <h2>Privacy-First Processing</h2>
+          <p style="color:var(--muted)">Almost every tool on EasyKity processes your images, text, and data directly inside your own browser. Your files are not uploaded to external servers.</p>
+          <a class="primary-btn ripple-target" href="index.html#tools" style="margin-top:10px">Explore All Tools ↗</a>
+        </article>
+
+        <aside class="prose-card">
+          <h2 style="margin-top:0">What Makes EasyKity Different</h2>
+          <div style="display:grid;gap:12px;margin-top:14px">
+            <div style="padding:14px;border-radius:14px;background:var(--surface-alt);border:1px solid var(--line);font-weight:600">⚡ Instant browser-side processing</div>
+            <div style="padding:14px;border-radius:14px;background:var(--surface-alt);border:1px solid var(--line);font-weight:600">📱 Works on PC, Mobile &amp; D-Pad</div>
+            <div style="padding:14px;border-radius:14px;background:var(--surface-alt);border:1px solid var(--line);font-weight:600">🌙 Clean Dark &amp; Light themes</div>
+            <div style="padding:14px;border-radius:14px;background:var(--surface-alt);border:1px solid var(--line);font-weight:600">🔒 No sign-up or installation needed</div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a class="brand footer-brand" href="index.html"><img src="assets/logo/favicon.png" width="38" height="38" alt=""><span>EasyKity</span></a>
+          <p class="footer-copy">Simple, clean digital tools organized by category — Everything Made Easy.</p>
+        </div>
+        <div>
+          <div class="footer-title">Pages</div>
+          <div class="footer-links"><a href="index.html">Home</a><a href="index.html#tools">All Tools</a><a href="about.html">About</a><a href="contact.html">Contact</a></div>
+        </div>
+        <div>
+          <div class="footer-title">Categories</div>
+          <div class="footer-links"><a href="index.html#cat-image">Image Tools</a><a href="index.html#cat-pdf">PDF &amp; Docs</a><a href="index.html#cat-text">Text &amp; Voice</a><a href="index.html#cat-calculator">Calculators</a></div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© <span data-year></span> EasyKity. All rights reserved.</span>
+        <span>Everything Made Easy.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/theme.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
