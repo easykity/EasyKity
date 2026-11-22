@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Text Compare / Diff Checker — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+  <style>
+    [hidden]{display:none!important}
+    .diff-box {
+      border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.86rem;
+      background: var(--surface);
+    }
+    .diff-line { display: grid; grid-template-columns: 44px 24px 1fr; padding: 4px 10px; border-bottom: 1px solid var(--line); white-space: pre-wrap; word-break: break-word; }
+    .diff-line:last-child { border-bottom: 0; }
+    .diff-add { background: rgba(16, 185, 129, 0.16); color: #34d399; }
+    .diff-del { background: rgba(239, 68, 68, 0.16); color: #f87171; }
+    :root[data-theme="light"] .diff-add { color: #065f46; }
+    :root[data-theme="light"] .diff-del { color: #991b1b; }
+  </style>
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">Text &amp; Voice</p><div class="drawer-links"><a href="voice-to-text.html">Voice to Text</a><a href="bijoy-unicode.html">Bijoy ⇄ Unicode</a><a href="text-compare.html">Text Compare</a><a href="fancy-text-generator.html">Fancy Text</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-text">Text &amp; Voice</a> / <span>Text Compare</span></nav>
+      <h1>Text Compare / <span class="gradient-text">Diff Checker</span></h1>
+      <p>Compare two versions of text or code and spot every added or removed line in green and red.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <div class="tool-grid-2">
+          <div class="field"><label for="tLeft">Original Text</label><textarea id="tLeft" class="allow-copy" style="min-height:190px;font-family:monospace" placeholder="Paste original text or code..."></textarea></div>
+          <div class="field"><label for="tRight">Modified Text</label><textarea id="tRight" class="allow-copy" style="min-height:190px;font-family:monospace" placeholder="Paste updated text or code..."></textarea></div>
+        </div>
+
+        <div class="action-bar">
+          <button id="cmpBtn" type="button" class="primary-btn ripple-target">🔍 Compare Differences</button>
+          <button id="sampleBtn" type="button" class="secondary-btn ripple-target">Load Sample</button>
+          <button id="clearBtn" type="button" class="secondary-btn ripple-target">Clear</button>
+          <label class="check-row"><input id="ignoreCase" type="checkbox"> Ignore Case</label>
+        </div>
+
+        <div class="stat-row" id="statsRow" hidden>
+          <div class="stat-card"><small>Added Lines (+)</small><strong id="stAdd" style="color:#10b981">0</strong></div>
+          <div class="stat-card"><small>Removed Lines (-)</small><strong id="stDel" style="color:#ef4444">0</strong></div>
+          <div class="stat-card"><small>Unchanged</small><strong id="stSame">0</strong></div>
+        </div>
+
+        <div id="diffOut" class="diff-box allow-copy" hidden></div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const tLeft = document.getElementById("tLeft"), tRight = document.getElementById("tRight");
+      const diffOut = document.getElementById("diffOut"), statsRow = document.getElementById("statsRow");
+
+      function computeDiff(aLines, bLines, ignoreCase) {
+        const eq = (a, b) => ignoreCase ? a.toLowerCase() === b.toLowerCase() : a === b;
+        const m = aLines.length, n = bLines.length;
+        const dp = Array.from({ length: m + 1 }, () => new Int32Array(n + 1));
+        for (let i = m - 1; i >= 0; i--) {
+          for (let j = n - 1; j >= 0; j--) {
+            dp[i][j] = eq(aLines[i], bLines[j]) ? 1 + dp[i + 1][j + 1] : Math.max(dp[i + 1][j], dp[i][j + 1]);
+          }
+        }
+        const res = [];
+        let i = 0, j = 0;
+        while (i < m && j < n) {
+          if (eq(aLines[i], bLines[j])) { res.push({ type: "same", text: bLines[j], ln: j + 1 }); i++; j++; }
+          else if (dp[i + 1][j] >= dp[i][j + 1]) { res.push({ type: "del", text: aLines[i], ln: i + 1 }); i++; }
+          else { res.push({ type: "add", text: bLines[j], ln: j + 1 }); j++; }
+        }
+        while (i < m) res.push({ type: "del", text: aLines[i], ln: ++i });
+        while (j < n) res.push({ type: "add", text: bLines[j], ln: ++j });
+        return res;
+      }
+
+      function runCompare() {
+        const a = tLeft.value.split(/\r?\n/), b = tRight.value.split(/\r?\n/);
+        const list = computeDiff(a, b, document.getElementById("ignoreCase").checked);
+        let add = 0, del = 0, same = 0;
+        diffOut.innerHTML = "";
+        list.forEach((item) => {
+          if (item.type === "add") add++;
+          else if (item.type === "del") del++;
+          else same++;
+          const row = document.createElement("div");
+          row.className = "diff-line " + (item.type === "add" ? "diff-add" : item.type === "del" ? "diff-del" : "");
+          const sign = item.type === "add" ? "+" : item.type === "del" ? "−" : " ";
+          row.innerHTML = `<span class="notice">${item.ln}</span><strong>${sign}</strong><span></span>`;
+          row.lastElementChild.textContent = item.text || " ";
+          diffOut.appendChild(row);
+        });
+        document.getElementById("stAdd").textContent = add;
+        document.getElementById("stDel").textContent = del;
+        document.getElementById("stSame").textContent = same;
+        statsRow.hidden = false; diffOut.hidden = false;
+      }
+
+      document.getElementById("cmpBtn").onclick = runCompare;
+      document.getElementById("ignoreCase").onchange = runCompare;
+      document.getElementById("sampleBtn").onclick = () => {
+        tLeft.value = "EasyKity Toolkit\nVersion 1.0\nImage Resizer\nPDF Merger\nOld Contact Page";
+        tRight.value = "EasyKity Toolkit\nVersion 2.0\nImage Resizer\nPDF Editor Pro\nPDF Merger\nNew Contact Page";
+        runCompare();
+      };
+      document.getElementById("clearBtn").onclick = () => { tLeft.value = ""; tRight.value = ""; statsRow.hidden = true; diffOut.hidden = true; };
+    })();
+  </script>
+</body>
+</html>
