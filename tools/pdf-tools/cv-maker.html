@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Smart CV / Resume Maker — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    [hidden]{display:none!important}
+    .cv-builder-grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 20px; align-items: start; }
+    @media(max-width: 960px) { .cv-builder-grid { grid-template-columns: 1fr; } }
+
+    .cv-preview-wrap { background: #1e293b; border-radius: 18px; padding: 14px; overflow: auto; border: 1px solid var(--line); }
+    .cv-paper {
+      width: 794px; min-height: 1122px; margin: auto; background: #fff; color: #1e293b;
+      font-family: 'Inter', 'Hind Siliguri', sans-serif; box-shadow: 0 18px 45px rgba(0,0,0,.35);
+      --cv-accent: #315eeb;
+    }
+    /* Template 1: Modern Sidebar */
+    .cv-tpl-sidebar { display: grid; grid-template-columns: 260px 1fr; min-height: 1122px; }
+    .cv-side { background: var(--cv-accent); color: #fff; padding: 34px 24px; display: flex; flex-direction: column; gap: 22px; }
+    .cv-side h4 { margin: 0 0 8px; text-transform: uppercase; font-size: .78rem; letter-spacing: .08em; border-bottom: 1px solid rgba(255,255,255,.3); padding-bottom: 5px; }
+    .cv-main { padding: 36px 32px; display: flex; flex-direction: column; gap: 22px; }
+    .cv-main h3 { margin: 0 0 10px; color: var(--cv-accent); text-transform: uppercase; font-size: .88rem; letter-spacing: .07em; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
+
+    /* Template 2: Classic Executive */
+    .cv-tpl-classic { padding: 42px 46px; display: flex; flex-direction: column; gap: 20px; }
+    .cv-tpl-classic .cv-top { text-align: center; border-bottom: 3px solid var(--cv-accent); padding-bottom: 18px; }
+    .cv-tpl-classic h3 { margin: 0 0 8px; color: var(--cv-accent); text-transform: uppercase; font-size: .9rem; border-bottom: 1.5px solid #cbd5e1; padding-bottom: 4px; }
+
+    /* Template 3: Minimal Accent */
+    .cv-tpl-minimal { border-top: 12px solid var(--cv-accent); padding: 40px 44px; display: flex; flex-direction: column; gap: 20px; }
+    .cv-tpl-minimal h3 { margin: 0 0 8px; color: var(--cv-accent); font-size: .95rem; letter-spacing: .04em; border-left: 4px solid var(--cv-accent); padding-left: 10px; }
+
+    .cv-avatar { width: 112px; height: 112px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,.85); margin: 0 auto 8px; display: block; }
+    .cv-skill-tag { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: .76rem; font-weight: 700; margin: 2px 3px 2px 0; background: rgba(255,255,255,.18); }
+    .cv-skill-tag.dark { background: #eef2ff; color: var(--cv-accent); }
+    .cv-entry { margin-bottom: 12px; }
+    .cv-entry strong { display: block; font-size: .95rem; }
+    .cv-entry small { color: #64748b; font-weight: 600; font-size: .8rem; }
+    .cv-entry p { margin: 4px 0 0; font-size: .86rem; line-height: 1.5; color: #334155; white-space: pre-line; }
+
+    #printCV { display: none; }
+    @media print {
+      @page { size: A4 portrait; margin: 0; }
+      body { background: #fff !important; margin: 0 !important; }
+      body > *:not(#printCV) { display: none !important; }
+      #printCV { display: block !important; width: 100%; }
+      #printCV .cv-paper { width: 100%; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">PDF Tools</p><div class="drawer-links"><a href="pdf-editor.html">PDF Editor</a><a href="pdf-compressor.html">PDF Compressor</a><a href="pdf-organizer.html">Page Organizer</a><a href="cv-maker.html">CV Maker</a><a href="markdown-to-pdf.html">Note to PDF</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-pdf">PDF &amp; Docs</a> / <span>Smart CV Maker</span></nav>
+      <h1>Smart CV / <span class="gradient-text">Resume Maker</span></h1>
+      <p>Fill out your details, pick a clean template &amp; accent color, and download your professional PDF resume.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace cv-builder-grid">
+        <!-- Left: Form -->
+        <div class="tool-layout">
+          <div class="control-box tool-grid-2">
+            <div class="field"><label for="tplSel">Template</label><select id="tplSel"><option value="sidebar">Modern Sidebar</option><option value="classic">Classic Executive</option><option value="minimal">Minimal Clean</option></select></div>
+            <div class="field"><label for="accentClr">Theme Color</label><input id="accentClr" type="color" value="#1e3a8a" style="height:44px;width:100%;border-radius:10px;border:1px solid var(--line)"></div>
+          </div>
+
+          <div class="control-box tool-layout">
+            <strong>Personal Details</strong>
+            <div class="field"><label for="photoInput">Profile Photo (Optional)</label><input id="photoInput" type="file" accept="image/*"></div>
+            <div class="tool-grid-2">
+              <div class="field"><label for="fName">Full Name</label><input id="fName" type="text" value="Md. Rakibul Hasan"></div>
+              <div class="field"><label for="fTitle">Job Title</label><input id="fTitle" type="text" value="Digital Marketing &amp; Web Specialist"></div>
+              <div class="field"><label for="fEmail">Email</label><input id="fEmail" type="email" value="rakib@example.com"></div>
+              <div class="field"><label for="fPhone">Phone</label><input id="fPhone" type="text" value="+880 1700-000000"></div>
+              <div class="field"><label for="fAddr">Location</label><input id="fAddr" type="text" value="Dhaka, Bangladesh"></div>
+              <div class="field"><label for="fWeb">Website / LinkedIn</label><input id="fWeb" type="text" value="linkedin.com/in/rakib"></div>
+            </div>
+            <div class="field"><label for="fSummary">Career Summary</label><textarea id="fSummary" style="min-height:80px">Detail-oriented professional with 3+ years of experience in web operations, client management, and digital productivity tools.</textarea></div>
+          </div>
+
+          <div class="control-box tool-layout">
+            <div style="display:flex;justify-content:space-between;align-items:center"><strong>Work Experience</strong><button type="button" id="addExpBtn" class="secondary-btn" style="padding:5px 10px;font-size:.8rem">+ Add</button></div>
+            <div id="expList" class="tool-layout" style="gap:10px"></div>
+          </div>
+
+          <div class="control-box tool-layout">
+            <div style="display:flex;justify-content:space-between;align-items:center"><strong>Education</strong><button type="button" id="addEduBtn" class="secondary-btn" style="padding:5px 10px;font-size:.8rem">+ Add</button></div>
+            <div id="eduList" class="tool-layout" style="gap:10px"></div>
+          </div>
+
+          <div class="control-box tool-grid-2">
+            <div class="field"><label for="fSkills">Skills (comma separated)</label><input id="fSkills" type="text" value="Microsoft Office, Web Design, SEO, Adobe Photoshop, Communication"></div>
+            <div class="field"><label for="fLangs">Languages</label><input id="fLangs" type="text" value="Bangla (Native), English (Fluent)"></div>
+          </div>
+
+          <div class="action-bar">
+            <button id="dlPdfBtn" type="button" class="primary-btn ripple-target">⬇ Download PDF Resume</button>
+            <button id="printBtn" type="button" class="secondary-btn ripple-target">🖨️ Print / Vector PDF</button>
+          </div>
+          <div id="cvStatus" class="notice"></div>
+        </div>
+
+        <!-- Right: Live A4 Preview -->
+        <div class="cv-preview-wrap">
+          <div id="cvPaper" class="cv-paper"></div>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+  <div id="printCV"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const cvPaper = document.getElementById("cvPaper");
+      let photoUrl = "";
+      let exps = [{ role: "Operations Executive", org: "Tech Solution BD", time: "2023 – Present", desc: "Managed daily client workflows, reporting, and digital documentation." }];
+      let edus = [{ deg: "B.Sc. in Computer Science", org: "National University", time: "2019 – 2023", desc: "CGPA 3.65 / 4.00" }];
+
+      const esc = (s) => String(s || "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+      function renderEditors() {
+        const expEl = document.getElementById("expList");
+        expEl.innerHTML = "";
+        exps.forEach((x, i) => {
+          const d = document.createElement("div");
+          d.className = "tool-grid-2"; d.style.cssText = "padding:10px;border:1px solid var(--line);border-radius:12px";
+          d.innerHTML = `
+            <div class="field"><input type="text" value="${esc(x.role)}" placeholder="Job Role" data-t="exp" data-i="${i}" data-k="role"></div>
+            <div class="field"><input type="text" value="${esc(x.org)}" placeholder="Company" data-t="exp" data-i="${i}" data-k="org"></div>
+            <div class="field"><input type="text" value="${esc(x.time)}" placeholder="Duration" data-t="exp" data-i="${i}" data-k="time"></div>
+            <div class="action-bar"><button type="button" class="secondary-btn" data-del="exp:${i}">Remove</button></div>
+            <div class="field" style="grid-column:1/-1"><textarea data-t="exp" data-i="${i}" data-k="desc" style="min-height:60px">${esc(x.desc)}</textarea></div>`;
+          expEl.appendChild(d);
+        });
+
+        const eduEl = document.getElementById("eduList");
+        eduEl.innerHTML = "";
+        edus.forEach((x, i) => {
+          const d = document.createElement("div");
+          d.className = "tool-grid-2"; d.style.cssText = "padding:10px;border:1px solid var(--line);border-radius:12px";
+          d.innerHTML = `
+            <div class="field"><input type="text" value="${esc(x.deg)}" placeholder="Degree" data-t="edu" data-i="${i}" data-k="deg"></div>
+            <div class="field"><input type="text" value="${esc(x.org)}" placeholder="University / College" data-t="edu" data-i="${i}" data-k="org"></div>
+            <div class="field"><input type="text" value="${esc(x.time)}" placeholder="Year" data-t="edu" data-i="${i}" data-k="time"></div>
+            <div class="field"><input type="text" value="${esc(x.desc)}" placeholder="Grade / Note" data-t="edu" data-i="${i}" data-k="desc"></div>
+            <button type="button" class="secondary-btn" data-del="edu:${i}" style="width:fit-content">Remove</button>`;
+          eduEl.appendChild(d);
+        });
+        renderPreview();
+      }
+
+      function renderPreview() {
+        const tpl = document.getElementById("tplSel").value;
+        cvPaper.style.setProperty("--cv-accent", document.getElementById("accentClr").value);
+        const name = esc(document.getElementById("fName").value);
+        const title = esc(document.getElementById("fTitle").value);
+        const email = esc(document.getElementById("fEmail").value);
+        const phone = esc(document.getElementById("fPhone").value);
+        const addr = esc(document.getElementById("fAddr").value);
+        const web = esc(document.getElementById("fWeb").value);
+        const sum = esc(document.getElementById("fSummary").value);
+        const skills = document.getElementById("fSkills").value.split(",").map((s) => s.trim()).filter(Boolean);
+        const langs = esc(document.getElementById("fLangs").value);
+
+        const expHtml = exps.map((e) => `<div class="cv-entry"><strong>${esc(e.role)} — ${esc(e.org)}</strong><small>${esc(e.time)}</small><p>${esc(e.desc)}</p></div>`).join("");
+        const eduHtml = edus.map((e) => `<div class="cv-entry"><strong>${esc(e.deg)}</strong><small>${esc(e.org)} • ${esc(e.time)}</small><p>${esc(e.desc)}</p></div>`).join("");
+        const photoTag = photoUrl ? `<img src="${photoUrl}" class="cv-avatar" alt="">` : "";
+
+        if (tpl === "sidebar") {
+          cvPaper.className = "cv-paper cv-tpl-sidebar";
+          cvPaper.innerHTML = `
+            <aside class="cv-side">
+              ${photoTag}
+              <div><h2 style="margin:0;font-size:1.35rem;line-height:1.2">${name}</h2><div style="opacity:.88;font-size:.85rem;margin-top:4px">${title}</div></div>
+              <div><h4>Contact</h4><div style="font-size:.82rem;display:grid;gap:6px"><span>📞 ${phone}</span><span>✉️ ${email}</span><span>📍 ${addr}</span>${web ? `<span>🔗 ${web}</span>` : ""}</div></div>
+              <div><h4>Skills</h4><div>${skills.map((s) => `<span class="cv-skill-tag">${esc(s)}</span>`).join("")}</div></div>
+              <div><h4>Languages</h4><div style="font-size:.84rem">${langs}</div></div>
+            </aside>
+            <section class="cv-main">
+              <div><h3>Profile Summary</h3><p style="margin:0;font-size:.88rem;line-height:1.6;color:#334155">${sum}</p></div>
+              <div><h3>Work Experience</h3>${expHtml}</div>
+              <div><h3>Education</h3>${eduHtml}</div>
+            </section>`;
+        } else {
+          const isClassic = tpl === "classic";
+          cvPaper.className = `cv-paper ${isClassic ? "cv-tpl-classic" : "cv-tpl-minimal"}`;
+          cvPaper.innerHTML = `
+            <div class="${isClassic ? "cv-top" : ""}" style="${!isClassic ? "display:flex;justify-content:space-between;align-items:center;gap:16px" : ""}">
+              <div>
+                ${isClassic && photoUrl ? `<img src="${photoUrl}" class="cv-avatar" style="border-color:var(--cv-accent)">` : ""}
+                <h1 style="margin:0;font-size:1.9rem;color:#0f172a">${name}</h1>
+                <div style="color:var(--cv-accent);font-weight:700;font-size:1rem;margin-top:3px">${title}</div>
+                <div style="font-size:.82rem;color:#475569;margin-top:8px">📞 ${phone} &nbsp;|&nbsp; ✉️ ${email} &nbsp;|&nbsp; 📍 ${addr} ${web ? `&nbsp;|&nbsp; 🔗 ${web}` : ""}</div>
+              </div>
+              ${!isClassic && photoUrl ? `<img src="${photoUrl}" class="cv-avatar" style="margin:0;border-color:var(--cv-accent)">` : ""}
+            </div>
+            <div><h3>Summary</h3><p style="margin:0;font-size:.88rem;line-height:1.6;color:#334155">${sum}</p></div>
+            <div><h3>Experience</h3>${expHtml}</div>
+            <div><h3>Education</h3>${eduHtml}</div>
+            <div><h3>Skills</h3><div>${skills.map((s) => `<span class="cv-skill-tag dark">${esc(s)}</span>`).join("")}</div></div>
+            <div><h3>Languages</h3><p style="margin:0;font-size:.88rem;color:#334155">${langs}</p></div>`;
+        }
+      }
+
+      document.addEventListener("input", (e) => {
+        const t = e.target.dataset.t;
+        if (t === "exp") { exps[Number(e.target.dataset.i)][e.target.dataset.k] = e.target.value; renderPreview(); }
+        else if (t === "edu") { edus[Number(e.target.dataset.i)][e.target.dataset.k] = e.target.value; renderPreview(); }
+        else if (["tplSel", "accentClr", "fName", "fTitle", "fEmail", "fPhone", "fAddr", "fWeb", "fSummary", "fSkills", "fLangs"].includes(e.target.id)) renderPreview();
+      });
+
+      document.addEventListener("click", (e) => {
+        const del = e.target.dataset.del;
+        if (!del) return;
+        const [kind, idx] = del.split(":");
+        if (kind === "exp" && exps.length > 1) { exps.splice(Number(idx), 1); renderEditors(); }
+        if (kind === "edu" && edus.length > 1) { edus.splice(Number(idx), 1); renderEditors(); }
+      });
+
+      document.getElementById("addExpBtn").onclick = () => { exps.push({ role: "New Position", org: "Company Name", time: "2024", desc: "Key responsibilities..." }); renderEditors(); };
+      document.getElementById("addEduBtn").onclick = () => { edus.push({ deg: "Degree / Certificate", org: "Institution", time: "2022", desc: "Result" }); renderEditors(); };
+      document.getElementById("photoInput").onchange = (e) => {
+        const f = e.target.files[0]; if (!f) return;
+        const r = new FileReader(); r.onload = () => { photoUrl = r.result; renderPreview(); }; r.readAsDataURL(f);
+      };
+
+      document.getElementById("printBtn").onclick = () => {
+        const p = document.getElementById("printCV");
+        p.innerHTML = "";
+        const clone = cvPaper.cloneNode(true);
+        p.appendChild(clone);
+        setTimeout(() => window.print(), 200);
+      };
+
+      document.getElementById("dlPdfBtn").onclick = async () => {
+        const st = document.getElementById("cvStatus");
+        if (!window.html2canvas || !window.PDFLib) { st.textContent = "Use 'Print / Vector PDF' button above to save PDF."; return; }
+        st.textContent = "Generating PDF...";
+        const canvas = await html2canvas(cvPaper, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+        const doc = await PDFLib.PDFDocument.create();
+        const page = doc.addPage([595.28, 841.89]);
+        const imgBytes = await (await fetch(canvas.toDataURL("image/png"))).arrayBuffer();
+        const emb = await doc.embedPng(imgBytes);
+        page.drawImage(emb, { x: 0, y: 0, width: 595.28, height: 841.89 });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([await doc.save()], { type: "application/pdf" }));
+        a.download = "easykity-cv.pdf"; document.body.appendChild(a); a.click(); a.remove();
+        st.textContent = "✓ CV PDF downloaded!";
+      };
+
+      renderEditors();
+    })();
+  </script>
+</body>
+</html>
