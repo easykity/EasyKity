@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>EXTM3U Playlist Creator — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">Developer &amp; Media</p><div class="drawer-links"><a href="m3u-creator.html">EXTM3U Creator</a><a href="../developer-tools/json-formatter.html">JSON Formatter</a><a href="../developer-tools/qr-generator.html">QR Generator</a><a href="../developer-tools/password-generator.html">Password Gen</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-developer">Developer &amp; Media</a> / <span>EXTM3U Playlist Creator</span></nav>
+      <h1>EXTM3U Playlist <span class="gradient-text">Creator</span></h1>
+      <p>Build, organize, and export valid <code>#EXTM3U</code> playlists for your personal or licensed media streams.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <div class="control-box tool-grid-2">
+          <div class="field"><label for="chName">Channel / Track Name</label><input id="chName" type="text" placeholder="e.g. News HD"></div>
+          <div class="field"><label for="chGroup">Group Title (Optional)</label><input id="chGroup" type="text" placeholder="e.g. News, Sports, Music"></div>
+          <div class="field"><label for="chLogo">Logo URL (Optional)</label><input id="chLogo" type="text" placeholder="https://example.com/logo.png"></div>
+          <div class="field"><label for="chUrl">Stream / Media URL</label><input id="chUrl" type="text" placeholder="https://example.com/stream.m3u8"></div>
+        </div>
+        <div class="action-bar">
+          <button id="addBtn" class="primary-btn ripple-target" type="button">+ Add to Playlist</button>
+          <label class="secondary-btn ripple-target" style="cursor:pointer">Import .m3u File <input id="importFile" type="file" accept=".m3u,.m3u8,.txt" hidden></label>
+        </div>
+
+        <div id="errBox" class="alert-box alert-error" hidden></div>
+        <div id="listWrap" class="batch-list"></div>
+
+        <div class="field">
+          <label for="m3uOutput">Generated #EXTM3U Output <span id="itemCount">0 items</span></label>
+          <textarea id="m3uOutput" readonly style="font-family:monospace;min-height:170px"></textarea>
+        </div>
+
+        <div class="action-bar">
+          <button id="downloadBtn" class="primary-btn ripple-target" type="button">Download playlist.m3u ⬇</button>
+          <button id="copyBtn" class="secondary-btn ripple-target" type="button">Copy M3U Text</button>
+          <button id="clearBtn" class="secondary-btn ripple-target" type="button">Clear Playlist</button>
+        </div>
+        <p class="notice" style="margin:0">Note: Only use media streams that you own or have legal permission to play.</p>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const chName = document.getElementById("chName"), chGroup = document.getElementById("chGroup"), chLogo = document.getElementById("chLogo"), chUrl = document.getElementById("chUrl");
+      const outEl = document.getElementById("m3uOutput"), listWrap = document.getElementById("listWrap"), errBox = document.getElementById("errBox");
+      let tracks = [];
+
+      function buildM3U() {
+        let lines = ["#EXTM3U"];
+        tracks.forEach((t) => {
+          const attrs = [];
+          if (t.logo) attrs.push(`tvg-logo="${t.logo}"`);
+          if (t.group) attrs.push(`group-title="${t.group}"`);
+          const attrStr = attrs.length ? " " + attrs.join(" ") : "";
+          lines.push(`#EXTINF:-1${attrStr},${t.name}`);
+          lines.push(t.url);
+        });
+        outEl.value = lines.join("\n");
+        document.getElementById("itemCount").textContent = `${tracks.length} items`;
+      }
+
+      function render() {
+        listWrap.innerHTML = "";
+        tracks.forEach((t, i) => {
+          const row = document.createElement("div");
+          row.className = "batch-item";
+          row.innerHTML = `<div><strong>${i + 1}. ${t.name}</strong> <span class="notice">${t.group ? `[${t.group}]` : ""}</span><div class="notice" style="word-break:break-all">${t.url}</div></div>
+            <button type="button" class="secondary-btn" data-del="${i}">Remove</button>`;
+          listWrap.appendChild(row);
+        });
+        buildM3U();
+      }
+
+      document.getElementById("addBtn").addEventListener("click", () => {
+        if (!chName.value.trim() || !chUrl.value.trim()) {
+          errBox.textContent = "Please enter both Channel/Track Name and Stream URL."; errBox.hidden = false; return;
+        }
+        errBox.hidden = true;
+        tracks.push({ name: chName.value.trim(), group: chGroup.value.trim(), logo: chLogo.value.trim(), url: chUrl.value.trim() });
+        chName.value = ""; chUrl.value = "";
+        render();
+      });
+
+      listWrap.addEventListener("click", (e) => {
+        if (e.target.dataset.del !== undefined) { tracks.splice(Number(e.target.dataset.del), 1); render(); }
+      });
+
+      document.getElementById("importFile").addEventListener("change", async (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        const text = await f.text();
+        const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+        for (let i = 0; i < lines.length; i++) {
+          if (lines[i].startsWith("#EXTINF")) {
+            const name = lines[i].split(",").slice(1).join(",").trim() || "Untitled";
+            const group = (lines[i].match(/group-title="([^"]*)"/) || [])[1] || "";
+            const logo = (lines[i].match(/tvg-logo="([^"]*)"/) || [])[1] || "";
+            const url = lines[i + 1] && !lines[i + 1].startsWith("#") ? lines[i + 1] : "";
+            if (url) tracks.push({ name, group, logo, url });
+          }
+        }
+        render();
+      });
+
+      document.getElementById("downloadBtn").addEventListener("click", () => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([outEl.value], { type: "audio/x-mpegurl" }));
+        a.download = "easykity-playlist.m3u"; a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+      });
+
+      document.getElementById("copyBtn").addEventListener("click", async () => {
+        await navigator.clipboard.writeText(outEl.value);
+        document.getElementById("copyBtn").textContent = "Copied! ✓";
+        setTimeout(() => document.getElementById("copyBtn").textContent = "Copy M3U Text", 1400);
+      });
+
+      document.getElementById("clearBtn").addEventListener("click", () => { tracks = []; render(); });
+      render();
+    })();
+  </script>
+</body>
+</html>
