@@ -1,14 +1,26 @@
+:root {
+  --brand: #315eeb;
+  --brand2: #8b5cf6;
+  --accent: #18c8ef;
+  --ink: #111827;
+  --muted: #667085;
+  --bg: #f4f7fc;
+  --surface: #ffffff;
+  --surface-2: #f8faff;
+  --line: #e2e8f4;
+  --soft: #eef2ff;
+  --shadow: 0 14px 36px rgba(17, 24, 39, 0.08);
+  --net-color: 49, 94, 235;
+}
 
-:root[data-theme="dark"]{--ink:#eef2ff;--muted:#a7b1c5;--bg:#0c1220;--surface:#151e30;--line:#29354a;--soft:#1c2a48;--shadow:0 18px 55px rgba(0,0,0,.24)}
-:root[data-theme="dark"] body{background:var(--bg);color:var(--ink)}
-:root[data-theme="dark"] .site-header{background:rgba(12,18,32,.9);border-color:#263247}
-:root[data-theme="dark"] .nav-links{color:#c1cbe0}
-:root[data-theme="dark"] .icon-btn,:root[data-theme="dark"] .menu-btn,:root[data-theme="dark"] .secondary-btn,:root[data-theme="dark"] .search-panel{background:var(--surface);color:var(--ink);border-color:var(--line)}
-:root[data-theme="dark"] .hero{background:radial-gradient(ellipse at 82% 5%,#1d2a50 0,transparent 34%),radial-gradient(ellipse at 5% 35%,#102b3c 0,transparent 30%)}
-:root[data-theme="dark"] .page-hero{background:radial-gradient(ellipse at 85% 0,#1d2a50,transparent 36%)}
-:root[data-theme="dark"] .eyebrow{background:#1d2b4d;color:#a9bdff}
-:root[data-theme="dark"] .category-pill,:root[data-theme="dark"] .feature-item{background:#182338;border-color:var(--line);color:var(--ink)}
-:root[data-theme="dark"] .field input,:root[data-theme="dark"] .field textarea{background:#101a2b;border-color:#344158;color:#fff}
-:root[data-theme="dark"] .field label{color:#d7def0}
-:root[data-theme="dark"] .nav-links.open{background:#111b2c;border-color:var(--line)}
-:root[data-theme="dark"] .nav-links a{border-color:#29354a}
+:root[data-theme="dark"] {
+  --ink: #eef2ff;
+  --muted: #9aa7c0;
+  --bg: #090e1a;
+  --surface: #121a2c;
+  --surface-2: #172137;
+  --line: #24314a;
+  --soft: #1a2744;
+  --shadow: 0 18px 45px rgba(0, 0, 0, 0.38);
+  --net-color: 96, 165, 250;
+}
