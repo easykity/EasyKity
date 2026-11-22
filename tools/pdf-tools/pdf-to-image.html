@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PDF to Image — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">PDF Tools</p><div class="drawer-links"><a href="pdf-to-image.html">PDF to Image</a><a href="pdf-merger.html">PDF Merger</a><a href="image-to-pdf.html">Image to PDF</a><a href="invoice-maker.html">Invoice Maker</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-pdf">PDF &amp; Docs</a> / <span>PDF to Image</span></nav>
+      <h1>PDF to <span class="gradient-text">Image</span></h1>
+      <p>Render every page of a PDF file into high-resolution PNG or JPG images in your browser.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <div class="control-box tool-grid-2">
+          <div class="field"><label for="outFmt">Image Format</label><select id="outFmt"><option value="image/png">PNG (Sharp text)</option><option value="image/jpeg">JPG (Smaller file)</option></select></div>
+          <div class="field"><label for="scaleSel">Resolution Quality</label><select id="scaleSel"><option value="1.5">Standard (1.5x)</option><option value="2" selected>High (2x HD)</option><option value="3">Ultra (3x)</option></select></div>
+        </div>
+        <label class="dropzone" id="dropzone">
+          <input id="pdfFile" type="file" accept="application/pdf">
+          <div class="dropzone-icon">📄</div>
+          <strong>Select a PDF file</strong>
+          <span>Pages are rendered locally — nothing is uploaded</span>
+        </label>
+        <div id="errBox" class="alert-box alert-error" hidden></div>
+        <div id="statusText" class="notice" hidden></div>
+        <div id="pagesGrid" class="tool-grid-2"></div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const pdfInput = document.getElementById("pdfFile"), dropzone = document.getElementById("dropzone");
+      const pagesGrid = document.getElementById("pagesGrid"), errBox = document.getElementById("errBox"), statusText = document.getElementById("statusText");
+      const outFmt = document.getElementById("outFmt"), scaleSel = document.getElementById("scaleSel");
+      let currentFile = null;
+
+      if (window.pdfjsLib) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      }
+
+      async function renderPDF(file) {
+        if (!file) return;
+        if (!window.pdfjsLib) { errBox.textContent = "PDF engine failed to load. Please check your internet connection."; errBox.hidden = false; return; }
+        if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+          errBox.textContent = "Please choose a valid .pdf file."; errBox.hidden = false; return;
+        }
+        errBox.hidden = true; pagesGrid.innerHTML = "";
+        statusText.textContent = "Rendering PDF pages..."; statusText.hidden = false;
+        try {
+          const data = new Uint8Array(await file.arrayBuffer());
+          const pdf = await pdfjsLib.getDocument({ data }).promise;
+          const mime = outFmt.value, ext = mime === "image/png" ? "png" : "jpg", scale = Number(scaleSel.value);
+          statusText.textContent = `Total Pages: ${pdf.numPages}`;
+
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const vp = page.getViewport({ scale });
+            const canvas = document.createElement("canvas");
+            canvas.width = vp.width; canvas.height = vp.height;
+            const ctx = canvas.getContext("2d");
+            if (mime === "image/jpeg") { ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, vp.width, vp.height); }
+            await page.render({ canvasContext: ctx, viewport: vp }).promise;
+
+            const dataUrl = canvas.toDataURL(mime, 0.92);
+            const card = document.createElement("div");
+            card.className = "control-box tool-layout";
+            card.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><strong>Page ${i}</strong><a class="primary-btn ripple-target" href="${dataUrl}" download="page-${i}.${ext}">Download ${ext.toUpperCase()} ⬇</a></div>
+              <div class="preview-stage" style="min-height:140px"><img src="${dataUrl}" alt="Page ${i}"></div>`;
+            pagesGrid.appendChild(card);
+          }
+        } catch (err) {
+          errBox.textContent = "Could not read this PDF file (it may be password-protected)."; errBox.hidden = false;
+        }
+      }
+
+      pdfInput.addEventListener("change", () => { currentFile = pdfInput.files[0]; renderPDF(currentFile); });
+      ["dragenter", "dragover"].forEach((e) => dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.add("dragover"); }));
+      ["dragleave", "drop"].forEach((e) => dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.remove("dragover"); }));
+      dropzone.addEventListener("drop", (e) => { currentFile = e.dataTransfer.files[0]; renderPDF(currentFile); });
+      outFmt.addEventListener("change", () => { if (currentFile) renderPDF(currentFile); });
+      scaleSel.addEventListener("change", () => { if (currentFile) renderPDF(currentFile); });
+    })();
+  </script>
+</body>
+</html>
