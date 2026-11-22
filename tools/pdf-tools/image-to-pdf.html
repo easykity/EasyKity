@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Image to PDF — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">PDF Tools</p><div class="drawer-links"><a href="pdf-to-image.html">PDF to Image</a><a href="pdf-merger.html">PDF Merger</a><a href="image-to-pdf.html">Image to PDF</a><a href="invoice-maker.html">Invoice Maker</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-pdf">PDF &amp; Docs</a> / <span>Image to PDF</span></nav>
+      <h1>Image to <span class="gradient-text">PDF</span></h1>
+      <p>Convert one or more JPG, PNG, or WebP images into a clean PDF document.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <div class="control-box tool-grid-2">
+          <div class="field"><label for="pageSize">Page Size</label><select id="pageSize"><option value="a4">A4 (Standard)</option><option value="letter">US Letter</option><option value="fit">Fit to Image Size</option></select></div>
+          <div class="field"><label for="marginSel">Page Margin</label><select id="marginSel"><option value="24">Small Margin</option><option value="0">No Margin (Full bleed)</option></select></div>
+        </div>
+        <label class="dropzone" id="dropzone">
+          <input id="imgFiles" type="file" accept="image/*" multiple>
+          <div class="dropzone-icon">🖼️</div>
+          <strong>Select images to convert to PDF</strong>
+          <span>Click or drop PNG, JPG, WebP files</span>
+        </label>
+        <div id="errBox" class="alert-box alert-error" hidden></div>
+        <div id="imgList" class="batch-list"></div>
+        <div id="actions" class="action-bar" hidden>
+          <button id="buildBtn" class="primary-btn ripple-target" type="button">Create &amp; Download PDF ⬇</button>
+          <button id="clearBtn" class="secondary-btn ripple-target" type="button">Clear Images</button>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const input = document.getElementById("imgFiles"), dropzone = document.getElementById("dropzone");
+      const listEl = document.getElementById("imgList"), actions = document.getElementById("actions"), errBox = document.getElementById("errBox");
+      let items = [];
+
+      function render() {
+        listEl.innerHTML = "";
+        items.forEach((item, idx) => {
+          const row = document.createElement("div");
+          row.className = "batch-item";
+          row.innerHTML = `<div class="batch-info"><img src="${item.url}" alt=""><strong>${idx + 1}. ${item.file.name}</strong></div>
+            <div class="action-bar">
+              <button type="button" class="secondary-btn" data-up="${idx}" ${idx === 0 ? "disabled" : ""}>↑</button>
+              <button type="button" class="secondary-btn" data-down="${idx}" ${idx === items.length - 1 ? "disabled" : ""}>↓</button>
+              <button type="button" class="secondary-btn" data-del="${idx}">✕</button>
+            </div>`;
+          listEl.appendChild(row);
+        });
+        actions.hidden = items.length === 0;
+      }
+
+      function addFiles(flist) {
+        errBox.hidden = true;
+        const valid = [...flist].filter((f) => f.type.startsWith("image/"));
+        if (!valid.length) { errBox.textContent = "Please choose valid image files."; errBox.hidden = false; return; }
+        valid.forEach((file) => items.push({ file, url: URL.createObjectURL(file) }));
+        render();
+      }
+
+      input.addEventListener("change", () => { addFiles(input.files); input.value = ""; });
+      ["dragenter", "dragover"].forEach((e) => dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.add("dragover"); }));
+      ["dragleave", "drop"].forEach((e) => dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.remove("dragover"); }));
+      dropzone.addEventListener("drop", (e) => addFiles(e.dataTransfer.files));
+
+      listEl.addEventListener("click", (e) => {
+        const up = e.target.dataset.up, down = e.target.dataset.down, del = e.target.dataset.del;
+        if (up !== undefined) { const i = Number(up); [items[i - 1], items[i]] = [items[i], items[i - 1]]; render(); }
+        if (down !== undefined) { const i = Number(down); [items[i + 1], items[i]] = [items[i], items[i + 1]]; render(); }
+        if (del !== undefined) { URL.revokeObjectURL(items[Number(del)].url); items.splice(Number(del), 1); render(); }
+      });
+
+      function toPngBytes(url) {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            const c = document.createElement("canvas");
+            c.width = img.width; c.height = img.height;
+            c.getContext("2d").drawImage(img, 0, 0);
+            c.toBlob(async (b) => resolve({ bytes: await b.arrayBuffer(), w: img.width, h: img.height }), "image/png");
+          };
+          img.src = url;
+        });
+      }
+
+      document.getElementById("buildBtn").addEventListener("click", async () => {
+        if (!window.PDFLib) { errBox.textContent = "PDF library failed to load."; errBox.hidden = false; return; }
+        const doc = await PDFLib.PDFDocument.create();
+        const mode = document.getElementById("pageSize").value;
+        const margin = Number(document.getElementById("marginSel").value);
+
+        for (const it of items) {
+          const { bytes, w, h } = await toPngBytes(it.url);
+          const embedded = await doc.embedPng(bytes);
+          let pw = w, ph = h;
+          if (mode === "a4") { pw = 595.28; ph = 841.89; }
+          if (mode === "letter") { pw = 612; ph = 792; }
+          const page = doc.addPage([pw, ph]);
+          const maxW = pw - margin * 2, maxH = ph - margin * 2;
+          const scale = Math.min(maxW / w, maxH / h);
+          const dw = w * scale, dh = h * scale;
+          page.drawImage(embedded, { x: (pw - dw) / 2, y: (ph - dh) / 2, width: dw, height: dh });
+        }
+
+        const out = await doc.save();
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([out], { type: "application/pdf" }));
+        a.download = "easykity-images.pdf"; a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+      });
+
+      document.getElementById("clearBtn").addEventListener("click", () => {
+        items.forEach((i) => URL.revokeObjectURL(i.url)); items = []; render();
+      });
+    })();
+  </script>
+</body>
+</html>
