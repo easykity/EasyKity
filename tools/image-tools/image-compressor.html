@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Image Compressor — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <link rel="stylesheet" href="../../assets/css/themes.css">
+  <link rel="stylesheet" href="../../assets/css/responsive.css">
+  <link rel="stylesheet" href="../../assets/css/tools-common.css">
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation">
+        <a href="../../index.html">Home</a>
+        <a class="active" href="../../index.html#tools">Tools</a>
+        <a href="../../about.html">About</a>
+        <a href="../../contact.html">Contact</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false">
+          <span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span>
+        </button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden>
+      <div class="container drawer-inner">
+        <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+        <div class="drawer-col"><p class="drawer-title">Image Tools</p><div class="drawer-links"><a href="image-resizer.html">Image Resize</a><a href="image-editor.html">Image Edit</a><a href="image-converter.html">Format Converter</a><a href="image-compressor.html">Compressor</a></div></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero">
+      <div class="container">
+        <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-image">Image Tools</a> / <span>Image Compressor</span></nav>
+        <h1>Image <span class="gradient-text">Compressor</span></h1>
+        <p>Shrink image file size cleanly while keeping crisp visual quality.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="tool-workspace tool-layout">
+          <label class="dropzone" id="dropzone">
+            <input id="fileInput" type="file" accept="image/*">
+            <div class="dropzone-icon">🗜️</div>
+            <strong>Select an image to compress</strong>
+            <span>Supports JPG, PNG, WebP</span>
+          </label>
+
+          <div id="errBox" class="alert-box alert-error" hidden></div>
+
+          <div id="workspace" class="tool-layout" hidden>
+            <div class="stat-row">
+              <div class="stat-card"><small>Original Size</small><strong id="origSize">-</strong></div>
+              <div class="stat-card"><small>Compressed Size</small><strong id="compSize">-</strong></div>
+              <div class="stat-card"><small>Space Saved</small><strong id="savedPct" style="color:#10b981">-</strong></div>
+            </div>
+
+            <div class="control-box tool-grid-3">
+              <div class="field">
+                <label for="qRange">Compression Quality <span id="qVal">75%</span></label>
+                <input id="qRange" type="range" min="10" max="95" value="75">
+              </div>
+              <div class="field">
+                <label for="maxWidth">Max Width</label>
+                <select id="maxWidth">
+                  <option value="0">Keep Original</option>
+                  <option value="1920">1920 px (Full HD)</option>
+                  <option value="1280">1280 px (Web)</option>
+                  <option value="800">800 px (Small)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="outFmt">Format</label>
+                <select id="outFmt">
+                  <option value="image/jpeg">JPG (Smallest photo)</option>
+                  <option value="image/webp">WebP (Best modern)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="preview-stage"><img id="previewImg" alt="Compressed preview"></div>
+
+            <div class="action-bar">
+              <a id="downloadLink" class="primary-btn ripple-target" download="easykity-compressed.jpg">Download Compressed Image ⬇</a>
+              <button id="resetBtn" class="secondary-btn ripple-target" type="button">Choose Another</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0">
+        <span>© <span data-year></span> EasyKity. All rights reserved.</span>
+        <span><a href="../../index.html#tools">← Back to All Tools</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const fileInput = document.getElementById("fileInput");
+      const dropzone = document.getElementById("dropzone");
+      const workspace = document.getElementById("workspace");
+      const errBox = document.getElementById("errBox");
+      const qRange = document.getElementById("qRange");
+      const qVal = document.getElementById("qVal");
+      const maxWidth = document.getElementById("maxWidth");
+      const outFmt = document.getElementById("outFmt");
+      const previewImg = document.getElementById("previewImg");
+      const downloadLink = document.getElementById("downloadLink");
+
+      let img = new Image(), originalBytes = 0, outUrl = "", srcUrl = "";
+      const fmtBytes = (b) => b < 1024 * 1024 ? `${(b / 1024).toFixed(1)} KB` : `${(b / (1024 * 1024)).toFixed(2)} MB`;
+
+      function compress() {
+        if (!img.width) return;
+        const limit = Number(maxWidth.value);
+        let w = img.width, h = img.height;
+        if (limit > 0 && w > limit) {
+          h = Math.round((h * limit) / w);
+          w = limit;
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (outFmt.value === "image/jpeg") { ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h); }
+        ctx.drawImage(img, 0, 0, w, h);
+
+        canvas.toBlob((blob) => {
+          if (!blob) return;
+          if (outUrl) URL.revokeObjectURL(outUrl);
+          outUrl = URL.createObjectURL(blob);
+          previewImg.src = outUrl;
+          downloadLink.href = outUrl;
+          downloadLink.download = outFmt.value === "image/webp" ? "easykity-compressed.webp" : "easykity-compressed.jpg";
+
+          document.getElementById("origSize").textContent = fmtBytes(originalBytes);
+          document.getElementById("compSize").textContent = fmtBytes(blob.size);
+          const pct = Math.round(((originalBytes - blob.size) / originalBytes) * 100);
+          document.getElementById("savedPct").textContent = pct >= 0 ? `${pct}% smaller` : `+${Math.abs(pct)}% larger`;
+        }, outFmt.value, Number(qRange.value) / 100);
+      }
+
+      function loadFile(file) {
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+          errBox.textContent = "Please select a valid image file.";
+          errBox.hidden = false;
+          return;
+        }
+        errBox.hidden = true;
+        originalBytes = file.size;
+        if (srcUrl) URL.revokeObjectURL(srcUrl);
+        srcUrl = URL.createObjectURL(file);
+        img = new Image();
+        img.onload = () => {
+          workspace.hidden = false;
+          compress();
+        };
+        img.src = srcUrl;
+      }
+
+      fileInput.addEventListener("change", () => loadFile(fileInput.files[0]));
+      ["dragenter", "dragover"].forEach((ev) => dropzone.addEventListener(ev, (e) => { e.preventDefault(); dropzone.classList.add("dragover"); }));
+      ["dragleave", "drop"].forEach((ev) => dropzone.addEventListener(ev, (e) => { e.preventDefault(); dropzone.classList.remove("dragover"); }));
+      dropzone.addEventListener("drop", (e) => loadFile(e.dataTransfer.files[0]));
+
+      qRange.addEventListener("input", () => { qVal.textContent = `${qRange.value}%`; compress(); });
+      maxWidth.addEventListener("change", compress);
+      outFmt.addEventListener("change", compress);
+
+      document.getElementById("resetBtn").addEventListener("click", () => {
+        fileInput.value = "";
+        workspace.hidden = true;
+      });
+    })();
+  </script>
+</body>
+</html>
