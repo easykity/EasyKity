@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Wi-Fi QR Code Maker — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+  <style>
+    [hidden]{display:none!important}
+    .wifi-card {
+      background: #fff; color: #111827; border-radius: 18px; padding: 24px; text-align: center;
+      border: 1px solid #cbd5e1; max-width: 340px; margin: auto; display: grid; gap: 10px;
+    }
+    @media print {
+      body { background: #fff !important; }
+      body > *:not(#printWifi) { display: none !important; }
+      #printWifi { display: grid !important; place-items: center; min-height: 90vh; }
+    }
+    #printWifi { display: none; }
+  </style>
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">Creator &amp; Media</p><div class="drawer-links"><a href="wifi-qr-generator.html">Wi-Fi QR Maker</a><a href="focus-timer.html">Focus Timer</a><a href="../entertainment-tools/screen-recorder.html">Screen Recorder</a><a href="../entertainment-tools/youtube-thumbnail.html">YT Thumbnail</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-developer">Developer &amp; Media</a> / <span>Wi-Fi QR Code Maker</span></nav>
+      <h1>Wi-Fi QR <span class="gradient-text">Code Maker</span></h1>
+      <p>Let guests scan your QR code with their phone camera to connect to Wi-Fi automatically without typing the password.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-grid-2" style="align-items:start">
+        <div class="control-box tool-layout">
+          <div class="field"><label for="ssid">Wi-Fi Name (SSID)</label><input id="ssid" type="text" value="MyHome_WiFi" placeholder="Enter Wi-Fi name"></div>
+          <div class="field" id="pwWrap">
+            <label for="pw">Wi-Fi Password <button type="button" id="togglePw" class="secondary-btn" style="padding:2px 8px;font-size:.74rem">Show</button></label>
+            <input id="pw" type="password" value="12345678" placeholder="Enter Wi-Fi password">
+          </div>
+          <div class="tool-grid-2">
+            <div class="field"><label for="enc">Security Type</label><select id="enc"><option value="WPA" selected>WPA / WPA2 / WPA3</option><option value="WEP">WEP</option><option value="nopass">Open (No Password)</option></select></div>
+            <div class="field"><label for="qrClr">QR Color</label><input id="qrClr" type="color" value="#111827" style="height:44px;width:100%;border-radius:10px;border:1px solid var(--line)"></div>
+          </div>
+          <label class="check-row"><input id="hiddenNet" type="checkbox"> Hidden Wi-Fi Network</label>
+          <div class="action-bar">
+            <button id="dlBtn" type="button" class="primary-btn ripple-target">⬇ Download QR PNG</button>
+            <button id="printBtn" type="button" class="secondary-btn ripple-target">🖨️ Print Wi-Fi Card</button>
+          </div>
+        </div>
+
+        <div class="wifi-card" id="wifiCard">
+          <div style="font-weight:800;font-size:1.15rem;color:#315eeb">📶 Scan to Join Wi-Fi</div>
+          <canvas id="qrCanvas" style="margin:auto"></canvas>
+          <div style="font-size:.9rem"><strong>Network:</strong> <span id="lblSsid" class="allow-copy">MyHome_WiFi</span></div>
+          <div id="lblPwRow" style="font-size:.86rem;color:#475569">Password: <span id="lblPw" class="allow-copy">••••••••</span></div>
+        </div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+  <div id="printWifi"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const ssid = document.getElementById("ssid"), pw = document.getElementById("pw"), enc = document.getElementById("enc");
+      const hiddenNet = document.getElementById("hiddenNet"), qrClr = document.getElementById("qrClr"), canvas = document.getElementById("qrCanvas");
+      const escWifi = (s) => s.replace(/([\\;,:"])/g, "\\$1");
+      let showPw = false;
+
+      function draw() {
+        const type = enc.value;
+        document.getElementById("pwWrap").hidden = type === "nopass";
+        document.getElementById("lblPwRow").hidden = type === "nopass";
+        const sVal = ssid.value.trim() || "WiFi";
+        const pVal = type === "nopass" ? "" : pw.value;
+        document.getElementById("lblSsid").textContent = sVal;
+        document.getElementById("lblPw").textContent = showPw ? pVal : "•".repeat(Math.max(6, pVal.length));
+
+        const payload = `WIFI:T:${type};S:${escWifi(sVal)};P:${escWifi(pVal)};H:${hiddenNet.checked ? "true" : "false"};;`;
+        if (window.QRious) {
+          new QRious({ element: canvas, value: payload, size: 220, foreground: qrClr.value, background: "#ffffff", level: "M" });
+        }
+      }
+
+      document.getElementById("togglePw").onclick = () => {
+        showPw = !showPw;
+        pw.type = showPw ? "text" : "password";
+        document.getElementById("togglePw").textContent = showPw ? "Hide" : "Show";
+        draw();
+      };
+      [ssid, pw, enc, hiddenNet, qrClr].forEach((el) => el.addEventListener("input", draw));
+      document.getElementById("dlBtn").onclick = () => {
+        const a = document.createElement("a");
+        a.href = canvas.toDataURL("image/png"); a.download = `wifi-qr-${ssid.value || "network"}.png`; a.click();
+      };
+      document.getElementById("printBtn").onclick = () => {
+        const p = document.getElementById("printWifi");
+        p.innerHTML = "";
+        const clone = document.getElementById("wifiCard").cloneNode(true);
+        const origC = canvas, cloneC = clone.querySelector("canvas");
+        cloneC.width = origC.width; cloneC.height = origC.height;
+        cloneC.getContext("2d").drawImage(origC, 0, 0);
+        p.appendChild(clone);
+        setTimeout(() => window.print(), 150);
+      };
+      draw();
+    })();
+  </script>
+</body>
+</html>
