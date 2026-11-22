@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("easykity-theme")||"dark";</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>YouTube Thumbnail Downloader — EasyKity</title>
+  <link rel="icon" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../assets/css/style.css"><link rel="stylesheet" href="../../assets/css/themes.css"><link rel="stylesheet" href="../../assets/css/responsive.css"><link rel="stylesheet" href="../../assets/css/tools-common.css">
+  <style>[hidden]{display:none!important}</style>
+</head>
+<body>
+  <canvas id="ek-network-bg" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/favicon.png" width="40" height="40" alt="EasyKity logo"><span>EasyKity</span></a>
+      <nav class="nav-links" data-nav-links aria-label="Main navigation"><a href="../../index.html">Home</a><a class="active" href="../../index.html#tools">Tools</a><a href="../../about.html">About</a><a href="../../contact.html">Contact</a></nav>
+      <div class="nav-actions">
+        <button class="icon-btn ripple-target" type="button" data-theme-toggle aria-label="Toggle theme">☀️</button>
+        <button class="menu-btn ripple-target" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      </div>
+    </div>
+    <div class="quick-drawer" data-quick-drawer hidden><div class="container drawer-inner">
+      <div class="drawer-col"><p class="drawer-title">Navigation</p><div class="drawer-links"><a href="../../index.html">🏠 Home</a><a href="../../index.html#tools">🧰 All Tools</a><a href="../../about.html">ℹ️ About</a><a href="../../contact.html">✉️ Contact</a></div></div>
+      <div class="drawer-col"><p class="drawer-title">Creator &amp; Media</p><div class="drawer-links"><a href="screen-recorder.html">Screen Recorder</a><a href="youtube-thumbnail.html">YT Thumbnail</a><a href="media-player.html">Media Player</a><a href="../developer-tools/wifi-qr-generator.html">Wi-Fi QR</a><a href="../developer-tools/focus-timer.html">Focus Timer</a></div></div>
+    </div></div>
+  </header>
+
+  <main class="main-shell">
+    <section class="page-hero"><div class="container">
+      <nav class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#cat-developer">Developer &amp; Media</a> / <span>YouTube Thumbnail Downloader</span></nav>
+      <h1>YouTube Thumbnail <span class="gradient-text">Downloader</span></h1>
+      <p>Paste any YouTube video or Shorts link to preview and download HD / 4K, SD, and HQ thumbnails.</p>
+    </div></section>
+
+    <section class="section"><div class="container">
+      <div class="tool-workspace tool-layout">
+        <div class="control-box" style="display:flex;gap:10px;flex-wrap:wrap">
+          <input id="ytUrl" type="text" class="allow-copy" placeholder="Paste YouTube URL (e.g. https://youtu.be/dQw4w9WgXcQ)" style="flex:1 1 260px;min-height:44px;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink)">
+          <button id="getBtn" type="button" class="primary-btn ripple-target">Get Thumbnails ⬇</button>
+        </div>
+
+        <div id="errBox" class="alert-box alert-error" hidden></div>
+        <div id="thumbsGrid" class="tool-grid-2"></div>
+      </div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container"><div class="footer-bottom" style="margin-top:0;border-top:0;padding-top:0"><span>© <span data-year></span> EasyKity.</span><span><a href="../../index.html#tools">← Back to All Tools</a></span></div></div></footer>
+
+  <script src="../../assets/js/theme.js"></script><script src="../../assets/js/app.js"></script>
+  <script>
+    (() => {
+      const ytUrl = document.getElementById("ytUrl"), errBox = document.getElementById("errBox"), grid = document.getElementById("thumbsGrid");
+
+      function extractId(url) {
+        const clean = url.trim();
+        if (/^[a-zA-Z0-9_-]{11}$/.test(clean)) return clean;
+        const m = clean.match(/(?:v=|youtu\.be\/|shorts\/|embed\/|live\/)([a-zA-Z0-9_-]{11})/);
+        return m ? m[1] : null;
+      }
+
+      async function forceDownload(url, filename) {
+        try {
+          const res = await fetch(url);
+          const blob = await res.blob();
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+          setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+        } catch (_) {
+          window.open(url, "_blank", "noopener");
+        }
+      }
+
+      document.getElementById("getBtn").onclick = () => {
+        const id = extractId(ytUrl.value);
+        if (!id) { errBox.textContent = "Please enter a valid YouTube video or Shorts URL."; errBox.hidden = false; grid.innerHTML = ""; return; }
+        errBox.hidden = true; grid.innerHTML = "";
+
+        const sizes = [
+          ["HD / 4K MaxRes (1280×720)", `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`],
+          ["Standard Definition (640×480)", `https://i.ytimg.com/vi/${id}/sddefault.jpg`],
+          ["High Quality (480×360)", `https://i.ytimg.com/vi/${id}/hqdefault.jpg`],
+          ["Medium Quality (320×180)", `https://i.ytimg.com/vi/${id}/mqdefault.jpg`]
+        ];
+
+        sizes.forEach(([label, url]) => {
+          const card = document.createElement("div");
+          card.className = "control-box tool-layout";
+          card.innerHTML = `<strong>${label}</strong>
+            <div class="preview-stage" style="min-height:150px;padding:8px"><img src="${url}" alt="${label}"></div>
+            <div class="action-bar">
+              <button type="button" class="primary-btn ripple-target">Download JPG ⬇</button>
+              <a href="${url}" target="_blank" rel="noopener" class="secondary-btn">Open Image ↗</a>
+            </div>`;
+          card.querySelector("button").onclick = () => forceDownload(url, `yt-${id}.jpg`);
+          grid.appendChild(card);
+        });
+      };
+    })();
+  </script>
+</body>
+</html>
